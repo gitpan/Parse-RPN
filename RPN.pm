@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.01 2004/08/29 11:56:06 fabrice Exp $
-# $Revision: 2.01 $
+# $Id: RPN.pm,v 2.3 2004/08/29 17:43:08 fabrice Exp $
+# $Revision: 2.3 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = (q$Revision: 2.01 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+$VERSION = do { my @rev = (q$Revision: 2.3 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -708,7 +708,7 @@ $dict{ 'NORM' } = sub {
     $a = sprintf "%.2f", $a;
     my $ret = "$a $EXP[$exp]";
     my @ret;
-    push @ret, $ret;
+    push @ret, "'" . $ret . "'";
     return \@ret, 1;
 };
 
@@ -732,7 +732,7 @@ $dict{ 'NORM2' } = sub {
     $a = sprintf "%.2f", $a;
     my $ret = "$a $EXP[$exp]";
     my @ret;
-    push @ret, $ret;
+    push @ret, "'" . $ret . "'";
     return \@ret, 1;
 };
 
@@ -874,7 +874,7 @@ $dict{ 'CAT' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( "'".$b . $a. "'" );
+    push @ret, ( "'" . $b . $a . "'" );
     return \@ret, 2;
 };
 
@@ -1609,7 +1609,6 @@ $dict{ 'R@' } = sub {
     return \@ret, 0;
 };
 
-
 ########################
 # loop operators
 ########################
@@ -1787,9 +1786,9 @@ $dict{ '+LOOP' } = sub {
     my $b   = pop @pre;
     my $c   = pop @pre;
     my $a   = pop @BLOCK;
-    print "a=$a b=$b c=$c\n";
     my $ind = $b;
     my @ret;
+
     if ( $a < 0 )
     {
         if ( $ind >= $c )
@@ -1804,7 +1803,7 @@ $dict{ '+LOOP' } = sub {
                 }
             }
             process( \@BLOCK );
-            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK,$a, "+LOOP";
+            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK, $a, "+LOOP";
         }
     }
     else
@@ -1821,7 +1820,7 @@ $dict{ '+LOOP' } = sub {
                 }
             }
             process( \@BLOCK );
-            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK,$a, "+LOOP";
+            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK, $a, "+LOOP";
         }
     }
     return \@pre, $len + 1, 2;
@@ -1890,8 +1889,14 @@ sub process
     {
         my $op        = shift @{ $stack };
         my $is_string = 0;
-        $op =~ s/^\s+//g;
-        $op =~ s/\s+$//g;
+        my $tmp_op    = $op;
+        $tmp_op =~ s/^\s+//g;
+        $tmp_op =~ s/\s+$//g;
+        if ( exists( $dict{ $tmp_op } ) || exists( $var{ $tmp_op } ))
+        {
+            $op =~ s/^\s+//g;
+            $op =~ s/\s+$//g;
+        }
         if ( ( $op =~ /^VARIABLE$/g ) )
         {
             push @work, shift @{ $stack };
@@ -1995,11 +2000,12 @@ sub process
                     push @work, $op;
                 }
             }
-        }else
-	{
-	push @work, $op;
-	}
-	
+        }
+        else
+        {
+            push @work, $op;
+        }
+
     }
     unshift @{ $stack }, @work;
 }

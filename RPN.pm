@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.3 2004/08/29 17:43:08 fabrice Exp $
-# $Revision: 2.3 $
+# $Id: RPN.pm,v 2.4 2004/09/30 15:38:51 fabrice Exp $
+# $Revision: 2.4 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = (q$Revision: 2.3 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+$VERSION = do { my @rev = (q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -977,6 +977,7 @@ $dict{ 'LCFIRST' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( lcfirst $a );
+    return \@ret, 1;
 };
 
 =head2 a b PAT
@@ -990,9 +991,9 @@ $dict{ 'PAT' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
-    my $r     = ( $b =~ m/$a/g );
+    my @r     = ( $b =~ m/$a/g );
     my @ret;
-    push @ret, $r;
+    push @ret, @r;
     return \@ret, 2;
 };
 

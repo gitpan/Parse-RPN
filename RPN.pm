@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.5 2004/10/01 06:58:49 fabrice Exp $
-# $Revision: 2.5 $
+# $Id: RPN.pm,v 2.7 2004/10/12 10:11:27 fabrice Exp $
+# $Revision: 2.7 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = (q$Revision: 2.5 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+$VERSION = do { my @rev = (q$Revision: 2.7 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1399,7 +1399,7 @@ $dict{ 'GET' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = @{ $work1 }[ -( $a ) ];
     my @tmp   = splice @{ $work1 }, -( $a - 1 );
-    my $b     = pop @{ $work1 };
+    $b     = pop @{ $work1 };
     my @ret;
     push @ret, @tmp, $b;
     return \@ret, 1 + $a;
@@ -1698,7 +1698,6 @@ $dict{ 'R@' } = sub {
 
 $dict{ 'THEN' } = sub {
     my @ret;
-    my @ret;
     my $work1   = shift;
     my $return1 = shift;
     my $b_ref   = pop @{ $return1 };
@@ -1726,7 +1725,6 @@ $dict{ 'THEN' } = sub {
 =cut
 
 $dict{ 'THENELSE' } = sub {
-    my @ret;
     my @ret;
     my $work1   = shift;
     my $return1 = shift;
@@ -1824,9 +1822,9 @@ $dict{ 'LOOP' } = sub {
         my @OLD_BLOCK = @BLOCK;
         for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
         {
-            if ( @BLOCK[$i] =~ /_I_/ )
+            if ( $BLOCK[$i] =~ /_I_/ )
             {
-                @BLOCK[$i] = $ind;
+                $BLOCK[$i] = $ind;
             }
         }
         process( \@BLOCK );
@@ -1867,9 +1865,9 @@ $dict{ '+LOOP' } = sub {
             my @OLD_BLOCK = @BLOCK;
             for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
             {
-                if ( @BLOCK[$i] =~ /_I_/ )
+                if ( $BLOCK[$i] =~ /_I_/ )
                 {
-                    @BLOCK[$i] = $ind;
+                    $BLOCK[$i] = $ind;
                 }
             }
             process( \@BLOCK );
@@ -1884,9 +1882,9 @@ $dict{ '+LOOP' } = sub {
             my @OLD_BLOCK = @BLOCK;
             for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
             {
-                if ( @BLOCK[$i] =~ /_I_/ )
+                if ( $BLOCK[$i] =~ /_I_/ )
                 {
-                    @BLOCK[$i] = $ind;
+                    $BLOCK[$i] = $ind;
                 }
             }
             process( \@BLOCK );
@@ -1925,8 +1923,7 @@ sub parse
 sub rpn
 {
     my $item = shift;
-    my @stack;
-    my $ret;
+    my @stack;   
     while ( $item )
     {
         my $elem;

@@ -1,0 +1,168 @@
+NAME
+
+Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
+
+SYNOPSIS
+
+  use Parse::RPN;
+  $result=rpn(string ...);
+  @results=rpn(string ...);
+
+  string... is a list of RPN operator and value separated by a coma
+  in scalar mode RPN return the result of the calculation (If the stack contain more then one element, 
+  you receive a warning and the top value on the stack)
+  in array mode, you receive the content of the stack after evaluation
+
+DESCRIPTION
+
+  RPN receive in entry a scalar of one or more elements coma separated 
+  and evaluate as an RPN (Reverse Polish Notation) command.
+  The function split all elements and put in the stack.
+  The operator are case insensitive.
+  The operator are detect as is, if they are alone in the element of the stack. 
+  Extra space before or after are allowed
+  (e.g "3,4,ADD" here ADD is an opeartor but it is not the case in "3,4,ADD 1")
+  If element is not part of the predefined operator (dictionary), the element is push as a litteral.
+  If you would like to put a string which is part of the dictionary, put it between quote or double-quote 
+  (e.g "3,4,'ADD'" here ADD is a literal and the evaluation reurn ADD and a warning because the stack is not empty)
+  If the string contain a coma, you need also to quote or double-quote the string. 
+  (be care to close your quoted or double-quoted string)
+
+  The evaluation follow the rule of RPN or FORTH or POSTCRIPT or pockect calcutor HP.
+  Look on web for documentation about the use of RPN notation.
+  
+  I use this module in a application where the final user need to create an maintain 
+  a configuration file with the possibility to do calculation on variable returned from application.
+  
+  The idea of this module is comming from Math::RPN of Owen DeLong, owen@delong.com that I used for more then a year
+  before some of my customer would like more ...
+  I correct a bug (interversion of > and >=), add the STRING function, pattern search and some STACK functions.
+
+OPERATORS
+
+     The operators get value from the stack and push the result on top
+     In the following explanation, the stack is represented as a pair of brackets ()
+     and each elements by a pair of square barcket []
+     The left part is the state before evalutation 
+     and the right part is the state of the stack after evaluation 
+
+	Arithmetic operators
+	---------------------
+            +  | ADD		([a][b])		([a+b])
+            ++ | INCR		([a]) 			([a+1])
+            -  | SUB		([a][b])		([a-b])
+            -- | DECR		([a]) 			([a-1])
+            *  | MUL		([a][b])		([a*b])
+            /  | DIV		([a][b])		([a/b])
+            %  | MOD		([a][b])		([a%b])
+            POW     		([a][b])		([a*a])
+            SQRT    		([a][b])		([SQRT a])
+            ABS     		([a][b])		([ABS a])
+            INT     		([a][b])		([INT a])
+            &  | AND		([a][b])		([a&b])
+            |  | OR		([a][b])		([a|b])
+            XOR		        ([a][b])		([a^b])
+            NOT		        ([a][b])		([NOT a])	Logically negate of [a]
+	    ~  		        ([a][b])		([~ a])		Bitwise complement of [a] 
+	    
+	Rationnal operators
+	-------------------  
+            SIN			([a]) 			([SIN a])
+            COS			([a]) 			([COS a])
+            TAN			([a]) 			([TAN a])
+            LOG		        ([a]) 			([LOG a])
+            EXP		        ([a]) 			([EXP a])
+	    
+	Logical operator
+	----------------
+	    <		       	([a][b])		([1]) if [a]<[b] else ([0])
+	    <=		       	([a][b])		([1]) if [a]<=[b] else ([0])
+	    =  | ==	       	([a][b])		([1]) if [a]==[b] else ([0])
+	    >=		       	([a][b])		([1]) if [a]>=[b] else ([0])
+	    >		       	([a][b])		([1]) if [a]>[b] else ([0])
+	    <=>	     	       	([a][b])		([-1]) if [a]>[b],([1]) if [a]<[b], ([0])if [a]==[b]
+            IF                 	([a][b][c])		([c]) if [a]==0 else ([b])
+	
+	Other operator
+	----------------
+            MIN	     	       	([a][b])		([a]) if  [a]<[b] else ([b]) 
+            MAX		       	([a][b])		([a]) if  [a]>[b] else ([b]) 
+            TIME		()			([time]) time in ticks
+            RAND		()			([rand]) a random numder between 0 and 1
+            LRAND		([a])			([rand]) a random numder between 0 and [a]
+	    
+	String operators
+	----------------
+            EQ	       		([a][b])		([1]) if [a] eq [b] else ([0])
+	    NE	       		([a][b])		([1]) if [a] ne [b] else ([0])
+            LT			([a][b])		([1]) if [a] lt [b] else ([0])
+            GT			([a][b])		([1]) if [a] gt [b] else ([0])
+            LE			([a][b])		([1]) if [a] le [b] else ([0])
+            GE			([a][b])		([1]) if [a] ge [b] else ([0])
+            CMP			([a][b])		([-1]) if [a] gt [b],([1]) if [a] lt [b], ([0])if [a] eq [b]
+            LEN | LENGTH	([a])			([LENGTH a])
+	    CAT			([a][b])		([ab])	String concatenation
+            REP			([a][b])		([a x b]) repeat [b] time the motif [a]
+            SUBSTR		([a][b][c])		([SUBSTR [a], [b], [c])
+            UC			([a])			([UC a])
+            LC			([a])			([LC a])
+            UCFIRST		([a])			([UCFIRST a])
+            LCFIRST		([a])			([LCFIRST a])
+            PAT			([a][b])		([r1]...) use the pattern [b] on the string [a] and return result 
+	    						if more then one result like $1, $2 ... return all the results 
+	    PAT			([a][b])		([r]) use the pattern [b] on the string [a] and return 1 if pattern macth 
+	    						otherwise return 0
+	    
+	 Stack operators
+	 ---------------
+            DEPTH		([r1]...)		([re1]...[nbr])	Return the number of elements in the statck
+            DUP			([a])			([a][a])	
+            SWAP		([a][b])		([b][a])
+            POP			([a][b])		([a])
+            ROT			([a][b][c])     	([b][c][a])
+            ROLL		([a][b][c][d][e][n])	([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
+	    						if  [n] =3 it is equivalent to ROT
+            PICK		([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element [n] on top 
+            PUT			([a][b][c][d][v][n])	([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
+            DU  |DUMP		([a][b][c][d])		() dump the stack in a string, each elements separated by a blank
+	    						This avoid the warning if the stack is not empty and prevent use of array
+            DS |DUMPS           ([a][b][c][d][sep])     () dump the stack in a string, each elements separated by [sep] (could be \n)
+	    						This avoid the warning if the stack is not empty and prevent use of array
+
+
+EXAMPLES
+
+	use Parse::RPN;
+	
+	$test ="3,5,+";
+	$ret = rpn($test);  # $ret = 8
+	
+	$test = "Hello World,len,3,+";
+	$ret = rpn($test);  # $ret = 14
+	
+	$test = "'Hello,World',len,3,+";
+	$ret = rpn($test);  # $ret = 14
+	
+	$test = "'Hello,World,len,3,+";
+	---------^-----------^-
+	$ret = rpn($test);  # $ret = 8 with a warning because the stack is not empty ([Hello] [8])
+			    # be care to close your quoted string 
+	
+	$test = "'Hello,world',',',pat,',',eq,'Contain a coma','Without a coma',if"
+	$ret = rpn($test);  # $ret = "Contain a coma"
+	
+	$test = "'Hello world',',',pat,',',eq,'Contain a coma','Without a coma',if"
+	$ret = rpn($test);  # $ret = "Without a coma"
+	
+	
+
+AUTHOR
+
+	Fabrice Dulaunoy <fabrice@dulaunoy.com>
+
+SEE ALSO
+
+perl(1).
+
+
+

@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.7 2004/10/12 10:11:27 fabrice Exp $
-# $Revision: 2.7 $
+# $Id: RPN.pm,v 2.8 2004/11/28 17:44:03 fabrice Exp $
+# $Revision: 2.8 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = (q$Revision: 2.7 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+$VERSION = do { my @rev = (q$Revision: 2.8 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1968,7 +1968,7 @@ sub process
         {
             push @work, shift @{ $stack };
         }
-        if ( $op =~ s/^'(.*)'$/\1/g )
+        if ( $op =~ s/^'(.*)'$/$1/g )
         {
             $is_string = 1;
         }

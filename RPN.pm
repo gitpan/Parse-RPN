@@ -1,1048 +1,20 @@
 #!/usr/bin/perl
-#
-# Parse::RPN Package for Perl version 5 and later.
-#
+###########################################################
+# RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 1.22 2004/08/06 08:41:47 fabrice Exp $
-# $Revision: 1.22 $
+# $Id: RPN.pm,v 2.01 2004/08/29 11:56:06 fabrice Exp $
+# $Revision: 2.01 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
+###########################################################
+# ChangeLog:
 #
+###########################################################
 
-package Parse::RPN;
+=head1 Parse-RPN (V 2.xx) - Introduction
 
-use strict;
-use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
-
-require Exporter;
-require AutoLoader;
-
-use Carp;
-
-@ISA = qw(Exporter AutoLoader);
-
-@EXPORT = qw( rpn );
-
-$VERSION = do { my @rev = (q$Revision: 1.22 $ =~ /\d+/g); sprintf "%d."."%2d" x $#rev, @rev }; # must be all one line, for MakeMaker
-
-sub parse
-{
-    my $remainder = shift;
-    $remainder =~ s/^,//;
-    my $before;
-    my $is_string = 0;
-    if ( $remainder =~ /^('|")(.*)/ )
-    {
-        my $extracted = $1;
-        $is_string = 1;
-        $remainder = $2;
-
-        if ( $remainder =~ /^([^\"']*)('|")(.*)/ )
-        {
-            $before    = $1;
-            $remainder = $3;
-        }
-    }
-    else
-    {
-        ( $before, $remainder ) = split /,/, $remainder, 2;
-    }
-    return ( $before, $remainder, $is_string );
-}
-
-sub rpn
-{
-    my @stack     = ();
-    my $inbrace   = 0;
-    my $bracexp   = "";
-    my @completed = ();
-    my $dump_all  = 0;
-    my $sep       = " ";
-    my @ops       = ();
-    my $item      = shift;
-
-    while ( $item )
-    {
-        my $elem;
-        my $is_string;
-        ( $elem, $item, $is_string ) = parse( $item );
-        if ( $is_string )
-        {
-            push @ops, "'" . $elem . "'";
-        }
-        else
-        {
-            push @ops, $elem;
-        }
-    }
-
-    while ( @ops )
-    {
-        my $is_string;
-        $_ = shift @ops;
-        s/^\s+//g;
-        s/\s+$//g;
-        if ( s/^'//g )
-        {
-            $is_string = 1;
-        }
-        s/'$//g;
-
-##############################
-# Arithmetics functions
-##############################	
-        if ( !$is_string )
-        {
-            if ( $_ =~ /^\+$/ || $_ =~ /^ADD$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, pop ( @stack ) + pop ( @stack ) );
-            }
-            elsif ( $_ =~ /^\+\+$/ || $_ =~ /^INCR$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, pop ( @stack ) + 1 );
-            }
-            elsif ( $_ =~ /^-$/ || $_ =~ /^SUB$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, $elem2 - $elem1 );
-            }
-            elsif ( $_ =~ /^--$/ || $_ =~ /^DECR$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, pop ( @stack ) - 1 );
-            }
-            elsif ( $_ =~ /^\*$/ || $_ =~ /^MUL$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, pop ( @stack ) * pop ( @stack ) );
-            }
-            elsif ( $_ =~ /^\/$/ || $_ =~ /^DIV$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, $elem2 / $elem1 );
-            }
-            elsif ( $_ =~ /^%$/ || $_ =~ /^MOD$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, $elem2 % $elem1 );
-            }
-            elsif ( $_ =~ /^POW$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, $elem2**$elem1 );
-            }
-            elsif ( $_ =~ /^SQRT$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, sqrt( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^ABS$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, abs( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^INT$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, int( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^\+-$/ || $_ =~ /^NEG$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, -( pop ( @stack ) ) );
-            }
-
-##############################
-# logical functions
-##############################
-            elsif ( $_ =~ /^&$/ || $_ =~ /^AND$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = int( pop ( @stack ) );
-                my $elem2 = int( pop ( @stack ) );
-                push ( @stack, ( $elem1 & $elem2 ) );
-            }
-            elsif ( $_ =~ /^\|$/ || $_ =~ /^OR$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack,
-                    ( int( pop ( @stack ) ) | int( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^XOR$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack,
-                    ( int( pop ( @stack ) ) ^ int( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^NOT$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, !( int( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^~$/ )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, ( int( pop ( @stack ) ) ) );
-            }
-
-##############################
-# rational functions
-##############################
-            elsif ( $_ =~ /^SIN$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, sin( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^COS$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, cos( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^TAN$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                push ( @stack, ( sin( $elem1 ) / cos( $elem1 ) ) );
-            }
-            elsif ( $_ =~ /^LOG$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, log( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^EXP$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, exp( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^PI$/i )
-            {
-                push ( @stack, "3.14159265358979" );
-            }
-
-##############################
-# test functions
-##############################
-            elsif ( $_ =~ /^<$/ )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 < $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^<=$/ )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 <= $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^=$/ || $_ eq "==" )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 == $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^>=$/ )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 >= $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^>$/ )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 > $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^!=$/ )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 != $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^<=>$/ )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 <=> $elem1 ) );
-            }
-            elsif ( $_ =~ /^IF$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $el = pop ( @stack );
-                my $th = pop ( @stack );
-                my $co = pop ( @stack );
-                my $ve = ( $co ? $th : $el );
-
-                push ( @stack, $ve );
-
-            }
-
-##############################
-# other various functions
-##############################
-            elsif ( $_ =~ /^MIN$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem1 < $elem2 ? $elem1 : $elem2 ) );
-            }
-            elsif ( $_ =~ /^MAX$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem1 > $elem2 ? $elem1 : $elem2 ) );
-            }
-            elsif ( $_ =~ /^TIME$/i )
-            {
-                push ( @stack, time() );
-            }
-            elsif ( $_ =~ /^RAND$/i )
-            {
-                push ( @stack, rand() );
-            }
-            elsif ( $_ =~ /^LRAND$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, rand( pop ( @stack ) ) );
-            }
-            elsif ( $_ =~ /^SPACE$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $text = reverse pop @stack;
-                $text =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1 /g;
-                $text = reverse $text;
-                push ( @stack, $text );
-            }
-            elsif ( $_ =~ /^NORM$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $value = pop @stack;
-
-                my $exp;
-                $value = $value ? $value : 0;
-                my @EXP = ( " ", "K", "M", "G", "T", "P" );
-                while ( $value > 1000 )
-                {
-                    $value = $value / 1000;
-                    $exp++;
-                }
-                $value = sprintf "%.2f", $value;
-                my $ret = "$value $EXP[$exp]";
-                push ( @stack, $ret );
-            }
-            elsif ( $_ =~ /^NORM2$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $value = pop @stack;
-
-                my $exp;
-                $value = $value ? $value : 0;
-                my @EXP = ( " ", "K", "M", "G", "T", "P" );
-                while ( $value > 1024 )
-                {
-                    $value = $value / 1024;
-                    $exp++;
-                }
-                $value = sprintf "%.2f", $value;
-                my $ret = "$value $EXP[$exp]";
-                push ( @stack, $ret );
-            }
-
-##############################
-# strings functions
-##############################
-            elsif ( $_ =~ /^EQ$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 eq $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^NE$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 ne $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^LT$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 lt $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^GT$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 gt $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^LE$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 le $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^GE$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 ge $elem1 ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^CMP$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 cmp $elem1 ) );
-            }
-            elsif ( $_ =~ /^LEN$/i || $_ =~ /^LENGTH$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, ( length( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^CAT$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, ( $elem2 . $elem1 ) );
-            }
-            elsif ( $_ =~ /^REP$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                my $r     = $elem2 x $elem1;
-                push ( @stack, ( $r ) );
-            }
-            elsif ( $_ =~ /^REV$/i || $_ =~ /^REVERSE$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $r     = reverse( $elem1 );
-                push ( @stack, ( $r ) );
-            }
-            elsif ( $_ =~ /^SUBSTR$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $offset = pop ( @stack );
-                my $len    = pop ( @stack );
-                my $str    = pop ( @stack );
-                push ( @stack, ( substr( $str, $len, $offset ) ) );
-            }
-            elsif ( $_ =~ /^UC$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, ( uc( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^LC$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, ( lc( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^UCFIRST$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, ( ucfirst( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^LCFIRST$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, ( lcfirst( pop ( @stack ) ) ) );
-            }
-            elsif ( $_ =~ /^PAT$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $pat = pop ( @stack );
-                my $var = pop ( @stack );
-                my $r   = ( $var =~ qr/$pat/ );
-                for ( 0 .. $#+ )
-                {
-                    push ( @stack, substr( $var, $-[$_], $+[$_] - $-[$_] ) );
-                }
-            }
-            elsif ( $_ =~ /^TPAT$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $pat = pop ( @stack );
-                my $var = pop ( @stack );
-                my $r   = ( $var =~ qr/$pat/ );
-
-                push ( @stack, ( $r ? 1 : 0 ) );
-            }
-            elsif ( $_ =~ /^SPATI$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $patreplace = pop ( @stack );
-                my $patsearch  = pop ( @stack );
-                my $var        = pop ( @stack );
-                $var =~ s/$patsearch/$patreplace/i;
-
-                push ( @stack, $var );
-            }
-            elsif ( $_ =~ /^SPAT$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $patreplace = pop ( @stack );
-                my $patsearch  = pop ( @stack );
-                my $var        = pop ( @stack );
-                $var =~ s/$patsearch/$patreplace/;
-
-                push ( @stack, $var );
-            }
-            elsif ( $_ =~ /^PRINTF$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-
-                my $format = pop ( @stack );
-		my @r = ( $format =~ m/(%[^ ])/g ); 
-		my @var;
-		for ( 0 .. $#r )
-                {
-                    unshift @var, pop @stack;
-                }
-                
-               
-                push ( @stack, sprintf $format, @var );
-            }
-            elsif ( $_ =~ /^PACK$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $format = " " . ( pop ( @stack ) ) . " ";
-                my @r = ( $format =~ m/([a-zA-Z]\d*\s*)/g );
-                my @var;
-                for ( 0 .. $#r )
-                {
-                    unshift @var, pop @stack;
-                }
-                push ( @stack, pack( $format, @var ) );
-            }
-            elsif ( $_ =~ /^UNPACK$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $format = pop ( @stack );
-                my $var    = pop ( @stack );
-                push ( @stack, ( unpack $format, $var ) );
-
-            }
-
-##############################
-# stack functions
-##############################
-            elsif ( $_ =~ /^DEPTH$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                push ( @stack, scalar @stack );
-            }
-            elsif ( $_ =~ /^DUP$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                push ( @stack, $elem1, $elem1 );
-            }
-            elsif ( $_ =~ /^SWAP$/i || $_ =~ /^EXCH$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                push ( @stack, $elem1, $elem2 );
-            }
-            elsif ( $_ =~ /^POP$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                pop ( @stack );
-            }
-	    elsif ( $_ =~ /^POPN$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-		my $nbr =  pop ( @stack );
-		for (1 .. $nbr){
-                pop ( @stack );
-		}
-            }
-            elsif ( $_ =~ /^SWAP2$/i || $_ =~ /^EXCH2$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                my $elem3 = pop ( @stack );
-                push ( @stack, $elem2, $elem3, $elem1 );
-            }
-            elsif ( $_ =~ /^ROT3$/i || $_ =~ /^ROT3$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                my $elem3 = pop ( @stack );
-                push ( @stack, $elem1, $elem2, $elem3 );
-            }
-            elsif ( $_ =~ /^ROT$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                my $elem3 = pop ( @stack );
-                push ( @stack, $elem2, $elem1, $elem3 );
-            }
-            elsif ( $_ =~ /^RROT$/i )
-            {
-                unless ( stackcheck( 3, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                my $elem3 = pop ( @stack );
-                push ( @stack, $elem1, $elem3, $elem2 );
-            }
-            elsif ( $_ =~ /^ROLL$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my @tmp = splice @stack, -( $elem1 - 1 );
-                $elem1 = pop ( @stack );
-                push ( @stack, @tmp, $elem1 );
-            }
-            elsif ( $_ =~ /^PICK$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                push ( @stack, $stack[ -( $elem1 ) ] );
-            }
-            elsif ( $_ =~ /^PUT$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                my $elem1 = pop ( @stack );
-                my $elem2 = pop ( @stack );
-                my @tmp;
-                if ( $elem1 > $#stack + 1 )
-                {
-                    $elem1 = $#stack + 1;
-                }
-                if ( $elem1 )
-                {
-                    @tmp = splice @stack, -$elem1;
-                }
-                push ( @stack, $elem2, @tmp );
-            }
-            elsif ( $_ =~ /^DU$/i || $_ =~ /^DUMP$/i )
-            {
-                unless ( stackcheck( 1, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                $dump_all = 1;
-            }
-            elsif ( $_ =~ /^DS$/i || $_ =~ /^DUMPS$/i )
-            {
-                unless ( stackcheck( 2, \@stack, \@completed, $_, \@ops ) )
-                {
-                    @stack = ( undef );
-                    last;
-                }
-                $dump_all = 1;
-                $sep      = pop ( @stack );
-                if ( $sep =~ /\\n/ )
-                {
-                    $dump_all = 2;
-                }
-            }
-            else
-            {
-                push ( @stack, $_ );
-            }
-        }
-        else
-        {
-            push ( @stack, $_ );
-        }
-    }
-    unless ( @stack )
-    {
-        @stack = ( undef );
-        db_print( 'err',
-            "Stack underflow for expr " . "$item, no value at end." );
-    }
-    elsif ( $#stack > 0 && wantarray == 0 && !$dump_all )
-    {
-        db_print( 'warning',
-            "Extra values left on stack for "
-            . "expr $item left "
-            . join ( ",", @stack )
-            . " (right one used)." );
-    }
-    elsif ( $#stack > 0 && wantarray == 0 && $dump_all == 1 )
-    {
-        return ( join ( "$sep", @stack ) );
-    }
-    elsif ( $#stack > 0 && wantarray == 0 && $dump_all == 2 )
-    {
-        return ( join ( "\n", @stack ) );
-    }
-
-    if ( wantarray )
-    {
-        return ( @stack );
-    }
-    else
-    {
-        return ( pop ( @stack ) );
-    }
-}
-
-sub db_print
-{
-    my $severity;
-    my $message;
-
-    if ( scalar( @_ ) > 1 )
-    {
-        $severity = shift;
-    }
-    else
-    {
-        $severity = "err";    # Default to LOG_ERR severity
-    }
-    $message = join ( "", @_ );
-    $message =~ s/\r/\\r/g;
-    $message =~ s/\n/\\n/g;
-    print STDERR "$0 pid[$$]: $severity: $message at ", scalar localtime, "\n";
-}
-
-sub stackcheck
-{
-    my $required  = shift;
-    my $sp        = shift;
-    my $completed = shift;
-    my $current   = shift;
-    my $todo      = shift;
-    my @stack     = @$sp;
-
-    if ( scalar( @stack ) < $required )
-    {
-        my $msg = "Stack Underflow in ";
-        db_print(
-            'err', $msg,
-            join ( ",", ( @$completed ) ), ",<<<$current>>>,",
-            join ( ",", ( @$todo ) )
-        );
-        return ( undef );
-    }
-    return ( scalar( @stack ) );
-}
-
-1;
-__END__
-
-=head1 NAME
-
-Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
+  Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
 
 =head1 SYNOPSIS
 
@@ -1080,6 +52,1961 @@ Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
   before some of my customer would like more ...
   I correct a bug (interversion of > and >=), add the STRING function, pattern search and some STACK functions.
 
+=cut
+
+package Parse::RPN;
+use strict;
+
+use Data::Dumper;
+use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
+
+require Exporter;
+require AutoLoader;
+
+use Carp;
+
+use Data::Dumper;
+
+@ISA = qw(Exporter AutoLoader);
+
+@EXPORT = qw( rpn );
+
+$VERSION = do { my @rev = (q$Revision: 2.01 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+my $mod = "Tie::IxHash";
+my %dict;
+my %var;
+
+my @loop;
+my @begin;
+my @return;
+
+#use Tie::IxHash;
+
+#BEGIN
+#{
+#    if ( eval "require $mod" )
+#    {
+#        $mod->import();
+#tie %dict, "Tie::IxHash";
+#tie %var,  "Tie::IxHash";
+
+#    }
+#}
+
+########################
+# mathematic operators
+########################
+
+=head1 MATHEMATIC operators
+	
+.
+	
+=head2 a b +
+
+      return the result of 'a' + 'b' 
+	
+=cut
+
+$dict{ '+' } = sub {
+
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a + $b;
+    return \@ret, 2;
+};
+
+=head2 a b -
+
+      return the result of 'a' - 'b' 
+	
+=cut
+
+$dict{ '-' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $b - $a;
+    return \@ret, 2;
+};
+
+=head2 a b *
+
+      return the result of 'a' * 'b' 
+	
+=cut
+
+$dict{ '*' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $b * $a;
+    return \@ret, 2;
+};
+
+=head2 a b /
+
+      return the result of 'a' / 'b' 
+	
+=cut
+
+$dict{ '/' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $b / $a;
+    return \@ret, 2;
+};
+
+=head2 a b **
+
+      return the result of 'a' ** 'b'  (exponant)
+	
+=cut
+
+$dict{ '**' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $b**$a;
+    return \@ret, 2;
+};
+
+=head2 a 1+
+
+      return the result of 'a' +1 
+	
+=cut
+
+$dict{ '1+' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a + 1;
+    return \@ret, 1;
+};
+
+=head2 a 1-
+
+      return the result of 'a' -1 
+	
+=cut
+
+$dict{ '1-' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a - 1;
+    return \@ret, 1;
+};
+
+=head2 a 2-
+
+      return the result of 'a' -2 
+	
+=cut
+
+$dict{ '2-' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a - 2;
+    return \@ret, 1;
+};
+
+=head2 a 2+
+
+      return the result of 'a' +2 
+	
+=cut
+
+$dict{ '2+' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a + 2;
+    return \@ret, 1;
+};
+
+=head2 a b MOD
+
+      return the result of 'a' % 'b'
+	
+=cut
+
+$dict{ 'MOD' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $b % $a;
+    return \@ret, 2;
+};
+
+=head2 a ABS
+
+      return the result of  abs 'a'
+	
+=cut
+
+$dict{ 'ABS' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, abs( $a );
+    return \@ret, 1;
+
+};
+
+=head2 a INT
+
+      return the result of INT 'a' 
+	
+=cut
+
+$dict{ 'INT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, int( $a );
+    return \@ret, 1;
+};
+
+=head2 a +-
+
+      return the result negate value of 'a' (- 'a' )
+	
+=cut
+
+$dict{ '+-' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, -( $a );
+    return \@ret, 1;
+};
+
+=head2 a REMAIN
+
+      return the result of 'a' - int 'a' (fractional part of 'a' ) 
+	
+=cut
+
+$dict{ 'REMAIN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a - int( $a );
+    return \@ret, 1;
+};
+
+=head2 a SIN
+
+      return the result of sin 'a'  ('a' in RADIAN)
+	
+=cut
+
+$dict{ 'SIN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, sin( $a );
+    return \@ret, 1;
+};
+
+=head2 a COS
+
+      return the result of cos 'a'  ('a' in RADIAN)
+	
+=cut
+
+$dict{ 'COS' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, cos( $a );
+    return \@ret, 1;
+};
+
+=head2 a TAN
+
+      return the result of tan 'a'  ('a' in RADIAN)
+	
+=cut
+
+$dict{ 'TAN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( sin( $a ) / cos( $a ) );
+    return \@ret, 1;
+};
+
+=head2 a CTAN
+
+      return the result of cotan 'a'  ('a' in RADIAN)
+	
+=cut
+
+$dict{ 'CTAN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( cos( $a ) / sin( $a ) );
+    return \@ret, 1;
+};
+
+=head2 a LN
+
+      return the result of ln 'a' 
+	
+=cut
+
+$dict{ 'LN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, log( $a );
+    return \@ret, 1;
+};
+
+=head2 a EXP
+
+      return the result of 'e' ** 'a' 
+	
+=cut
+
+$dict{ 'EXP' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, exp( $a );
+    return \@ret, 1;
+};
+
+=head2 PI
+
+      return the value of PI (3.14159265358979)
+	
+=cut
+
+$dict{ 'PI' } = sub {
+    my @ret;
+    push @ret, "3.14159265358979";
+    return \@ret, 0;
+};
+
+########################
+# logical operators
+########################
+
+=head1 LOGICAL operators
+
+.
+
+=head2 a b <
+
+      return the result of 'a' < 'b'  ( BOOLEAN value ) 
+	
+=cut
+
+$dict{ '<' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b < $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b <=
+
+      return the result of 'a' <= 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ '<=' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b <= $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b >
+
+      return the result of 'a' > 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ '>' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b > $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b >=
+
+      return the result of 'a' >= 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ '>=' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b >= $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b ==
+
+      return the result of 'a' == 'b'  ( BOOLEAN value ) 1 if a == b else 0
+	
+=cut
+
+$dict{ '==' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b == $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b <=>
+
+      return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
+	
+=cut
+
+$dict{ '<=>' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b <=> $a );
+    return \@ret, 2;
+};
+
+=head2 a b !=
+
+      return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
+	
+=cut
+
+$dict{ '!=' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b != $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+########################
+# misc operators
+########################
+
+=head1 MISC operators
+
+.
+
+=head2 a b MIN
+
+      return the result smallest of the 2 arguments
+	
+=cut
+
+$dict{ 'MIN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a < $b ? $a : $b );
+    return \@ret, 2;
+};
+
+=head2 a b MAX
+
+      return the result greatest of the 2 arguments
+	
+=cut
+
+$dict{ 'MAX' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a > $b ? $a : $b );
+    return \@ret, 2;
+};
+
+=head2 TICK
+
+      return the current time in ticks
+	
+=cut
+
+$dict{ 'TICK' } = sub {
+    my @ret;
+    push @ret, ( time() );
+    return \@ret, 1;
+};
+
+=head2 a LTIME
+
+      return the localtime coresponding to the ticks value 'a'
+      the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
+      'year' is the elapsed year since 1900
+      'month' start to 0
+      The format is the same as localtime() in perl
+	
+=cut
+
+$dict{ 'LTIME' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( localtime( $a ) );
+    return \@ret, 1;
+};
+
+=head2 a GTIME
+
+      return the gmtime coresponding to the ticks value 'a'
+      the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
+      'year' is the elapsed year since 1900
+      'month' start to 0
+      The format is the same as gmtime() in perl
+	
+=cut
+
+$dict{ 'GTIME' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( gmtime( $a ) );
+    return \@ret, 1;
+};
+
+=head2 a HLTIME
+
+      return the localtime coresponding to the ticks value 'a' in a human readable format
+	
+=cut
+
+$dict{ 'HLTIME' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, scalar( localtime( $a ) );
+    return \@ret, 1;
+};
+
+=head2 a HGTIME
+
+      return the gmtime coresponding to the ticks value 'a' in a human readable format
+	
+=cut
+
+$dict{ 'HGTIME' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, scalar( gmtime( $a ) );
+    return \@ret, 1;
+};
+
+=head2 RAND
+
+      return a random value in the range [0,1[
+	
+=cut
+
+$dict{ 'RAND' } = sub {
+    my @ret;
+    push @ret, rand();
+    return \@ret, 0;
+};
+
+=head2 a LRAND
+
+      return a random value in the range [0,'a'[
+	
+=cut
+
+$dict{ 'LRAND' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, rand( $a );
+    return \@ret, 1;
+};
+
+=head2 a SPACE
+
+      return the number 'a' formated with space each 3 digits
+	
+=cut
+
+$dict{ 'SPACE' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $text  = reverse $a;
+    $text =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1 /g;
+    $text = reverse $text;
+    my @ret;
+    push @ret, $text;
+    return \@ret, 1;
+};
+
+=head2 a DOT
+
+      return the number 'a' formated with . (dot) each 3 digits
+	
+=cut
+
+$dict{ 'DOT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $text  = reverse $a;
+    $text =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1./g;
+    $text = reverse $text;
+    my @ret;
+    push @ret, $text;
+    return \@ret, 1;
+};
+
+=head2 a NORM
+
+      return the number 'a' normalize by slice of 1000 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1000)
+	
+=cut
+
+$dict{ 'NORM' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $exp;
+    $a = $a ? $a : 0;
+    my @EXP = ( " ", "K", "M", "G", "T", "P" );
+    while ( $a > 1000 )
+    {
+        $a = $a / 1000;
+        $exp++;
+    }
+    $a = sprintf "%.2f", $a;
+    my $ret = "$a $EXP[$exp]";
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 1;
+};
+
+=head2 a NORM2
+
+      return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
+	
+=cut
+
+$dict{ 'NORM2' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $exp;
+    $a = $a ? $a : 0;
+    my @EXP = ( " ", "K", "M", "G", "T", "P" );
+    while ( $a > 1024 )
+    {
+        $a = $a / 1024;
+        $exp++;
+    }
+    $a = sprintf "%.2f", $a;
+    my $ret = "$a $EXP[$exp]";
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 1;
+};
+
+########################
+# string operators
+########################
+
+=head1 STRING operators
+
+.
+
+=head2 a b EQ
+
+      return the result of 'a' EQ 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ 'EQ' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b eq $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b NE
+
+      return the result of 'a' NE 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ 'NE' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b ne $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b LT
+
+      return the result of 'a' LT 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ 'LT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b lt $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b GT
+
+      return the result of 'a' GT 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ 'GT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b gt $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b LE
+
+      return the result of 'a' LE 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ 'LE' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b le $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b GE
+
+      return the result of 'a' GE 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ 'GE' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b ge $a ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b CMP
+
+      return the result of 'a' CMP 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{ 'CMP' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b cmp $a );
+    return \@ret, 2;
+};
+
+=head2 a LEN
+
+      return the length of 'a' EQ 'b' 
+	
+=cut
+
+$dict{ 'LEN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( length $a );
+    return \@ret, 1;
+};
+
+=head2 a b CAT
+
+      return the concatenation 'a' and 'b' 
+	
+=cut
+
+$dict{ 'CAT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( "'".$b . $a. "'" );
+    return \@ret, 2;
+};
+
+=head2 a b REP
+
+      return the result of 'a' x 'b'  duplicate 'a' by the number of 'x' 
+	
+=cut
+
+$dict{ 'REP' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b x $a );
+    return \@ret, 2;
+};
+
+=head2 a REV
+
+      return the reverse of 'a' EQ 'b' 
+	
+=cut
+
+$dict{ 'REV' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = reverse $a;
+    my @ret;
+    push @ret, ( $b );
+    return \@ret, 1;
+};
+
+=head2 a b c SUBSTR
+
+      return the substring of 'c' starting at 'b' with the length of 'a'
+	
+=cut
+
+$dict{ 'SUBSTR' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( substr( $c, $b, $a ) );
+    return \@ret, 3;
+};
+
+=head2 a UC
+
+      return 'a' in uppercase
+	
+=cut
+
+$dict{ 'UC' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( uc $a );
+    return \@ret, 1;
+};
+
+=head2 a LC
+
+      return 'a' in lowercase
+	
+=cut
+
+$dict{ 'LC' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( lc $a );
+    return \@ret, 1;
+};
+
+=head2 a UCFIRST
+
+      return 'a' with the first letter in uppercase
+	
+=cut
+
+$dict{ 'UCFIRST' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ucfirst $a );
+    return \@ret, 1;
+};
+
+=head2 a LCFIRST
+
+      return 'a' with the first letter in lowercase
+	
+=cut
+
+$dict{ 'LCFIRST' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( lcfirst $a );
+};
+
+=head2 a b PAT
+
+      return one or more occurance of 'b' in 'a' 
+      'b' is a REGEX
+	
+=cut
+
+$dict{ 'PAT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $r     = ( $b =~ m/$a/g );
+    my @ret;
+    push @ret, $r;
+    return \@ret, 2;
+};
+
+=head2 a b TPAT
+
+      test if the pattern 'b' is in 'a' 
+      'b' is a REGEX
+	
+=cut
+
+$dict{ 'TPAT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $r     = ( $b =~ m/$a/g );
+    my @ret;
+    push @ret, ( $r ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b c SPAT
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c'
+      'b' and 'c' are a REGEX
+	
+=cut
+
+$dict{ 'SPAT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    $c =~ s/$b/$a/;
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3;
+};
+
+=head2 a b c SPATG
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
+      'b' and 'c' are a REGEX
+	
+=cut
+
+$dict{ 'SPATG' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    $c =~ s/$b/$a/g;
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3;
+};
+
+=head2 a b c SPATI
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c'case insensitive (i flag in REGEX)
+      'b' and 'c' are a REGEX
+	
+=cut
+
+$dict{ 'SPATI' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    $c =~ s/$b/$a/i;
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3;
+};
+
+=head2 a b c SPATGI
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
+      and case insensitive (1 flag in REGEX)
+      'b' and 'c' are a REGEX
+	
+=cut
+
+$dict{ 'SPATGI' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    $c =~ s/$b/$a/gi;
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3;
+};
+
+=head2 a ... z PRINTF
+
+     use the format 'z' to print the value(s) on the stack
+     7,3,/,10,3,/,%d %f,PRINTF -> 2 3.333333
+     see printf in perl
+	
+=cut
+
+$dict{ 'PRINTF' } = sub {
+
+    my $work1  = shift;
+    my $format = pop @{ $work1 };
+    my @r      = ( $format =~ m/(%[^ ])/g );
+    my @var;
+    for ( 0 .. $#r )
+    {
+        unshift @var, pop @{ $work1 };
+    }
+    my @ret;
+    push @ret, sprintf $format, @var;
+    return \@ret, 2 + $#r;
+};
+
+=head2 a b PACK
+
+      pack the value 'a' with the format 'b'
+      2004,06,08,a4 a2 a2,PACK -> 20040608
+      see pack in perl
+	
+=cut
+
+$dict{ 'PACK' } = sub {
+    my $work1  = shift;
+    my $format = " " . ( pop ( @{ $work1 } ) ) . " ";
+    my @r      = ( $format =~ m/([a-zA-Z]\d*\s*)/g );
+    my @var;
+    for ( 0 .. $#r )
+    {
+        unshift @var, pop @{ $work1 };
+    }
+    my @ret;
+    push @ret,, pack( $format, @var );
+    return \@ret, 2 + $#r;
+};
+
+=head2 a b UNPACK
+
+      unpack the value 'a' with the format 'b'
+      20040608,a4 a2 a2,PACK -> 2004,06,08
+      see unpack in perl
+	
+=cut
+
+$dict{ 'UNPACK' } = sub {
+    my $work1  = shift;
+    my $format = pop @{ $work1 };
+    my $var    = pop @{ $work1 };
+    my @ret;
+    push @ret, unpack( $format, $var );
+    return \@ret, 2;
+};
+
+########################
+# stack operators
+########################
+
+=head1 STACK operators
+
+.
+
+=head2	a b SWAP
+
+	return 'b' 'a'
+
+=cut
+
+$dict{ 'SWAP' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a, $b;
+    return \@ret, 2;
+};
+
+=head2	a b OVER
+
+	return 'a' 'b' 'a'
+
+=cut
+
+$dict{ 'OVER' } = sub {
+    my $work1 = shift;
+    my @ret;
+    push @ret, @{ $work1 }[-2];
+    return \@ret, 0;
+};
+
+=head2	a DUP
+
+	return 'a' 'a'
+
+=cut
+
+$dict{ 'DUP' } = sub {
+    my $work1 = shift;
+    my @ret;
+    push @ret, @{ $work1 }[-1];
+    return \@ret, 0;
+};
+
+=head2	a b DDUP
+
+	return 'a' 'b' 'a' 'b'
+
+=cut
+
+$dict{ 'DDUP' } = sub {
+    my $work1 = shift;
+    my @ret;
+    push @ret, @{ $work1 }[-2], @{ $work1 }[-1];
+    return \@ret, 0;
+};
+
+=head2	a b c ROT
+
+	return 'b' 'c' 'a'
+
+=cut
+
+$dict{ 'ROT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    my @ret;
+    push @ret, $b, $a, $c;
+    return \@ret, 3;
+};
+
+=head2	a b c RROT
+
+	return 'c' 'a' 'b'
+
+=cut
+
+$dict{ 'RROT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a, $c, $b;
+    return \@ret, 3;
+};
+
+=head2	DEPTH
+
+	return the number of elements on the stack
+
+=cut
+
+$dict{ 'DEPTH' } = sub {
+    my $work1 = shift;
+    my $ret   = scalar @{ $work1 };
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 0;
+};
+
+=head2	a b POP
+
+	remove the last element on the stack
+
+=cut
+
+$dict{ 'POP' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    return \@ret, 1;
+};
+
+=head2	a ... z POPN
+
+	remove the 'z' last elemnet(s) from the stack
+
+=cut
+
+$dict{ 'POPN' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    for ( 1 .. $a )
+    {
+        pop @{ $work1 };
+    }
+    my @ret;
+    return \@ret, 1 + $a;
+};
+
+=head2	a b c d e f ROLL
+
+	rotate the stack on 'f' element
+	a,b,c,d,e,4,ROLL -> a c d e b
+	if n= 3 = ROT
+
+=cut
+
+$dict{ 'ROLL' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @tmp   = splice @{ $work1 }, -( $a - 1 );
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, @tmp, $b;
+    return \@ret, 1 + $a;
+};
+
+=head2 a PICK
+	
+	copy element 'a' to the stack
+
+=cut
+
+$dict{ 'PICK' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, @{ $work1 }[ -( $a + 1 ) ];
+    return \@ret, 1;
+};
+
+=head2 a GET
+	
+	get (remove) element N'a' to the stack
+
+=cut
+
+$dict{ 'GET' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = @{ $work1 }[ -( $a ) ];
+    my @tmp   = splice @{ $work1 }, -( $a - 1 );
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, @tmp, $b;
+    return \@ret, 1 + $a;
+};
+
+=head2 a b PUT
+	
+	put element 'a' at the level 'b' of the stack
+	if 'b' gretaer than the stack put at first place
+	if 'b' < 0 start to the reverse order of the stack
+
+=cut
+
+$dict{ 'PUT' } = sub {
+    my $work1 = shift;
+    my $len   = scalar @{ $work1 };
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @tmp;
+    my @ret = @{ $work1 };
+    if ( $a >= ( scalar( @{ $work1 } ) ) )
+    {
+        $a = scalar( @{ $work1 } );
+    }
+    if ( $a )
+    {
+        @tmp = splice @ret, -$a;
+    }
+    push ( @ret, $b, @tmp );
+    return \@ret, $len;
+};
+
+=head2 a b DEL
+	
+	delete 'b' element on the stack from lebvel 'a'
+	'a' and 'b' is get in absolute value 
+
+=cut
+
+$dict{ 'DEL' } = sub {
+    my $work1  = shift;
+    my $len    = scalar( @{ $work1 } );
+    my $start  = abs pop @{ $work1 };
+    my $length = abs pop @{ $work1 };
+    my @temp;
+    @temp = splice @{ $work1 }, $len - 2 - $start - $length, $length;
+    my @ret;
+    push ( @ret, @{ $work1 } );
+    return \@ret, $len;
+};
+
+=head2 a FIND
+	
+	get the level of stack containing the value 'a'
+
+=cut
+
+$dict{ 'FIND' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret;
+    for ( 1 .. scalar( @{ $work1 } ) )
+    {
+        my $b = @{ $work1 }[ ( scalar( @{ $work1 } ) ) - $_ + 1 ];
+        if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
+        {
+            if ( $b == $a )
+            {
+                $ret = $_;
+                last;
+            }
+        }
+        else
+        {
+            if ( $b eq $a )
+            {
+                $ret = $_;
+                last;
+            }
+        }
+    }
+    my @ret;
+    push ( @ret, $ret );
+    return \@ret, 1;
+};
+
+########################
+# DICT operator
+########################
+
+=head1 DICTIONARY and VARS operators
+
+.
+
+=head2 WORDS
+
+        return as one stack element the list of WORD in DICT separated by a |
+	
+=cut
+
+$dict{ 'WORDS' } = sub {
+    my @tmp = join " | ", keys( %dict );
+    my @ret;
+    push @ret, @tmp;
+    return \@ret, 0;
+
+};
+
+=head2 VARS
+
+        return as one stack element the list of VARS  separated by a |
+	
+=cut
+
+$dict{ 'VARS' } = sub {
+    my @tmp = join " | ", keys( %var );
+    my @ret;
+    push @ret, @tmp;
+    return \@ret, 0;
+};
+
+=head2 INC
+
+        incremente (+ 1) the value of the variable on the statck
+	
+=cut
+
+$dict{ 'INC' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    ( $var{ $a } )++;
+    my @ret;
+    return \@ret, 1;
+};
+
+=head2 DEC
+
+        decremente (- 1) the value of the variable on the statck
+	
+=cut
+
+$dict{ 'DEC' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    ( $var{ $a } )--;
+    my @ret;
+    return \@ret, 1;
+};
+
+=head2 VARIABLE xxx
+
+       deckare the variable 'xxx' (reserve memory)
+	
+=cut
+
+$dict{ 'VARIABLE' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    $var{ $a } = '';
+    return \@ret, 1;
+};
+
+=head2 xx var1 !
+
+        set the value xx to the variable var1
+	
+=cut
+
+$dict{ '!' } = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my $val   = pop @{ $work1 };
+    $var{ $name } = $val;
+    my @ret;
+    return \@ret, 2;
+};
+
+=head2  var1 @
+
+        reyrn the value of the variable var1
+	
+=cut
+
+$dict{ '@' } = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my @ret;
+    push @ret, $var{ $name };
+    return \@ret, 1;
+
+};
+
+=head2 : name1 xxx ;
+
+        create a new entry in the dictionary whith name name1 and store the progam xxx
+	
+=cut
+
+$dict{ ';' } = sub {
+    my $work1   = shift;
+    my $return1 = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $b_ref   = pop @{ $return1 };
+    my $a_ref   = pop @{ $return1 };
+    my @pre     = @{ $work1 };
+    my @BLOCK   = splice @pre, $a_ref, $b_ref - $a_ref;
+    my @ret;
+    pop @pre;
+    my $name = shift @BLOCK;
+    $dict{ $name } = sub {
+        my $ret;
+        @ret = @BLOCK;
+        return \@ret, 0;
+    };
+    return \@ret, $#BLOCK + 2, 2;
+};
+
+=head2 a >R
+
+        put 'a' on the return stack
+	
+=cut
+
+$dict{ '>R' } = sub {
+    my @ret;
+    my $work1 = shift;
+    my $val   = pop @{ $work1 };
+    push @ret, $val;
+    return \@ret, 1, -1;
+};
+
+=head2 R>
+
+       remove first element from the return stack and copy on the normal stack
+	
+=cut
+
+$dict{ 'R>' } = sub {
+    my @ret;
+    my $work1   = shift;
+    my $return1 = shift;
+    my $val;
+    if ( scalar @{ $return1 } )
+    {
+
+        push @ret, pop @{ $return1 };
+    }
+    return \@ret, 0, 1;
+};
+
+=head2 RL
+
+       return the depth of the return stack
+	
+=cut
+
+$dict{ 'RL' } = sub {
+    my @ret;
+    my $work1   = shift;
+    my $return1 = shift;
+    push @ret, scalar @{ $return1 };
+    return \@ret, 0;
+};
+
+=head2 R@
+
+       copy return stack ion normal stack
+	
+=cut
+
+$dict{ 'R@' } = sub {
+    my @ret;
+    my $work1   = shift;
+    my $return1 = shift;
+    push @ret, @{ $return1 };
+    return \@ret, 0;
+};
+
+
+########################
+# loop operators
+########################
+
+=head1 LOOP and DECISION operators
+
+.
+
+=head2 a IF xxx THEN
+
+	test the element on top of stack 
+		if ==0 execute 'xxx' block
+		
+	The loop is executed always one time
+
+=cut
+
+$dict{ 'THEN' } = sub {
+    my @ret;
+    my @ret;
+    my $work1   = shift;
+    my $return1 = shift;
+    my $b_ref   = pop @{ $return1 };
+    my $a_ref   = pop @{ $return1 };
+    my $res     = shift @{ $work1 };
+    my @pre     = @{ $work1 };
+    my @BEGIN   = splice @pre, $a_ref, $b_ref - $a_ref - 1;
+    my $len     = scalar @BEGIN;
+    if ( $res )
+    {
+        process( \@BEGIN );
+        push @ret, @BEGIN;
+    }
+    return \@ret, 2 + $len, 2;
+};
+
+=head2 a IF zzz ELSE xxx THEN
+
+	test the element on top of stack 
+		if ==0 execute 'xxx' block
+		if != 0 execute 'zzz' block 
+		
+	The loop is executed always one time
+
+=cut
+
+$dict{ 'THENELSE' } = sub {
+    my @ret;
+    my @ret;
+    my $work1   = shift;
+    my $return1 = shift;
+    my $c_ref   = pop @{ $return1 };
+    my $b_ref   = pop @{ $return1 };
+    my $a_ref   = pop @{ $return1 };
+    my $res     = shift @{ $work1 };
+    my @pre     = @{ $work1 };
+    my @ELSE    = splice @pre, $a_ref, $b_ref - $a_ref - 1;
+    @pre = @{ $work1 };
+    my @THEN = splice @pre, $b_ref, $c_ref - $b_ref - 1;
+    my $len = scalar @ELSE + scalar @THEN;
+
+    if ( $res )
+    {
+        process( \@THEN );
+        push @ret, @THEN;
+    }
+    else
+    {
+        process( \@ELSE );
+        push @ret, @ELSE;
+    }
+    return \@ret, 3 + $len, 3;
+};
+
+=head2 BEGIN xxx WHILE zzz REPEAT
+
+	execute 'xxx' block
+	test the element on top of stack 
+		if ==0 execute 'zzz' block and brabch again at 'BEGIN'
+		if != 0 end the loop
+		
+	The loop is executed always one time
+
+
+=cut
+
+$dict{ 'REPEAT' } = sub {
+    my @ret;
+    my $work1   = shift;
+    my $return1 = shift;
+    my $c_ref   = pop @{ $return1 };
+    my $b_ref   = pop @{ $return1 };
+    my $a_ref   = pop @{ $return1 };
+    my @pre     = @{ $work1 };
+    my @BEGIN   = splice @pre, $a_ref, $b_ref - $a_ref;
+    my @BEGIN2  = @BEGIN;
+    my @BEGIN3  = @BEGIN;
+    my $len     = scalar( @BEGIN );
+    @pre = @{ $work1 };
+    my @WHILE = splice @pre, $b_ref + 1, $c_ref - $b_ref;
+    my @WHILE2 = @WHILE;
+    @pre = @{ $work1 };
+    process( \@BEGIN2 );
+    my $res = pop @BEGIN2;
+
+    if ( $res )
+    {
+        push @ret, @BEGIN2;
+        $len += scalar( @WHILE );
+        process( \@WHILE );
+        push @ret, @WHILE;
+        @BEGIN = splice @pre, $a_ref, $b_ref - $a_ref;
+        push @ret, 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
+        return \@ret, $len + 1, 3;
+    }
+    return \@ret, $len + 4, 3;
+};
+
+=head2  end start DO,block,LOOP
+
+	process 'block' with iterator from value 'start' untill 'end' value,with increment of 1;
+	The iterator variable is '_I_' (read only)
+	
+=cut
+
+$dict{ 'LOOP' } = sub {
+    my $work1   = shift;
+    my $return1 = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $b_ref   = pop @{ $return1 };
+    my $a_ref   = pop @{ $return1 };
+    my @pre     = @{ $work1 };
+    my @BLOCK   = splice @pre, $a_ref + 1, $b_ref - $a_ref;
+    pop @pre;
+    my $a   = pop @pre;
+    my $b   = pop @pre;
+    my $ind = $a;
+    my @ret;
+
+    if ( $ind <= $b )
+    {
+        $ind++;
+        my @OLD_BLOCK = @BLOCK;
+        for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
+        {
+            if ( @BLOCK[$i] =~ /_I_/ )
+            {
+                @BLOCK[$i] = $ind;
+            }
+        }
+        process( \@BLOCK );
+        push @pre, @BLOCK, $b, $ind, "DO", @OLD_BLOCK, "LOOP";
+    }
+    return \@pre, $len + 1;
+};
+
+=head2  end start increment DO,block,LOOP
+
+	process 'block' with iterator from value 'start' untill 'end' value,with increment of 'increment' 
+	This allow rational or negative value
+	The iterator variable is '_I_' (read only)
+	Not like FORTH, ythe increment is on the stack before the DO
+	
+=cut
+
+$dict{ '+LOOP' } = sub {
+    my $work1   = shift;
+    my $return1 = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $b_ref   = pop @{ $return1 };
+    my $a_ref   = pop @{ $return1 };
+    my @pre     = @{ $work1 };
+    my @BLOCK   = splice @pre, $a_ref + 1, $b_ref - $a_ref;
+    pop @pre;
+    my $b   = pop @pre;
+    my $c   = pop @pre;
+    my $a   = pop @BLOCK;
+    print "a=$a b=$b c=$c\n";
+    my $ind = $b;
+    my @ret;
+    if ( $a < 0 )
+    {
+        if ( $ind >= $c )
+        {
+            $ind += $a;
+            my @OLD_BLOCK = @BLOCK;
+            for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
+            {
+                if ( @BLOCK[$i] =~ /_I_/ )
+                {
+                    @BLOCK[$i] = $ind;
+                }
+            }
+            process( \@BLOCK );
+            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK,$a, "+LOOP";
+        }
+    }
+    else
+    {
+        if ( $ind <= $c )
+        {
+            $ind += $a;
+            my @OLD_BLOCK = @BLOCK;
+            for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
+            {
+                if ( @BLOCK[$i] =~ /_I_/ )
+                {
+                    @BLOCK[$i] = $ind;
+                }
+            }
+            process( \@BLOCK );
+            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK,$a, "+LOOP";
+        }
+    }
+    return \@pre, $len + 1, 2;
+};
+
+#####################################
+# main code
+#####################################
+sub parse
+{
+    my $remainder = shift;
+    $remainder =~ s/^,//;
+    my $before;
+    my $is_string = 0;
+    if ( $remainder =~ /^('|")(.*)/ )
+    {
+        $is_string = 1;
+        $remainder = $2;
+        if ( $remainder =~ /^([^\"']*)('|")(.*)/ )
+        {
+            $before    = $1;
+            $remainder = $3;
+        }
+    }
+    else
+    {
+        ( $before, $remainder ) = split /,/, $remainder, 2;
+    }
+    return ( $before, $remainder, $is_string );
+}
+
+sub rpn
+{
+    my $item = shift;
+    my @stack;
+    my $ret;
+    while ( $item )
+    {
+        my $elem;
+        my $is_string;
+        ( $elem, $item, $is_string ) = parse( $item );
+        if ( $is_string )
+        {
+            push @stack, "'" . $elem . "'";
+        }
+        else
+        {
+            push @stack, $elem;
+        }
+    }
+    process( \@stack );
+    my $ret = join " ", @stack;
+    return $ret;
+}
+
+sub process
+{
+    my $stack = shift;
+    my $is_block;
+    my $is_begin;
+    my $is_while;
+    my $is_do;
+    my $is_else;
+    my @work;
+    while ( @{ $stack } )
+    {
+        my $op        = shift @{ $stack };
+        my $is_string = 0;
+        $op =~ s/^\s+//g;
+        $op =~ s/\s+$//g;
+        if ( ( $op =~ /^VARIABLE$/g ) )
+        {
+            push @work, shift @{ $stack };
+        }
+        if ( $op =~ s/^'(.*)'$/\1/g )
+        {
+            $is_string = 1;
+        }
+        if ( $op =~ /^;$/g )
+        {
+            $is_block = 0;
+            push @return, ( scalar( @work ) );
+        }
+        if ( $op =~ /^:$/g )
+        {
+            $is_block = 1;
+            push @return, ( scalar( @work ) );
+            next;
+        }
+        if ( $op =~ /^BEGIN$/g )
+        {
+            $is_begin = 1;
+            push @return, ( scalar( @work ) );
+            next;
+        }
+        if ( ( $op =~ /^WHILE$/g ) )
+        {
+            $is_begin = 0;
+            $is_do    = 1;
+            push @return, ( scalar( @work ) );
+        }
+        if ( $is_do && ( $op =~ /^REPEAT$/g ) )
+        {
+            $is_do = 0;
+            push @return, ( scalar( @work ) - 1 );
+        }
+        if ( $op =~ /^DO$/g )
+        {
+            $is_do = 1;
+            push @return, ( scalar( @work ) );
+        }
+        if ( ( $op =~ /^LOOP|\+LOOP$/g ) )
+        {
+            $is_do = 0;
+            push @return, scalar( @work );
+        }
+        if ( $op =~ /^IF$/g )
+        {
+            $is_do = 1;
+            push @return, ( scalar( @work ) );
+        }
+        if ( $op =~ /^ELSE$/g )
+        {
+            $is_else = 1;
+            push @return, ( scalar( @work ) );
+        }
+
+        if ( $op =~ /^THEN$/g )
+        {
+            $is_do = 0;
+            push @return, ( scalar( @work ) );
+            if ( $is_else )
+            {
+                $op = "THENELSE";
+            }
+        }
+        if ( !$is_string )
+        {
+            if ( $is_do || $is_begin )
+            {
+                push @work, $op;
+            }
+            else
+            {
+                if ( defined( $dict{ $op } ) )
+                {
+                    my @work_stack   = @work;
+                    my @return_stack = @return;
+                    my ( $ret, $remove_stack, $remove_return ) = $dict{ $op } ( \@work_stack, \@return_stack );
+                    if ( $remove_return >= 0 )
+                    {
+                        for ( 1 .. $remove_return )
+                        {
+                            pop @return;
+                        }
+                    }
+                    else
+                    {
+                        my $to_ret = pop @{ $ret };
+                        push @return, $to_ret;
+                    }
+                    for ( 1 .. $remove_stack )
+                    {
+                        pop @work;
+                    }
+                    unshift @{ $stack }, @work, @{ $ret };
+                    undef @work;
+                }
+                else
+                {
+                    push @work, $op;
+                }
+            }
+        }else
+	{
+	push @work, $op;
+	}
+	
+    }
+    unshift @{ $stack }, @work;
+}
+
+1;
+__END__
+
 =head1 OPERATORS
 
      The operators get value from the stack and push the result on top
@@ -1090,30 +2017,28 @@ Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
 
 	Arithmetic operators
 	---------------------
-            +  | ADD		([a][b])		([a+b])
-            ++ | INCR		([a]) 			([a+1])
-            -  | SUB		([a][b])		([a-b])
-            -- | DECR		([a]) 			([a-1])
-            *  | MUL		([a][b])		([a*b])
-            /  | DIV		([a][b])		([a/b])
-            %  | MOD		([a][b])		([a%b])
-            POW     		([a][b])		([a*a])
-            SQRT    		([a][b])		([SQRT a])
+            +  			([a][b])		([a+b])
+	    -  			([a][b])		([a-b])
+	    *  			([a][b])		([a*b])
+            /  			([a][b])		([a/b])
+	    **     		([a][b])		([a**b])
+            1+ 			([a]) 			([a+1])
+	    1- 			([a]) 			([a-1])
+	    2+ 			([a]) 			([a+2])
+	    2- 			([a]) 			([a-2])    
+            MOD  		([a][b])		([a%b])
             ABS     		([a][b])		([ABS a])
             INT     		([a][b])		([INT a])
-            &  | AND		([a][b])		([a&b])
-            |  | OR		([a][b])		([a|b])
-            XOR		        ([a][b])		([a^b])
-            NOT		        ([a][b])		([NOT a])	Logically negate of [a]
-	    ~  		        ([a][b])		([~ a])		Bitwise complement of [a] 
-	    +-	| NEG	        ([a]) 			([-a])
+	    +-		        ([a]) 			([-a])
+	    REMAIN	        ([a]) 			([a- INT a])
 	    
 	Rationnal operators
 	-------------------  
             SIN			([a]) 			([SIN a])	Unit in radian
             COS			([a]) 			([COS a])	Unit in radian
             TAN			([a]) 			([TAN a])	Unit in radian
-            LOG		        ([a]) 			([LOG a])
+            CTAN		([a]) 			([CTAN a])	Unit in radian
+	    LN		        ([a]) 			([LOG a])
             EXP		        ([a]) 			([EXP a])
 	    PI						([3.14159265358979])	
 	    
@@ -1121,20 +2046,27 @@ Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
 	----------------
 	    <		       	([a][b])		([1]) if [a]<[b] else ([0])
 	    <=		       	([a][b])		([1]) if [a]<=[b] else ([0])
-	    =  | ==	       	([a][b])		([1]) if [a]==[b] else ([0])
-	    >=		       	([a][b])		([1]) if [a]>=[b] else ([0])
 	    >		       	([a][b])		([1]) if [a]>[b] else ([0])
+	    >=		       	([a][b])		([1]) if [a]>=[b] else ([0])    
+	    == 	        	([a][b])		([1]) if [a]==[b] else ([0])
 	    <=>	     	       	([a][b])		([-1]) if [a]>[b],([1]) if [a]<[b], ([0])if [a]==[b]
-            IF                 	([a][b][c])		([c]) if [a]==0 else ([b])
+            != 	        	([a][b])		([0]) if [a]==[b] else ([1])
 	
 	Other operator
 	----------------
             MIN	     	       	([a][b])		([a]) if  [a]<[b] else ([b]) 
             MAX		       	([a][b])		([a]) if  [a]>[b] else ([b]) 
-            TIME		()			([time]) time in ticks
+            TICK		()			([time]) time in ticks
+	    LTIME		([a])			([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
+							localtime of [a] like PERL
+	    GTIME		([a])			([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
+							([a]) gmtime of [a] like PERL
+	    HLTIME		([a])			([a]) localtime human readeable
+	    HGTIME		([a])			gmtime human readeable		
             RAND		()			([rand]) a random numder between 0 and 1
             LRAND		([a])			([rand]) a random numder between 0 and [a]
 	    SPACE		([a])			Return [a] with space between each 3 digits
+	    DOT			([a])			Return [a] with dot (.) between each 3 digits
 	    NORM		([a])			Return [a] normalized by 1000 (K,M,G = 1000 * unit)
 	    NORM2		([a])			Return [a] normalized by 1000 (K,M,G = 1024 * unit)
 	    
@@ -1147,10 +2079,10 @@ Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
             LE			([a][b])		([1]) if [a] le [b] else ([0])
             GE			([a][b])		([1]) if [a] ge [b] else ([0])
             CMP			([a][b])		([-1]) if [a] gt [b],([1]) if [a] lt [b], ([0])if [a] eq [b]
-            LEN | LENGTH	([a])			([LENGTH a])
+            LEN 		([a])			([LENGTH a])
 	    CAT			([a][b])		([ab])	String concatenation
             REP			([a][b])		([a x b]) repeat [b] time the motif [a]
-	    REV	| REVERSE	([a])			([REVERSE a])
+	    REV			([a])			([REVERSE a])
             SUBSTR		([a][b][c])		([SUBSTR [a], [b], [c]) get substring of [a] starting from [b] untill [c]
             UC			([a])			([UC a])
             LC			([a])			([LC a])
@@ -1161,31 +2093,87 @@ Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
 	    TPAT		([a][b])		([r]) use the pattern [b] on the string [a] and return 1 if pattern macth 
 	    						otherwise return 0
 	    SPAT		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/>
-	    SPATI		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i> (case insensitive)
-	    PACK                ([a][b]...[x])	        Do an unpack on variable [b] to [x] using format [b] 
-	    UNPACK              ([a][b])		Do an unpack on variable [b] using format [a]
+	    SPATG		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/g>
+	    SPATI		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i> 
+	    						(case insensitive)
+	    SPATGI		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/gi> 
+	    						(case insensitive)
 	    PRINTF     	        ([a][b]...[x])          use the format present in [a] to print the value [b] to [x] 
 	    						the format is the same as (s)printf 
+	    PACK                ([a][b]...[x])	        Do an unpack on variable [b] to [x] using format [b] 
+	    UNPACK              ([a][b])		Do an unpack on variable [b] using format [a]
 	    
+ 
 	 Stack operators
 	 ---------------
-            DEPTH		([r1]...)		([re1]...[nbr])	Return the number of elements in the statck
-            DUP			([a])			([a][a])	
+            	
             SWAP		([a][b])		([b][a])
-            POP			([a][b])		([a])
-	    POPN                ([a][b][c]...[x])	([l]...[x]) remove [b] element from the stack (starting at [c])
-	    SWAP2		([a][b][c])     	([a][c][b])
-            ROT			([a][b][c])     	([b][c][a])
+            OVER		([a][b])		([a][b][a])
+	    DUP			([a])			([a][a])
+	    DDUP		([a][b])		([a][b][a][b])
+	    ROT			([a][b][c])     	([b][c][a])
 	    RROT		([a][b][c])     	([c][a][b])
-	    ROT3		([a][b][c])     	([c][b][a])
+	    DEPTH		([r1]...)		([re1]...[nbr])	Return the number of elements in the statck
+	    POP			([a][b])		([a])
+	    POPN                ([a][b][c]...[x])	([l]...[x]) remove [b] element from the stack (starting at [c])
+	    DEL			([a][b][c][d]...[x])	([c]...[n][m]...[x]) delete [b] elements from element number [a]
+	    SWAP2		([a][b][c])     	([a][c][b])
             ROLL		([a][b][c][d][e][n])	([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
 	    						if  [n] =3 it is equivalent to ROT
-            PICK		([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element [n] on top 
-            PUT			([a][b][c][d][v][n])	([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
-            DU  |DUMP		([a][b][c][d])		() dump the stack in a string, each elements separated by a blank
-	    						This avoid the warning if the stack is not empty and prevent use of array
-            DS |DUMPS           ([a][b][c][d][sep])     () dump the stack in a string, each elements separated by [sep] (could be \n)
-	    						This avoid the warning if the stack is not empty and prevent use of array
+	    PICK		([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element [n] on top 
+	    GET			([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element [n] and put on top 
+	    PUT			([a][b][c][d][v][n])	([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
+	    DEL			([a][b])		delete [b] element on the stack from lebvel [a]
+               						[a] and [b] is get in absolute value	    
+	    FIND		([a])     		get the level of stack containing [a]
+
+            
+	 Dictionary operators
+	 --------------------	 
+	  
+	    WORDS		()			([a])return as one stack element the list of WORD in DICT separated by a |	
+	    VARS   		()			([a])return as one stack element the list of VARIABLE in VAR separated by a |				
+            INC			([a])     		() increment (+1) the value of variable [a]
+            DEC			([a])     		() decrement (-1) the value of variable [a]
+            VARIABLE            ([a])			() create a entry in VAR for the variable [a]
+	    !			([a][b])		store the value [a] in the variable [b]
+	    @			([a])			([a]) return the value of the variable [a]
+            : xxx ;					create a new word (sub) into the dictionary with the xxx "code"
+
+	
+ 	 Return Stack operators
+	 ----------------------
+	 
+	   >R        		([a])			put ^a$ on the return stack
+	   R>			()			remove first element from the return stack and copy on the normal
+	   RL			()			return the depth of the return stack
+	   R@			()			copy return stack ion normal stack
+
+	LOOP and DECISION operators
+   	---------------------------
+	
+	 [a] IF [..xxx] THEN				Test the element on top of stack
+                       					  if ==0, execute 'xxx' block
+							The loop is executed always one time
+	 
+	 [a] IF [...zzz...] ELSE [..xxx...] THEN	Test the element on top of stack
+                       					  if ==0, execute 'xxx' block
+                       					  if != 0 execute 'zzz' block
+							The loop is executed always one time
+
+         BEGIN xxx WHILE zzz REPEAT			Execute 'xxx' block
+							Test the element on top of stack
+                       					  if ==0 execute 'zzz' block and branch again to BEGIN
+                       					  if != 0 end the loop
+							The loop is executed always one time
+
+ 	[a] [b] DO [...xxx...] LOOP	([a][b])	process block [...xxx...] with iterator from value [b] untill [a] value,
+							with increment of 1;
+               						The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
+	
+	[a] [b] DO [...xxx...] [c] LOOP	([a][b])	rocess block [...xxx...] with iterator from value [b] untill [a] value,
+							with increment of [c];
+               						The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
 
 
 =head1 EXAMPLES
@@ -1206,35 +2194,63 @@ Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
 	$ret = rpn($test);  # $ret = 8 with a warning because the stack is not empty ([Hello] [8])
 			    # be care to close your quoted string 
 	
-	$test = "'Hello,world',',',pat,',',eq,'Contain a coma','Without a coma',if"
+	$test = "'Hello,world',',',pat,',',eq,'Contain a coma','Without a coma',if";
 	$ret = rpn($test);  # $ret = "Contain a coma"
 	
-	$test = "'Hello world',',',pat,',',eq,'Contain a coma','Without a coma',if"
+	$test = "'Hello world',',',pat,',',eq,'Contain a coma','Without a coma',if";
 	$ret = rpn($test);  # $ret = "Without a coma"
 	
-	$test = "3,10,/,5,+,82,*,%b,PRINTF"
+	$test = "3,10,/,5,+,82,*,%b,PRINTF";
 	$ret = rpn($test);  # $ret = "110110010"
 	
-	$test = "3,10,/,5,+,82,*,%016b,PRINTF"
+	$test = "3,10,/,5,+,82,*,%016b,PRINTF";
 	$ret = rpn($test);  # $ret = "0000000110110010"
 	
 	$test = "55,N,pack,B32,unpack,^0+(?=\d), ,spat,'+',ds";
 	$ret = rpn($test);  # $ret = 110111
+	
+	$test = "7,3,/,10,3,/,%d %f,PRINTF";
+	@ret = rpn($test); # @ret = 2 3.333333
+	
+	$test = "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,<,WHILE,####,a,@,****,REPEAT";
+	@ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb
+	
+	$test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
+	@ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
 
 =head1 AUTHOR
 
 	Fabrice Dulaunoy <fabrice@dulaunoy.com> 
-	It is a rewrite of the module Math::RPN from  Owen DeLong, <owen@delong.com> 
-	with extension for STRING management and some extra STACK functions
-
+	It is a full rewrite from the version 1.xx to allow DICTIONNARY use and STRUCTURE control
+	Thanks to the module Math::RPN from  Owen DeLong, <owen@delong.com> for the idea of using RPN in a config file
 
 =head1 SEE ALSO
+
 	Math-RPN from  Owen DeLong, <owen@delong.com> 
 
 =head1 TODO
-	REPEAT, WHILE, FOR, BLOCK, FUNCTION
 
-perl(1).
+	Error processing, stack underflow...
+	
+=head1 LICENSE
+
+	Under the GNU GPL2
+
+	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public 
+	License as published by the Free Software Foundation; either version 2 of the License, 
+	or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+	without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+	See the GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License along with this program; 
+	if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+	Parse::RPN   Copyright (C) 2004 DULAUNOY Fabrice  Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
+	for details See: L<http://www.gnu.org/licenses/gpl.html> 
+	This is free software, and you are welcome to redistribute it under certain conditions;
+   
 
 =cut
 

@@ -3,5 +3,5 @@ Makefile.PL                Generic Makefile template
 RPN.pm                     Is a minimalist RPN parser/processor (a little like FORTH)
 README             	   Read this first
 test.pl                    Basic test script
-testRPN.pl                 A little sample script which allow to play with the module from the command line
-META.yml                                 Module meta-data (added by MakeMaker)
+RPN.pl                     A little sample script which allow to play with the module from the command line
+META.yml                   Module meta-data (added by MakeMaker)

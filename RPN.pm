@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.4 2004/09/30 15:38:51 fabrice Exp $
-# $Revision: 2.4 $
+# $Id: RPN.pm,v 2.5 2004/10/01 06:58:49 fabrice Exp $
+# $Revision: 2.5 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = (q$Revision: 2.4 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+$VERSION = do { my @rev = (q$Revision: 2.5 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -980,6 +980,41 @@ $dict{ 'LCFIRST' } = sub {
     return \@ret, 1;
 };
 
+=head2 a b SPLIT
+
+      return all splitted item of 'a' by the separator 'b' 
+      'b' is a REGEX
+	
+=cut
+
+$dict{ 'SPLIT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @r     = split /$a/, $b;
+    my @ret;
+    push @ret, @r;
+    return \@ret, 2;
+};
+
+
+=head2 a b SPLITI
+
+      return all splitted item of 'a' by the separator 'b' 
+      'b' is a REGEX case insensitive
+	
+=cut
+
+$dict{ 'SPLITI' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @r     = split /$a/i, $b;
+    my @ret;
+    push @ret, @r;
+    return \@ret, 2;
+};
+
 =head2 a b PAT
 
       return one or more occurance of 'b' in 'a' 
@@ -997,6 +1032,23 @@ $dict{ 'PAT' } = sub {
     return \@ret, 2;
 };
 
+=head2 a b PATI
+
+      return one or more occurance of 'b' in 'a' 
+      'b' is a REGEX case insensitive
+	
+=cut
+
+$dict{ 'PATI' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @r     = ( $b =~ m/$a/ig );
+    my @ret;
+    push @ret, @r;
+    return \@ret, 2;
+};
+
 =head2 a b TPAT
 
       test if the pattern 'b' is in 'a' 
@@ -1009,6 +1061,23 @@ $dict{ 'TPAT' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my $r     = ( $b =~ m/$a/g );
+    my @ret;
+    push @ret, ( $r ? 1 : 0 );
+    return \@ret, 2;
+};
+
+=head2 a b TPATI
+
+      test if the pattern 'b' is in 'a' 
+      'b' is a REGEX
+	
+=cut
+
+$dict{ 'TPATI' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $r     = ( $b =~ m/$a/ig );
     my @ret;
     push @ret, ( $r ? 1 : 0 );
     return \@ret, 2;
@@ -2097,8 +2166,14 @@ __END__
             LCFIRST		([a])			([LCFIRST a])
             PAT			([a][b])		([r1]...) use the pattern [b] on the string [a] and return result 
 	    						if more then one result like $1, $2 ... return all the results 
+	    PATI		([a][b])		([r1]...) use the pattern CASE INSENSITIVE [b] on the string [a] and return result 
+	    						if more then one result like $1, $2 ... return all the results 						
 	    TPAT		([a][b])		([r]) use the pattern [b] on the string [a] and return 1 if pattern macth 
 	    						otherwise return 0
+	    TPATI		([a][b])		([r]) use the pattern CASE INSENSITIVE [b] on the string [a] and return 1 if pattern macth 
+	    						otherwise return 0
+	    SPLIT		([a][b])		split ([a]) using the pattern ([b]) and return all elements on stack
+	    SPLITI					split ([a]) using the pattern CASE INSENSITIVE  ([b])) and return all elements on stack					
 	    SPAT		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/>
 	    SPATG		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/g>
 	    SPATI		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i> 

@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.8 2004/11/28 17:44:03 fabrice Exp $
-# $Revision: 2.8 $
+# $Id: RPN.pm,v 2.9 2005/04/17 13:44:59 fabrice Exp $
+# $Revision: 2.9 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = (q$Revision: 2.8 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+$VERSION = do { my @rev = (q$Revision: 2.9 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1702,10 +1702,12 @@ $dict{ 'THEN' } = sub {
     my $return1 = shift;
     my $b_ref   = pop @{ $return1 };
     my $a_ref   = pop @{ $return1 };
-    my $res     = shift @{ $work1 };
     my @pre     = @{ $work1 };
-    my @BEGIN   = splice @pre, $a_ref, $b_ref - $a_ref - 1;
+    my @BEGIN   = splice @pre, $a_ref +1   , $b_ref - $a_ref - 1;
     my $len     = scalar @BEGIN;
+    my $r = scalar @{ $work1 };
+    my $i = $r-$len-2;
+    my $res=  $pre[$i];
     if ( $res )
     {
         process( \@BEGIN );
@@ -1731,13 +1733,14 @@ $dict{ 'THENELSE' } = sub {
     my $c_ref   = pop @{ $return1 };
     my $b_ref   = pop @{ $return1 };
     my $a_ref   = pop @{ $return1 };
-    my $res     = shift @{ $work1 };
     my @pre     = @{ $work1 };
-    my @ELSE    = splice @pre, $a_ref, $b_ref - $a_ref - 1;
+    my @ELSE    = splice @pre, $a_ref +1  , $b_ref - $a_ref - 1;
     @pre = @{ $work1 };
-    my @THEN = splice @pre, $b_ref, $c_ref - $b_ref - 1;
+    my @THEN = splice @pre, $b_ref +1  , $c_ref - $b_ref - 1;
     my $len = scalar @ELSE + scalar @THEN;
-
+    my $r = scalar @{ $work1 };
+    my $i = $r-$len-3;
+    my $res= $pre[$i];
     if ( $res )
     {
         process( \@THEN );

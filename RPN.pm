@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.9 2005/04/17 13:44:59 fabrice Exp $
-# $Revision: 2.9 $
+# $Id: RPN.pm,v 2.13 2005/04/21 08:14:49 fabrice Exp $
+# $Revision: 2.13 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = (q$Revision: 2.9 $ =~ /\d+/g); sprintf "%d."."%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.13 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -402,10 +402,10 @@ $dict{ 'PI' } = sub {
 };
 
 ########################
-# logical operators
+# relational operators
 ########################
 
-=head1 LOGICAL operators
+=head1 relational operators
 
 .
 
@@ -514,14 +514,182 @@ $dict{ '!=' } = sub {
     return \@ret, 2;
 };
 
+=head2 a b OR=
+
+      return the result of 'a' || 'b'  ( BOOLEAN value ) 0 if a == b else 1
+	
+=cut
+
+
+########################
+# logical operators
+########################
+
+=head1 LOGICAL operators
+
+=cut
+
+=head2 a b OR
+
+      return the 1 one of the 2 argument are not equal to 0
+	
+=cut
+
+$dict{ 'OR' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a || $b);
+    return \@ret, 2;
+};
+
+
+=head2 a b AND
+
+      return the 0 one of the 2 argument are equal to 0
+	
+=cut
+
+$dict{ 'AND' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a && $b);
+    return \@ret, 2;
+};
+
+
+=head2 a b XOR
+
+      return the 0 if the  2 argument are equal
+	
+=cut
+
+$dict{ 'XOR' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a xor $b) ? 1 : 0;
+    return \@ret, 2;
+};
+
+
+=head2 a NOT
+
+      return the 0 if the argument is not eqauk to 0
+      return the 1 if the argument is  eqauk to 0
+	
+=cut
+
+$dict{ 'NOT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+  
+    my @ret;
+    push @ret, (not $a) ? 1 : 0;
+    return \@ret, 1;
+};
+
+
+=head2 a TRUE
+
+      return the 1 if the top of stack is !=0 and if stack not empty
+	
+=cut
+
+$dict{ 'TRUE' } = sub {
+    my $work1 = shift;
+    my $a;
+    my $b = 0;
+    if ( scalar @{ $work1 } )
+    {
+        $b = 1;
+        $a = pop @{ $work1 };
+        if ( $a > 0 )
+        {
+            $b = 1;
+        }
+        else
+        {
+            $b = 0;
+        }
+    }
+    my @ret;
+    push @ret, $b;
+    return \@ret, 1;
+};
+
+=head2 a FALSE
+
+      return the 0 if the top of stack is !=0
+	
+=cut
+
+$dict{ 'FALSE' } = sub {
+    my $work1 = shift;
+    my $a;
+    my $b = 1;
+    if ( scalar @{ $work1 } )
+    {
+        $b = 0;
+        $a = pop @{ $work1 };
+        if ( $a > 0 )
+        {
+            $b = 0;
+        }
+        else
+        {
+            $b = 1;
+        }
+    }
+    my @ret;
+    push @ret, $b;
+    return \@ret, 1;
+};
+
 ########################
 # misc operators
 ########################
 
 =head1 MISC operators
 
-.
 
+=head2 a b >>
+
+      bitwise shift to the right
+      shift the bits in a to the left of b level
+	
+=cut
+
+$dict{ '>>' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret,  ($b >> $a);
+    return \@ret, 2;
+};
+
+
+=head2 a b <<
+
+      bitwise shift to the left
+      shift the bits in a to the left of b level
+	
+=cut
+
+$dict{ '<<' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret,  ($b << $a);
+    return \@ret, 2;
+};
+ 
 =head2 a b MIN
 
       return the result smallest of the 2 arguments
@@ -984,6 +1152,8 @@ $dict{ 'LCFIRST' } = sub {
 
       return all splitted item of 'a' by the separator 'b' 
       'b' is a REGEX
+      !!! if the split match on the beginning of string,
+      SPLIT return the matched value WITHOUT the empty string of the beginning
 	
 =cut
 
@@ -991,25 +1161,26 @@ $dict{ 'SPLIT' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
-    my @r     = split /$a/, $b;
+    my @r     = grep /[^(^$)]/, split /$a/, $b;
     my @ret;
     push @ret, @r;
     return \@ret, 2;
 };
 
-
 =head2 a b SPLITI
 
       return all splitted item of 'a' by the separator 'b' 
       'b' is a REGEX case insensitive
-	
+      !!! if the split match on the beginning of string,
+      SPLIT return the matched value WITHOUT the empty string of the beginning
+      
 =cut
 
 $dict{ 'SPLITI' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
-    my @r     = split /$a/i, $b;
+    my @r     = grep /[^(^$)]/, split /$a/i, $b;
     my @ret;
     push @ret, @r;
     return \@ret, 2;
@@ -1189,7 +1360,7 @@ $dict{ 'PRINTF' } = sub {
 
 $dict{ 'PACK' } = sub {
     my $work1  = shift;
-    my $format = " " . ( pop ( @{ $work1 } ) ) . " ";
+    my $format = " " . ( pop( @{ $work1 } ) ) . " ";
     my @r      = ( $format =~ m/([a-zA-Z]\d*\s*)/g );
     my @var;
     for ( 0 .. $#r )
@@ -1399,7 +1570,7 @@ $dict{ 'GET' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = @{ $work1 }[ -( $a ) ];
     my @tmp   = splice @{ $work1 }, -( $a - 1 );
-    $b     = pop @{ $work1 };
+    $b = pop @{ $work1 };
     my @ret;
     push @ret, @tmp, $b;
     return \@ret, 1 + $a;
@@ -1428,7 +1599,7 @@ $dict{ 'PUT' } = sub {
     {
         @tmp = splice @ret, -$a;
     }
-    push ( @ret, $b, @tmp );
+    push( @ret, $b, @tmp );
     return \@ret, $len;
 };
 
@@ -1447,7 +1618,7 @@ $dict{ 'DEL' } = sub {
     my @temp;
     @temp = splice @{ $work1 }, $len - 2 - $start - $length, $length;
     my @ret;
-    push ( @ret, @{ $work1 } );
+    push( @ret, @{ $work1 } );
     return \@ret, $len;
 };
 
@@ -1482,7 +1653,7 @@ $dict{ 'FIND' } = sub {
         }
     }
     my @ret;
-    push ( @ret, $ret );
+    push( @ret, $ret );
     return \@ret, 1;
 };
 
@@ -1703,17 +1874,23 @@ $dict{ 'THEN' } = sub {
     my $b_ref   = pop @{ $return1 };
     my $a_ref   = pop @{ $return1 };
     my @pre     = @{ $work1 };
-    my @BEGIN   = splice @pre, $a_ref +1   , $b_ref - $a_ref - 1;
+    my @BEGIN   = splice @pre, $a_ref + 1, $b_ref - $a_ref - 1;
     my $len     = scalar @BEGIN;
-    my $r = scalar @{ $work1 };
-    my $i = $r-$len-2;
-    my $res=  $pre[$i];
+    my $r       = scalar @{ $work1 };
+    my $i       = $r - $len - 2;
+    my $res     = $pre[$i];
+    my $len_d   = 2 + $len;
     if ( $res )
     {
-        process( \@BEGIN );
-        push @ret, @BEGIN;
+        my @TMP = @pre;
+        pop @TMP;
+        push @TMP, @BEGIN;
+        process( \@TMP );
+        $len_d = scalar( @pre ) + $len;
+        @ret   = @TMP;
     }
-    return \@ret, 2 + $len, 2;
+
+    return \@ret, $len_d, 2;
 };
 
 =head2 a IF zzz ELSE xxx THEN
@@ -1734,31 +1911,44 @@ $dict{ 'THENELSE' } = sub {
     my $b_ref   = pop @{ $return1 };
     my $a_ref   = pop @{ $return1 };
     my @pre     = @{ $work1 };
-    my @ELSE    = splice @pre, $a_ref +1  , $b_ref - $a_ref - 1;
+    my @ELSE    = splice @pre, $a_ref - 1, $b_ref - $a_ref - 1;
+    my @BEGIN   = splice @pre, 0, $a_ref - 1;
     @pre = @{ $work1 };
-    my @THEN = splice @pre, $b_ref +1  , $c_ref - $b_ref - 1;
-    my $len = scalar @ELSE + scalar @THEN;
-    my $r = scalar @{ $work1 };
-    my $i = $r-$len-3;
-    my $res= $pre[$i];
+    my @THEN  = splice @pre, $b_ref + 1, $c_ref - $b_ref - 1;
+    my $len   = scalar @ELSE + scalar @THEN;
+    my $r     = scalar @{ $work1 };
+    my $i     = $r - $len - 3;
+    my $res   = $pre[$i];
+    my $len_d = 3 + $len;
+
     if ( $res )
     {
-        process( \@THEN );
-        push @ret, @THEN;
+        my @TMP = @pre;
+        pop @TMP;
+        push @TMP, 'THEN';
+        process( \@TMP );
+        @ret   = @TMP;
+        $len_d = scalar( @pre ) + $len;
     }
     else
     {
-        process( \@ELSE );
-        push @ret, @ELSE;
+        my @TMP = @BEGIN;
+        push @TMP, '1';
+        push @TMP, 'IF';
+        push @TMP, @THEN;
+        push @TMP, 'THEN';
+        process( \@TMP );
+        @ret   = @TMP;
+        $len_d = scalar( @pre ) + $len;
     }
-    return \@ret, 3 + $len, 3;
+    return \@ret, $len_d, 3;
 };
 
 =head2 BEGIN xxx WHILE zzz REPEAT
 
 	execute 'xxx' block
 	test the element on top of stack 
-		if ==0 execute 'zzz' block and brabch again at 'BEGIN'
+		if ==0 execute 'zzz' block and branch again at 'BEGIN'
 		if != 0 end the loop
 		
 	The loop is executed always one time
@@ -1775,33 +1965,43 @@ $dict{ 'REPEAT' } = sub {
     my $a_ref   = pop @{ $return1 };
     my @pre     = @{ $work1 };
     my @BEGIN   = splice @pre, $a_ref, $b_ref - $a_ref;
-    my @BEGIN2  = @BEGIN;
-    my @BEGIN3  = @BEGIN;
+    my @HEAD    = splice @pre, 0, $a_ref;
     my $len     = scalar( @BEGIN );
     @pre = @{ $work1 };
     my @WHILE = splice @pre, $b_ref + 1, $c_ref - $b_ref;
     my @WHILE2 = @WHILE;
     @pre = @{ $work1 };
-    process( \@BEGIN2 );
-    my $res = pop @BEGIN2;
+    my @TMP  = @HEAD;
+    my $head = $HEAD[-1];
+    push @TMP, @BEGIN;
+    process( \@TMP );
+    my $res = pop @TMP;
+    push @TMP, $head;
 
-    if ( $res )
+    if ( !$res )
     {
-        push @ret, @BEGIN2;
-        $len += scalar( @WHILE );
-        process( \@WHILE );
-        push @ret, @WHILE;
+        $len += scalar( @TMP );
+        my @TMP = @HEAD;
+        push @TMP, @WHILE;
+        process( \@TMP );
+        push @ret, @TMP;
+        if ( !scalar @TMP )
+        {
+            @HEAD = @TMP;
+            my @RET = 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
+            return \@RET, scalar( @TMP ) + $len + 3, 3;
+        }
         @BEGIN = splice @pre, $a_ref, $b_ref - $a_ref;
         push @ret, 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
-        return \@ret, $len + 1, 3;
+        return \@ret, scalar( @TMP ) + $len + 1, 3;
     }
-    return \@ret, $len + 4, 3;
+    return \@ret, $len + 3, 3;
 };
 
 =head2  end start DO,block,LOOP
 
 	process 'block' with iterator from value 'start' untill 'end' value,with increment of 1;
-	The iterator variable is '_I_' (read only)
+	The iterator variable is the second value on the stack (start argument)
 	
 =cut
 
@@ -1813,6 +2013,8 @@ $dict{ 'LOOP' } = sub {
     my $a_ref   = pop @{ $return1 };
     my @pre     = @{ $work1 };
     my @BLOCK   = splice @pre, $a_ref + 1, $b_ref - $a_ref;
+    my @pre1    = @{ $work1 };
+    my @HEAD    = splice @pre1, 0, $a_ref;
     pop @pre;
     my $a   = pop @pre;
     my $b   = pop @pre;
@@ -1822,16 +2024,11 @@ $dict{ 'LOOP' } = sub {
     if ( $ind <= $b )
     {
         $ind++;
-        my @OLD_BLOCK = @BLOCK;
-        for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
-        {
-            if ( $BLOCK[$i] =~ /_I_/ )
-            {
-                $BLOCK[$i] = $ind;
-            }
-        }
-        process( \@BLOCK );
-        push @pre, @BLOCK, $b, $ind, "DO", @OLD_BLOCK, "LOOP";
+        my @TMP = @pre;
+        push @TMP, @BLOCK;
+        process( \@TMP );
+        @pre = @TMP;
+        push @pre, $b, $ind, "DO", @BLOCK, "LOOP";
     }
     return \@pre, $len + 1;
 };
@@ -1840,8 +2037,7 @@ $dict{ 'LOOP' } = sub {
 
 	process 'block' with iterator from value 'start' untill 'end' value,with increment of 'increment' 
 	This allow rational or negative value
-	The iterator variable is '_I_' (read only)
-	Not like FORTH, ythe increment is on the stack before the DO
+	The iterator variable is the second value on the stack (start argument)
 	
 =cut
 
@@ -1853,45 +2049,37 @@ $dict{ '+LOOP' } = sub {
     my $a_ref   = pop @{ $return1 };
     my @pre     = @{ $work1 };
     my @BLOCK   = splice @pre, $a_ref + 1, $b_ref - $a_ref;
+    my @pre1    = @{ $work1 };
+    my @HEAD    = splice @pre1, 0, $a_ref;
     pop @pre;
-    my $b   = pop @pre;
-    my $c   = pop @pre;
-    my $a   = pop @BLOCK;
-    my $ind = $b;
+    my $inc   = pop @pre;
+    my $start = pop @pre;
+    my $end   = pop @pre;
+    my $ind   = $start;
     my @ret;
 
-    if ( $a < 0 )
+    if ( $inc < 0 )
     {
-        if ( $ind >= $c )
+        if ( $ind >= $end )
         {
-            $ind += $a;
-            my @OLD_BLOCK = @BLOCK;
-            for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
-            {
-                if ( $BLOCK[$i] =~ /_I_/ )
-                {
-                    $BLOCK[$i] = $ind;
-                }
-            }
-            process( \@BLOCK );
-            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK, $a, "+LOOP";
+            $ind += $inc;
+            my @TMP = @pre;
+            push @TMP, @BLOCK;
+            process( \@TMP );
+            @pre = @TMP;
+            push @pre, $end, $ind, $inc, "DO", @BLOCK, "+LOOP";
         }
     }
     else
     {
-        if ( $ind <= $c )
+        if ( $ind <= $end )
         {
-            $ind += $a;
-            my @OLD_BLOCK = @BLOCK;
-            for ( my $i = 0 ; $i <= $#BLOCK ; $i++ )
-            {
-                if ( $BLOCK[$i] =~ /_I_/ )
-                {
-                    $BLOCK[$i] = $ind;
-                }
-            }
-            process( \@BLOCK );
-            push @pre, @BLOCK, $c, $ind, "DO", @OLD_BLOCK, $a, "+LOOP";
+            $ind += $inc;
+            my @TMP = @pre;
+            push @TMP, @BLOCK;
+            process( \@TMP );
+            @pre = @TMP;
+            push @pre, $end, $ind, $inc, "DO", @BLOCK, "+LOOP";
         }
     }
     return \@pre, $len + 1, 2;
@@ -1926,7 +2114,7 @@ sub parse
 sub rpn
 {
     my $item = shift;
-    my @stack;   
+    my @stack;
     while ( $item )
     {
         my $elem;
@@ -1962,7 +2150,7 @@ sub process
         my $tmp_op    = $op;
         $tmp_op =~ s/^\s+//g;
         $tmp_op =~ s/\s+$//g;
-        if ( exists( $dict{ $tmp_op } ) || exists( $var{ $tmp_op } ))
+        if ( exists( $dict{ $tmp_op } ) || exists( $var{ $tmp_op } ) )
         {
             $op =~ s/^\s+//g;
             $op =~ s/\s+$//g;
@@ -2045,7 +2233,7 @@ sub process
                 {
                     my @work_stack   = @work;
                     my @return_stack = @return;
-                    my ( $ret, $remove_stack, $remove_return ) = $dict{ $op } ( \@work_stack, \@return_stack );
+                    my ( $ret, $remove_stack, $remove_return ) = $dict{ $op }( \@work_stack, \@return_stack );
                     if ( $remove_return >= 0 )
                     {
                         for ( 1 .. $remove_return )
@@ -2118,7 +2306,7 @@ __END__
             EXP		        ([a]) 			([EXP a])
 	    PI						([3.14159265358979])	
 	    
-	Logical operator
+	Relational operator
 	----------------
 	    <		       	([a][b])		([1]) if [a]<[b] else ([0])
 	    <=		       	([a][b])		([1]) if [a]<=[b] else ([0])
@@ -2127,9 +2315,22 @@ __END__
 	    == 	        	([a][b])		([1]) if [a]==[b] else ([0])
 	    <=>	     	       	([a][b])		([-1]) if [a]>[b],([1]) if [a]<[b], ([0])if [a]==[b]
             != 	        	([a][b])		([0]) if [a]==[b] else ([1])
+	    TRUE		([a])			Return 1 if [a]>0 and exist
+	    FALSE		([a])			Return 0 if [a]>0
+	    
+	Logical operator
+	----------------
+	
+	    OR		       	([a][b])		([1]) if [a] or [b] >0
+	    AND		       	([a][b])		([1]) if [a] and [b] >0
+	    XOR		       	([a][b])		([1]) if [a] and [b] are >0 or ==0
+	    NOT		        ([a])			Return 0 if [a]>0, Return 1 if[a]==0, 
 	
 	Other operator
 	----------------
+	
+	    >>		       	([a][b])		shift to the right the bits from [a] of [b] rank
+	    <<		       	([a][b])		shift to the left the bits from [a] of [b] rank
             MIN	     	       	([a][b])		([a]) if  [a]<[b] else ([b]) 
             MAX		       	([a][b])		([a]) if  [a]>[b] else ([b]) 
             TICK		()			([time]) time in ticks
@@ -2335,4 +2536,3 @@ __END__
    
 
 =cut
-

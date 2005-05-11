@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.13 2005/04/21 08:14:49 fabrice Exp $
-# $Revision: 2.13 $
+# $Id: RPN.pm,v 2.14 2005/04/21 10:51:45 fabrice Exp $
+# $Revision: 2.14 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = ( q$Revision: 2.13 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.14 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1878,7 +1878,7 @@ $dict{ 'THEN' } = sub {
     my $len     = scalar @BEGIN;
     my $r       = scalar @{ $work1 };
     my $i       = $r - $len - 2;
-    my $res     = $pre[$i];
+    my $res     = pop @pre ;
     my $len_d   = 2 + $len;
     if ( $res )
     {
@@ -1886,7 +1886,7 @@ $dict{ 'THEN' } = sub {
         pop @TMP;
         push @TMP, @BEGIN;
         process( \@TMP );
-        $len_d = scalar( @pre ) + $len;
+        $len_d = scalar( @pre ) + $len +1 ;
         @ret   = @TMP;
     }
 

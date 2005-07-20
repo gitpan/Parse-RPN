@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.15 2005/06/29 09:06:40 fabrice Exp $
-# $Revision: 2.15 $
+# $Id: RPN.pm,v 2.17 2005/07/20 06:56:17 fabrice Exp $
+# $Revision: 2.17 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = ( q$Revision: 2.15 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.17 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -150,6 +150,7 @@ $dict{ '*' } = sub {
 =head2 a b /
 
       return the result of 'a' / 'b' 
+      if b =0 return '' (to prevent exception raise)
 	
 =cut
 
@@ -373,6 +374,7 @@ $dict{ 'CTAN' } = sub {
 =head2 a LN
 
       return the result of ln 'a' 
+      if = 0 return '' (to prevent exception raise)
 	
 =cut
 
@@ -380,7 +382,16 @@ $dict{ 'LN' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, log( $a );
+    my $c ;
+    eval { ($c = log( $a )) };
+    if ($@)
+    {
+    	push @ret, '';
+    }
+    else
+    {
+    	push @ret, $c;
+    }
     return \@ret, 1;
 };
 
@@ -1160,7 +1171,8 @@ $dict{ 'LCFIRST' } = sub {
 =head2 a b SPLIT
 
       return all splitted item of 'a' by the separator 'b' 
-      'b' is a REGEX
+      'b' is a REGEX 
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
       !!! if the split match on the beginning of string,
       SPLIT return the matched value WITHOUT the empty string of the beginning
 	
@@ -1180,6 +1192,7 @@ $dict{ 'SPLIT' } = sub {
 
       return all splitted item of 'a' by the separator 'b' 
       'b' is a REGEX case insensitive
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
       !!! if the split match on the beginning of string,
       SPLIT return the matched value WITHOUT the empty string of the beginning
       
@@ -1199,6 +1212,7 @@ $dict{ 'SPLITI' } = sub {
 
       return one or more occurance of 'b' in 'a' 
       'b' is a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
 	
 =cut
 
@@ -1216,6 +1230,7 @@ $dict{ 'PAT' } = sub {
 
       return one or more occurance of 'b' in 'a' 
       'b' is a REGEX case insensitive
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
 	
 =cut
 
@@ -1233,6 +1248,7 @@ $dict{ 'PATI' } = sub {
 
       test if the pattern 'b' is in 'a' 
       'b' is a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
 	
 =cut
 
@@ -1250,7 +1266,8 @@ $dict{ 'TPAT' } = sub {
 
       test if the pattern 'b' is in 'a' 
       'b' is a REGEX
-	
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+      	
 =cut
 
 $dict{ 'TPATI' } = sub {
@@ -1267,6 +1284,7 @@ $dict{ 'TPATI' } = sub {
 
       substitute the pattern 'b' by the pattern 'a'  in 'c'
       'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
 	
 =cut
 
@@ -1285,6 +1303,7 @@ $dict{ 'SPAT' } = sub {
 
       substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
       'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
 	
 =cut
 
@@ -1303,6 +1322,7 @@ $dict{ 'SPATG' } = sub {
 
       substitute the pattern 'b' by the pattern 'a'  in 'c'case insensitive (i flag in REGEX)
       'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
 	
 =cut
 
@@ -1322,6 +1342,7 @@ $dict{ 'SPATI' } = sub {
       substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
       and case insensitive (1 flag in REGEX)
       'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
 	
 =cut
 
@@ -2232,7 +2253,7 @@ sub process
         }
         if ( !$is_string )
         {
-            if ( $is_do || $is_begin )
+            if ( $is_do || $is_begin || $is_block )
             {
                 push @work, $op;
             }

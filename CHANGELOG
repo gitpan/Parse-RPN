@@ -1,2 +1,189 @@
 version <2 is only a RPN parser
 version >2 is more like  FORTH (with dictionary, vaiables...)
+
+----------------------------
+revision 2.19
+date: 2005-10-05 13:53:57 +0000;
+create name space for PERL function
+----------------------------
+revision 2.18
+date: 2005-10-03 06:58:08 +0000; 
+possibility to call PERL function
+----------------------------
+revision 2.17
+date: 2005-07-20 06:56:17 +0000;
+correct the SUB creation (don't execute stack when store function)
+----------------------------
+revision 2.16
+date: 2005-06-29 09:15:33 +0000;
+return '' in case of LN(0)
+----------------------------
+revision 2.15
+date: 2005-06-29 09:06:40 +0000;
+retrun '' in case of division by null
+----------------------------
+revision 2.14
+date: 2005-04-21 10:51:45 +0000;
+in IF remove the value on top of the stack before executing the IF code
+----------------------------
+revision 2.13
+date: 2005-04-21 08:14:49 +0000;
+add logical operators
+----------------------------
+revision 2.12
+date: 2005-04-20 13:36:41 +0000;
+correct all the loop algo
+----------------------------
+revision 2.11
+date: 2005-04-19 14:31:39 +0000;
+error in TIF (no stack )
+----------------------------
+revision 2.10
+date: 2005-04-17 14:27:03 +0000;
+remove the leading empty string when SPLIT and SPLITI matche the beginning of the string
+----------------------------
+revision 2.9
+date: 2005-04-17 13:44:59 +0000;
+correct code for IF (use top of stack and not end)
+----------------------------
+revision 2.8
+date: 2004-11-28 17:44:03 +0000;
+replace \1 by $1 to prevent warning in substitution
+----------------------------
+revision 2.7
+date: 2004-10-12 10:11:27 +0000;
+clean up code
+----------------------------
+revision 2.6
+date: 2004-10-12 10:09:00 +0000;
+clean up code
+----------------------------
+revision 2.5
+date: 2004-10-01 06:58:49 +0000;
+add SPLIT, SPLITI, PATI, TPATI
+----------------------------
+revision 2.4
+date: 2004-09-30 15:38:51 +0000;
+correct PAT return and LCFIRST return
+----------------------------
+revision 2.3
+date: 2004-08-29 17:43:08 +0000;
+test if string in VAR or DICT
+----------------------------
+revision 2.02
+date: 2004-08-29 16:48:17 +0000;
+better use of STRING (when space before and after)
+----------------------------
+revision 2.01
+date: 2004-08-29 11:56:06 +0000;
+transfert NRPM to RPM
+----------------------------
+revision 2.00
+date: 2004-08-29 10:02:59 +0000;
+transfert NRPM to RPM
+----------------------------
+revision 1.24
+date: 2004-08-06 10:40:56 +0000;
+add DEL
+----------------------------
+revision 1.23
+date: 2004-08-06 10:19:19 +0000;
+correct license text
+----------------------------
+revision 1.22
+date: 2004-08-06 08:41:47 +0000;
+POPN, PI added
+----------------------------
+revision 1.21
+date: 2004-08-06 07:30:56 +0000;
+use the same loop in PRINTF to allow any number of field in format
+----------------------------
+revision 1.20
+date: 2004-08-06 07:12:31 +0000;
+correct REGEX in PACK to allow only 1 letter as format
+----------------------------
+revision 1.19
+date: 2004-08-05 19:03:37 +0000;
+correct PACK command to allow any number of param
+----------------------------
+revision 1.18
+date: 2004-08-05 15:59:12 +0000;
+use PACK and check number of variable in format
+----------------------------
+revision 1.17
+date: 2004-08-05 14:25:59 +0000;
+add PRINTF to convert value to
+----------------------------
+revision 1.16
+date: 2004-08-05 13:18:23 +0000;
+add synomin of +- to NEG
+----------------------------
+revision 1.15
+date: 2004-08-05 13:11:23 +0000;
+add +- function to negate a numerical value
+----------------------------
+revision 1.14
+date: 2004-04-27 15:02:11 +0000;
+swap RROT and ROT
+----------------------------
+revision 1.13
+date: 2004-04-27 14:52:55 +0000;
+add function RROT, SWAP2, REVERSE, ROT3
+----------------------------
+revision 1.12
+date: 2003-10-20 10:05:14 +0000;
+correct typo error in POD for TPAT
+----------------------------
+revision 1.11
+date: 2003-10-20 09:56:25 +0000;
+add TPAT
+----------------------------
+revision 1.10
+date: 2003-10-20 09:49:55 +0000;
+TPAT return 0 if not pattern found
+----------------------------
+revision 1.9
+date: 2003-10-20 09:42:27 +0000;
+add TPAT (test pattern)
+----------------------------
+revision 1.8
+date: 2003-10-20 09:16:12 +0000;
+add SWAT alias EXCH to keep compatibility with Math::RPN
+----------------------------
+revision 1.7
+date: 2003-10-20 08:20:10 +0000;
+correct VERSION number for MakeMaker again
+----------------------------
+revision 1.6
+date: 2003-10-20 08:15:32 +0000;
+correct VERSION number for MakeMaker
+----------------------------
+revision 1.5
+date: 2003-10-19 20:03:20 +0000;
+correct typo in POD
+----------------------------
+revision 1.4
+date: 2003-10-19 19:59:53 +0000;
+correct typo in POD
+----------------------------
+revision 1.3
+date: 2003-10-19 19:59:23 +0000;
+correct typo in POD
+----------------------------
+revision 1.2
+date: 2003-10-19 19:57:41 +0000;
+Clean code and add POD doc
+----------------------------
+revision 1.1
+date: 2003-10-19 19:50:20 +0000;
+branches:  1.1.1;
+Initial revision
+----------------------------
+revision 1.1.1.2
+date: 2004-08-29 11:54:26 +0000;
+no message
+----------------------------
+revision 1.1.1.1
+date: 2003-10-19 19:50:20 +0000;
+RPN parser with STRING functions
+=============================================================================

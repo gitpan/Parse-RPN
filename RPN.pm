@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.17 2005/07/20 06:56:17 fabrice Exp $
-# $Revision: 2.17 $
+# $Id: RPN.pm,v 2.20 2005/10/05 15:00:30 fabrice Exp $
+# $Revision: 2.20 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -71,7 +71,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn );
 
-$VERSION = do { my @rev = ( q$Revision: 2.17 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.20 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -159,15 +159,15 @@ $dict{ '/' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    my $c ;
-    eval { ($c = $b / $a) };
-    if ($@)
+    my $c;
+    eval { ( $c = $b / $a ) };
+    if ( $@ )
     {
-    	push @ret, '';
+        push @ret, '';
     }
     else
     {
-    	push @ret, $c;
+        push @ret, $c;
     }
     return \@ret, 2;
 };
@@ -382,15 +382,15 @@ $dict{ 'LN' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    my $c ;
-    eval { ($c = log( $a )) };
-    if ($@)
+    my $c;
+    eval { ( $c = log( $a ) ) };
+    if ( $@ )
     {
-    	push @ret, '';
+        push @ret, '';
     }
     else
     {
-    	push @ret, $c;
+        push @ret, $c;
     }
     return \@ret, 1;
 };
@@ -540,7 +540,6 @@ $dict{ '!=' } = sub {
 	
 =cut
 
-
 ########################
 # logical operators
 ########################
@@ -560,10 +559,9 @@ $dict{ 'OR' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a || $b);
+    push @ret, ( $a || $b );
     return \@ret, 2;
 };
-
 
 =head2 a b AND
 
@@ -576,10 +574,9 @@ $dict{ 'AND' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a && $b);
+    push @ret, ( $a && $b );
     return \@ret, 2;
 };
-
 
 =head2 a b XOR
 
@@ -592,10 +589,9 @@ $dict{ 'XOR' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a xor $b) ? 1 : 0;
+    push @ret, ( $a xor $b ) ? 1 : 0;
     return \@ret, 2;
 };
-
 
 =head2 a NOT
 
@@ -607,12 +603,11 @@ $dict{ 'XOR' } = sub {
 $dict{ 'NOT' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-  
+
     my @ret;
-    push @ret, (not $a) ? 1 : 0;
+    push @ret, ( not $a ) ? 1 : 0;
     return \@ret, 1;
 };
-
 
 =head2 a TRUE
 
@@ -689,10 +684,9 @@ $dict{ '>>' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret,  ($b >> $a);
+    push @ret, ( $b >> $a );
     return \@ret, 2;
 };
-
 
 =head2 a b <<
 
@@ -706,10 +700,10 @@ $dict{ '<<' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret,  ($b << $a);
+    push @ret, ( $b << $a );
     return \@ret, 2;
 };
- 
+
 =head2 a b MIN
 
       return the result smallest of the 2 arguments
@@ -1794,7 +1788,7 @@ $dict{ '@' } = sub {
 
 };
 
-=head2 : name1 xxx ;
+=head2 :xxx  name1 ;
 
         create a new entry in the dictionary whith name name1 and store the progam xxx
 	
@@ -1810,12 +1804,55 @@ $dict{ ';' } = sub {
     my @BLOCK   = splice @pre, $a_ref, $b_ref - $a_ref;
     my @ret;
     pop @pre;
-    my $name = shift @BLOCK;
+    my $name = pop @BLOCK;
     $dict{ $name } = sub {
         my $ret;
         @ret = @BLOCK;
         return \@ret, 0;
     };
+    return \@ret, $#BLOCK + 2, 2;
+};
+
+=head2 : xxx name1 ;
+
+        create a new entry in the dictionary whith name name1 and store the progam xxx
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	
+=cut
+
+$dict{ 'PERL' } = sub {
+    my $work1   = shift;
+    my $return1 = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $b_ref   = pop @{ $return1 };
+    my $a_ref   = pop @{ $return1 };
+    my @pre     = @{ $work1 };
+    my @BLOCK   = splice @pre, $a_ref, $b_ref - $a_ref;
+    my @ret;
+    pop @pre;
+    my $name     = pop @BLOCK;
+    my $rev_name = reverse $name;
+
+    my $arg = join ",", reverse @BLOCK;
+    my $todo;
+
+    if ( $name !~ /::[^:]*$/ )
+    {
+        $todo = "main::" . $name . "(" . $arg . ");";
+    }
+    else
+    {
+        my $before = $`;
+        eval "require  $before";
+        $todo = $name . "(" . $arg . ");";
+    }
+    my @ret = eval( $todo );
+    if ( $@ )
+    {
+         chomp $@;
+         @ret =  $@;
+    }
     return \@ret, $#BLOCK + 2, 2;
 };
 
@@ -1908,7 +1945,7 @@ $dict{ 'THEN' } = sub {
     my $len     = scalar @BEGIN;
     my $r       = scalar @{ $work1 };
     my $i       = $r - $len - 2;
-    my $res     = pop @pre ;
+    my $res     = pop @pre;
     my $len_d   = 2 + $len;
     if ( $res )
     {
@@ -1916,7 +1953,7 @@ $dict{ 'THEN' } = sub {
         pop @TMP;
         push @TMP, @BEGIN;
         process( \@TMP );
-        $len_d = scalar( @pre ) + $len +1 ;
+        $len_d = scalar( @pre ) + $len + 1;
         @ret   = @TMP;
     }
 
@@ -2198,6 +2235,11 @@ sub process
             $is_block = 0;
             push @return, ( scalar( @work ) );
         }
+        if ( $op =~ /^PERL$/g )
+        {
+            $is_block = 0;
+            push @return, ( scalar( @work ) );
+        }
         if ( $op =~ /^:$/g )
         {
             $is_block = 1;
@@ -2314,7 +2356,7 @@ __END__
             +  			([a][b])		([a+b])
 	    -  			([a][b])		([a-b])
 	    *  			([a][b])		([a*b])
-            /  			([a][b])		([a/b])
+            /  			([a][b])		([a/b])		Becare if division by null return a blank value (no error)
 	    **     		([a][b])		([a**b])
             1+ 			([a]) 			([a+1])
 	    1- 			([a]) 			([a-1])
@@ -2376,7 +2418,8 @@ __END__
 	    DOT			([a])			Return [a] with dot (.) between each 3 digits
 	    NORM		([a])			Return [a] normalized by 1000 (K,M,G = 1000 * unit)
 	    NORM2		([a])			Return [a] normalized by 1000 (K,M,G = 1024 * unit)
-	    
+	    SUB                 ([a][b][c]...[x])       Exectute named Perl function [x] on the stack and return result
+
 	String operators
 	----------------
             EQ	       		([a][b])		([1]) if [a] eq [b] else ([0])
@@ -2451,7 +2494,10 @@ __END__
             VARIABLE            ([a])			() create a entry in VAR for the variable [a]
 	    !			([a][b])		store the value [a] in the variable [b]
 	    @			([a])			([a]) return the value of the variable [a]
-            : xxx ;					create a new word (sub) into the dictionary with the xxx "code"
+            : xxx yyy ;					create a new word (sub) into the dictionary with the xxx "code" with name yyy
+	    : xxx yyy PERL				execute the PERL function yyy with parameter(s) yyy 
+							the default name space is "main::"
+							It is possible tu use a specific name space
 
 	
  	 Return Stack operators
@@ -2530,12 +2576,29 @@ __END__
 	
 	$test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
 	@ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
+	
+	
+	sub Test {
+	   my $a  = shift;
+	   my $b = shift;
+	   my $c = $a/$b;
+	   print "a=$a\tb=$b\ttotal=$c\n";
+	   return $c;
+	}
+	$test = ":,5,6,Test,PERL";
+	@ret =rpn($test); # call the function "Test" from the main package (the caller) with parameter 5,6 and return result (in @ret)
+	
+	$test = ":,0,0,0,5,10,05,Time::Local::timelocal,PERL";
+	@ret =rpn($test); # @ret = 1131145200
+	
 
 =head1 AUTHOR
 
 	Fabrice Dulaunoy <fabrice@dulaunoy.com> 
-	It is a full rewrite from the version 1.xx to allow DICTIONNARY use and STRUCTURE control
-	Thanks to the module Math::RPN from  Owen DeLong, <owen@delong.com> for the idea of using RPN in a config file
+	It is a full rewrite from the version 1.xx to allow DICTIONNARY use
+	and STRUCTURE control
+	Thanks to the module Math::RPN from  Owen DeLong, <owen@delong.com> 
+	for the idea of using RPN in a config file
 
 =head1 SEE ALSO
 
@@ -2544,25 +2607,36 @@ __END__
 =head1 TODO
 
 	Error processing, stack underflow...
+
+=head1 CREDITS
+	
+	Thank's to Stefan Moser <sm@open.ch> for the idea 
+	to call a perl function from the rpn() 
 	
 =head1 LICENSE
 
 	Under the GNU GPL2
 
-	This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public 
-	License as published by the Free Software Foundation; either version 2 of the License, 
-	or (at your option) any later version.
+	This program is free software; you can redistribute it and/or modify it 
+	under the terms of the GNU General Public 
+	License as published by the Free Software Foundation; either version 2 
+	of the License, or (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-	without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+	This program is distributed in the hope that it will be useful, 
+	but WITHOUT ANY WARRANTY;  without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
 	See the GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License along with this program; 
-	if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+	You should have received a copy of the GNU General Public License 
+	along with this program; if not, write to the 
+	Free Software Foundation, Inc., 59 Temple Place, 
+	Suite 330, Boston, MA 02111-1307 USA
 
-	Parse::RPN   Copyright (C) 2004 DULAUNOY Fabrice  Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
+	Parse::RPN   Copyright (C) 2004 DULAUNOY Fabrice  
+	Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
 	for details See: L<http://www.gnu.org/licenses/gpl.html> 
-	This is free software, and you are welcome to redistribute it under certain conditions;
+	This is free software, and you are welcome to redistribute 
+	it under certain conditions;
    
 
 =cut

@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.20 2005/10/05 15:00:30 fabrice Exp $
-# $Revision: 2.20 $
+# $Id: RPN.pm,v 2.21 2005/10/05 20:32:12 fabrice Exp $
+# $Revision: 2.21 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -21,6 +21,8 @@
   use Parse::RPN;
   $result=rpn(string ...);
   @results=rpn(string ...);
+  
+  $error=rpn_error();
 
   string... is a list of RPN operator and value separated by a coma
   in scalar mode RPN return the result of the calculation (If the stack contain more then one element, 
@@ -29,7 +31,7 @@
 
 =head1 DESCRIPTION
 
-  RPN receive in entry a scalar of one or more elements coma separated 
+  rpn() receive in entry a scalar of one or more elements coma separated 
   and evaluate as an RPN (Reverse Polish Notation) command.
   The function split all elements and put in the stack.
   The operator are case insensitive.
@@ -52,6 +54,9 @@
   before some of my customer would like more ...
   I correct a bug (interversion of > and >=), add the STRING function, pattern search and some STACK functions.
 
+  rpn_error() return the last error from the evaluation (illegal division by 0, error from the PERL function execution...)
+  each time that rpn() is call the rpn_error() is reinitianised.
+
 =cut
 
 package Parse::RPN;
@@ -69,9 +74,9 @@ use Data::Dumper;
 
 @ISA = qw(Exporter AutoLoader);
 
-@EXPORT = qw( rpn );
+@EXPORT = qw( rpn  rpn_error);
 
-$VERSION = do { my @rev = ( q$Revision: 2.20 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.21 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -79,6 +84,8 @@ my %var;
 my @loop;
 my @begin;
 my @return;
+
+my $DEBUG;
 
 #use Tie::IxHash;
 
@@ -163,7 +170,9 @@ $dict{ '/' } = sub {
     eval { ( $c = $b / $a ) };
     if ( $@ )
     {
-        push @ret, '';
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
     }
     else
     {
@@ -254,7 +263,7 @@ $dict{ 'MOD' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, $b % $a;
+    push @ret, $a % $b;
     return \@ret, 2;
 };
 
@@ -386,7 +395,9 @@ $dict{ 'LN' } = sub {
     eval { ( $c = log( $a ) ) };
     if ( $@ )
     {
-        push @ret, '';
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
     }
     else
     {
@@ -440,7 +451,7 @@ $dict{ '<' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $b < $a ? 1 : 0 );
+    push @ret, ( $a < $b ? 1 : 0 );
     return \@ret, 2;
 };
 
@@ -455,7 +466,7 @@ $dict{ '<=' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $b <= $a ? 1 : 0 );
+    push @ret, ( $a <= $b ? 1 : 0 );
     return \@ret, 2;
 };
 
@@ -470,7 +481,7 @@ $dict{ '>' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $b > $a ? 1 : 0 );
+    push @ret, ( $a > $b ? 1 : 0 );
     return \@ret, 2;
 };
 
@@ -485,7 +496,7 @@ $dict{ '>=' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $b >= $a ? 1 : 0 );
+    push @ret, ( $a >= $b ? 1 : 0 );
     return \@ret, 2;
 };
 
@@ -684,7 +695,7 @@ $dict{ '>>' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $b >> $a );
+    push @ret, ( $a >> $b );
     return \@ret, 2;
 };
 
@@ -700,7 +711,7 @@ $dict{ '<<' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $b << $a );
+    push @ret, ( $a << $b );
     return \@ret, 2;
 };
 
@@ -1571,7 +1582,7 @@ $dict{ 'ROLL' } = sub {
 
 =head2 a PICK
 	
-	copy element 'a' to the stack
+	copy element from depth 'a' to the stack
 
 =cut
 
@@ -1579,25 +1590,39 @@ $dict{ 'PICK' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, @{ $work1 }[ -( $a + 1 ) ];
+    if ( $a <= scalar @{ $work1 } )
+    {
+        push @ret, @{ $work1 }[ -( $a ) ];
+    }
+
     return \@ret, 1;
 };
 
 =head2 a GET
 	
-	get (remove) element N'a' to the stack
+	get (remove) element from depth 'a' to the stack
 
 =cut
 
 $dict{ 'GET' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    my $b     = @{ $work1 }[ -( $a ) ];
-    my @tmp   = splice @{ $work1 }, -( $a - 1 );
-    $b = pop @{ $work1 };
     my @ret;
-    push @ret, @tmp, $b;
-    return \@ret, 1 + $a;
+    my $b;
+    if ( $a <= ( scalar @{ $work1 } ) && ( $a > 1 ) )
+    {
+        my $line = join " | ", @{ $work1 };
+        my @tmp = splice @{ $work1 }, -( $a - 1 );
+        my $line = join " | ", @tmp;
+        $b = pop @{ $work1 };
+        push @ret, @tmp, $b;
+        return \@ret, 1 + $a;
+    }
+    else
+    {
+        return \@ret, 1;
+    }
+
 };
 
 =head2 a b PUT
@@ -1824,17 +1849,24 @@ $dict{ ';' } = sub {
 $dict{ 'PERL' } = sub {
     my $work1   = shift;
     my $return1 = shift;
-    my $len     = scalar( @{ $work1 } );
-    my $b_ref   = pop @{ $return1 };
-    my $a_ref   = pop @{ $return1 };
-    my @pre     = @{ $work1 };
-    my @BLOCK   = splice @pre, $a_ref, $b_ref - $a_ref;
+
+    my $b_ref = pop @{ $return1 };
+    my $a_ref = pop @{ $return1 };
+    my @pre   = @{ $work1 };
+    my @BLOCK = splice @pre, $a_ref, $b_ref - $a_ref;
+    my @tmp   = ( @pre, @BLOCK );
+    pop @tmp;
     my @ret;
     pop @pre;
-    my $name     = pop @BLOCK;
-    my $rev_name = reverse $name;
-
-    my $arg = join ",", reverse @BLOCK;
+    my $name       = pop @BLOCK;
+    my $line       = join " | ", @tmp;
+    my $len_before = scalar( @tmp );
+    process( \@tmp );
+    my $len_after = scalar( @tmp );
+    my $delta     = $len_before - $len_after;
+    my $line1     = join " | ", @tmp;
+    my $rev_name  = reverse $name;
+    my $arg       = join ",", reverse @tmp;
     my $todo;
 
     if ( $name !~ /::[^:]*$/ )
@@ -1850,10 +1882,11 @@ $dict{ 'PERL' } = sub {
     my @ret = eval( $todo );
     if ( $@ )
     {
-         chomp $@;
-         @ret =  $@;
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
     }
-    return \@ret, $#BLOCK + 2, 2;
+    return \@ret, $delta + 3, 2;
 };
 
 =head2 a >R
@@ -2181,6 +2214,7 @@ sub parse
 sub rpn
 {
     my $item = shift;
+    $DEBUG = '';
     my @stack;
     while ( $item )
     {
@@ -2340,6 +2374,11 @@ sub process
     unshift @{ $stack }, @work;
 }
 
+sub rpn_error
+{
+    return $DEBUG;
+}
+
 1;
 __END__
 
@@ -2356,15 +2395,15 @@ __END__
             +  			([a][b])		([a+b])
 	    -  			([a][b])		([a-b])
 	    *  			([a][b])		([a*b])
-            /  			([a][b])		([a/b])		Becare if division by null return a blank value (no error)
+            /  			([a][b])		([a/b])		Becare if division by null return a blank value
 	    **     		([a][b])		([a**b])
             1+ 			([a]) 			([a+1])
 	    1- 			([a]) 			([a-1])
 	    2+ 			([a]) 			([a+2])
 	    2- 			([a]) 			([a-2])    
             MOD  		([a][b])		([a%b])
-            ABS     		([a][b])		([ABS a])
-            INT     		([a][b])		([INT a])
+            ABS     		([a])   		([ABS a])
+            INT     		([a])			([INT a])
 	    +-		        ([a]) 			([-a])
 	    REMAIN	        ([a]) 			([a- INT a])
 	    
@@ -2418,7 +2457,6 @@ __END__
 	    DOT			([a])			Return [a] with dot (.) between each 3 digits
 	    NORM		([a])			Return [a] normalized by 1000 (K,M,G = 1000 * unit)
 	    NORM2		([a])			Return [a] normalized by 1000 (K,M,G = 1024 * unit)
-	    SUB                 ([a][b][c]...[x])       Exectute named Perl function [x] on the stack and return result
 
 	String operators
 	----------------
@@ -2476,8 +2514,8 @@ __END__
 	    SWAP2		([a][b][c])     	([a][c][b])
             ROLL		([a][b][c][d][e][n])	([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
 	    						if  [n] =3 it is equivalent to ROT
-	    PICK		([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element [n] on top 
-	    GET			([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element [n] and put on top 
+	    PICK		([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element from depth [n] on top 
+	    GET			([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element from depth [n] and put on top 
 	    PUT			([a][b][c][d][v][n])	([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
 	    DEL			([a][b])		delete [b] element on the stack from lebvel [a]
                						[a] and [b] is get in absolute value	    

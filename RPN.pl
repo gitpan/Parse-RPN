@@ -1,7 +1,10 @@
 #!/usr/bin/perl
 
+use Data::Dumper;
+
 
 sub Test {
+print Dumper(\@_);
 my $a  = shift;
 my $b = shift;
 my $c = $a/$b;
@@ -22,5 +25,7 @@ if ( $test =~ /^-v/ )
 else
 {
     $ret = rpn( $test );
+    
 }
 print "$ret\n";
+print rpn_error()."\n";

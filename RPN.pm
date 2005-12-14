@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.21 2005/10/05 20:32:12 fabrice Exp $
-# $Revision: 2.21 $
+# $Id: RPN.pm,v 2.22 2005/12/14 08:38:34 fabrice Exp $
+# $Revision: 2.22 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -34,7 +34,7 @@
   rpn() receive in entry a scalar of one or more elements coma separated 
   and evaluate as an RPN (Reverse Polish Notation) command.
   The function split all elements and put in the stack.
-  The operator are case insensitive.
+  The operator are case sensitive.
   The operator are detect as is, if they are alone in the element of the stack. 
   Extra space before or after are allowed
   (e.g "3,4,ADD" here ADD is an opeartor but it is not the case in "3,4,ADD 1")
@@ -76,7 +76,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error);
 
-$VERSION = do { my @rev = ( q$Revision: 2.21 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.22 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1613,7 +1613,7 @@ $dict{ 'GET' } = sub {
     {
         my $line = join " | ", @{ $work1 };
         my @tmp = splice @{ $work1 }, -( $a - 1 );
-        my $line = join " | ", @tmp;
+        $line = join " | ", @tmp;
         $b = pop @{ $work1 };
         push @ret, @tmp, $b;
         return \@ret, 1 + $a;
@@ -1856,7 +1856,6 @@ $dict{ 'PERL' } = sub {
     my @BLOCK = splice @pre, $a_ref, $b_ref - $a_ref;
     my @tmp   = ( @pre, @BLOCK );
     pop @tmp;
-    my @ret;
     pop @pre;
     my $name       = pop @BLOCK;
     my $line       = join " | ", @tmp;
@@ -2088,7 +2087,9 @@ $dict{ 'REPEAT' } = sub {
         if ( !scalar @TMP )
         {
             @HEAD = @TMP;
-            my @RET = 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
+	    my @RET;
+	    push @RET , 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
+#            my @RET = 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
             return \@RET, scalar( @TMP ) + $len + 3, 3;
         }
         @BEGIN = splice @pre, $a_ref, $b_ref - $a_ref;

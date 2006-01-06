@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.22 2005/12/14 08:38:34 fabrice Exp $
-# $Revision: 2.22 $
+# $Id: RPN.pm,v 2.23 2006/01/06 09:06:31 fabrice Exp $
+# $Revision: 2.23 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -76,7 +76,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error);
 
-$VERSION = do { my @rev = ( q$Revision: 2.22 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.23 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1297,7 +1297,7 @@ $dict{ 'SPAT' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 };
+    my $c     = pop @{ $work1 } || '';
     $c =~ s/$b/$a/;
     my @ret;
     push @ret, $c;
@@ -1547,7 +1547,7 @@ $dict{ 'POP' } = sub {
 
 =head2	a ... z POPN
 
-	remove the 'z' last elemnet(s) from the stack
+	remove the 'z' last element(s) from the stack
 
 =cut
 
@@ -1600,7 +1600,7 @@ $dict{ 'PICK' } = sub {
 
 =head2 a GET
 	
-	get (remove) element from depth 'a' to the stack
+	get (remove) element from depth 'a' 
 
 =cut
 
@@ -1654,7 +1654,7 @@ $dict{ 'PUT' } = sub {
 
 =head2 a b DEL
 	
-	delete 'b' element on the stack from lebvel 'a'
+	delete 'b' element on the stack from level 'a'
 	'a' and 'b' is get in absolute value 
 
 =cut
@@ -1706,6 +1706,28 @@ $dict{ 'FIND' } = sub {
     return \@ret, 1;
 };
 
+=head2 a KEEP
+	
+	delete all element on the stack except the level 'a'
+	if 'a' is deeper then stack, keep the stack untouched
+	
+=cut
+
+$dict{ 'KEEP' } = sub {    
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    if ( $a <= ( scalar @{ $work1 } )  )
+    {
+        push @ret, @{ $work1 }[ -( $a ) ];      
+        return \@ret, 1+ ( scalar @{ $work1 } ) ;
+    }
+    else
+    {
+        return \@ret, 1;
+    }
+};
+   
 ########################
 # DICT operator
 ########################
@@ -1838,9 +1860,9 @@ $dict{ ';' } = sub {
     return \@ret, $#BLOCK + 2, 2;
 };
 
-=head2 : xxx name1 ;
+=head2 : xxx name1 PERL
 
-        create a new entry in the dictionary whith name name1 and store the progam xxx
+        execute the PERL function name1 with the parameter xxx
 	the default name space is "main::"
 	It is possible tu use a specific name space
 	
@@ -2194,7 +2216,7 @@ sub parse
     my $remainder = shift;
     $remainder =~ s/^,//;
     my $before;
-    my $is_string = 0;
+    my $is_string = 0;    
     if ( $remainder =~ /^('|")(.*)/ )
     {
         $is_string = 1;
@@ -2521,7 +2543,7 @@ __END__
 	    DEL			([a][b])		delete [b] element on the stack from lebvel [a]
                						[a] and [b] is get in absolute value	    
 	    FIND		([a])     		get the level of stack containing [a]
-
+	    KEEP		([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
             
 	 Dictionary operators
 	 --------------------	 
@@ -2615,6 +2637,12 @@ __END__
 	
 	$test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
 	@ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
+	
+	$test = "1,2,3,4,5,6,7,8,9,3,KEEP";
+	ret =rpn($test); # @ret = 7
+	
+	$test = "1,2,3,4,5,6,7,8,9,30,KEEP";
+	ret =rpn($test); # @ret = 1,2,3,4,5,6,7,8,9
 	
 	
 	sub Test {

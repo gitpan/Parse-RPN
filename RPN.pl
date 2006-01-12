@@ -2,30 +2,52 @@
 
 use Data::Dumper;
 
+use Parse::RPN;
+use Getopt::Std;
 
-sub Test {
-print Dumper(\@_);
-my $a  = shift;
-my $b = shift;
-my $c = $a/$b;
-print "a=$a\tb=$b\ttotal=$c\n";
-return $c;
+my %option;
+getopts( "vhds:r:", \%option );
 
+if ( !defined $option{ r } && !defined $option{ v } )
+{
+    $option{ h } = 1;
 }
 
-use Parse::RPN;
+if ( $option{ h } )
+{
+    print "Usage: $0 [options ...]\n\n";
+    print "Where options include:\n";
+    print "\t -h \t\tthis help (what else ?)\n";
+    print "\t -v \t\tprint version and exit\n";
+    print "\t -d \t\tprint debuging value\n";
+    print "\t -s sep \t\tuse sep as separator fro the output\n";
+    print "\t -r rpn \tuse rpn as string for the RPN test\n";
+    exit;
+}
 
-#print "rrrr".Test(7,7);
+if ( $option{ s } )
+{
+    rpn_separator( $option{ s } );
+}
 
-$test = shift;
-if ( $test =~ /^-v/ )
+if ( $option{ v } )
 {
     $ret = $Parse::RPN::VERSION;
 }
 else
 {
-    $ret = rpn( $test );
-    
+    $ret = rpn( $option{ r } );
+
 }
 print "$ret\n";
-print rpn_error()."\n";
+
+if ( $option{ d } )
+{
+    print rpn_error() . "\n";
+}
+
+sub print1
+{
+
+    return shift;
+}

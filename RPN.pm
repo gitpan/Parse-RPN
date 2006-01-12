@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.23 2006/01/06 09:06:31 fabrice Exp $
-# $Revision: 2.23 $
+# $Id: RPN.pm,v 2.25 2006/01/12 13:00:30 fabrice Exp $
+# $Revision: 2.25 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -74,9 +74,9 @@ use Data::Dumper;
 
 @ISA = qw(Exporter AutoLoader);
 
-@EXPORT = qw( rpn  rpn_error);
+@EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = do { my @rev = ( q$Revision: 2.23 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.25 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -87,18 +87,7 @@ my @return;
 
 my $DEBUG;
 
-#use Tie::IxHash;
-
-#BEGIN
-#{
-#    if ( eval "require $mod" )
-#    {
-#        $mod->import();
-#tie %dict, "Tie::IxHash";
-#tie %var,  "Tie::IxHash";
-
-#    }
-#}
+my $separator = " ";
 
 ########################
 # mathematic operators
@@ -929,6 +918,28 @@ $dict{ 'NORM2' } = sub {
     return \@ret, 1;
 };
 
+=head2 a OCT
+
+      return the decimal value for the HEX, BINARY or OCTAL value 'a'
+      OCTAL is like  '0nn' where n is in the range of 0-7
+      BINARY is like '0bnnn...'   where n is in the range of 0-1
+      HEX is like '0xnnn' where n is in the range of 0-9A-F
+      if no specific format convert as an hexadecimal by default
+	
+=cut
+
+$dict{ 'OCT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    if ( $a !~ /^0(x|b|([0-7][0-7]))/ )
+    {
+        $a = "0x" . $a;
+    }
+    push @ret, oct( $a );
+    return \@ret, 1;
+};
+
 ########################
 # string operators
 ########################
@@ -1294,11 +1305,12 @@ $dict{ 'TPATI' } = sub {
 =cut
 
 $dict{ 'SPAT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 } || '';
-    $c =~ s/$b/$a/;
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 } || '';
+    my $to_eval = qq{\$c =~ s/$b/$a/};
+    eval( $to_eval );
     my @ret;
     push @ret, $c;
     return \@ret, 3;
@@ -1313,11 +1325,12 @@ $dict{ 'SPAT' } = sub {
 =cut
 
 $dict{ 'SPATG' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 };
-    $c =~ s/$b/$a/g;
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 };
+    my $to_eval = qq{\$c =~ s/$b/$a/g};
+    eval( $to_eval );
     my @ret;
     push @ret, $c;
     return \@ret, 3;
@@ -1332,11 +1345,12 @@ $dict{ 'SPATG' } = sub {
 =cut
 
 $dict{ 'SPATI' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 };
-    $c =~ s/$b/$a/i;
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 };
+    my $to_eval = qq{\$c =~ s/$b/$a/i};
+    eval( $to_eval );
     my @ret;
     push @ret, $c;
     return \@ret, 3;
@@ -1352,11 +1366,12 @@ $dict{ 'SPATI' } = sub {
 =cut
 
 $dict{ 'SPATGI' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 };
-    $c =~ s/$b/$a/gi;
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 };
+    my $to_eval = qq{\$c =~ s/$b/$a/ig};
+    eval( $to_eval );
     my @ret;
     push @ret, $c;
     return \@ret, 3;
@@ -1713,21 +1728,21 @@ $dict{ 'FIND' } = sub {
 	
 =cut
 
-$dict{ 'KEEP' } = sub {    
+$dict{ 'KEEP' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    if ( $a <= ( scalar @{ $work1 } )  )
+    if ( $a <= ( scalar @{ $work1 } ) )
     {
-        push @ret, @{ $work1 }[ -( $a ) ];      
-        return \@ret, 1+ ( scalar @{ $work1 } ) ;
+        push @ret, @{ $work1 }[ -( $a ) ];
+        return \@ret, 1 + ( scalar @{ $work1 } );
     }
     else
     {
         return \@ret, 1;
     }
 };
-   
+
 ########################
 # DICT operator
 ########################
@@ -1882,6 +1897,9 @@ $dict{ 'PERL' } = sub {
     my $name       = pop @BLOCK;
     my $line       = join " | ", @tmp;
     my $len_before = scalar( @tmp );
+    my $caller     = caller();
+    my $package    = __PACKAGE__;
+    print "caller=$caller\tpackage=$package\n";
     process( \@tmp );
     my $len_after = scalar( @tmp );
     my $delta     = $len_before - $len_after;
@@ -2109,8 +2127,8 @@ $dict{ 'REPEAT' } = sub {
         if ( !scalar @TMP )
         {
             @HEAD = @TMP;
-	    my @RET;
-	    push @RET , 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
+            my @RET;
+            push @RET, 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
 #            my @RET = 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
             return \@RET, scalar( @TMP ) + $len + 3, 3;
         }
@@ -2216,7 +2234,7 @@ sub parse
     my $remainder = shift;
     $remainder =~ s/^,//;
     my $before;
-    my $is_string = 0;    
+    my $is_string = 0;
     if ( $remainder =~ /^('|")(.*)/ )
     {
         $is_string = 1;
@@ -2254,7 +2272,7 @@ sub rpn
         }
     }
     process( \@stack );
-    my $ret = join " ", @stack;
+    my $ret = join $separator, @stack;
     return $ret;
 }
 
@@ -2402,6 +2420,10 @@ sub rpn_error
     return $DEBUG;
 }
 
+sub rpn_separator
+{
+    $separator = shift;
+}
 1;
 __END__
 
@@ -2480,6 +2502,7 @@ __END__
 	    DOT			([a])			Return [a] with dot (.) between each 3 digits
 	    NORM		([a])			Return [a] normalized by 1000 (K,M,G = 1000 * unit)
 	    NORM2		([a])			Return [a] normalized by 1000 (K,M,G = 1024 * unit)
+	    OCT			(|a|)			Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
 
 	String operators
 	----------------
@@ -2655,8 +2678,8 @@ __END__
 	$test = ":,5,6,Test,PERL";
 	@ret =rpn($test); # call the function "Test" from the main package (the caller) with parameter 5,6 and return result (in @ret)
 	
-	$test = ":,0,0,0,5,10,05,Time::Local::timelocal,PERL";
-	@ret =rpn($test); # @ret = 1131145200
+	$test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERL";
+	@ret =rpn($test); # @ret = 1133391600
 	
 
 =head1 AUTHOR

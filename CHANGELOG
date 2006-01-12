@@ -2,6 +2,20 @@ version <2 is only a RPN parser
 version >2 is more like  FORTH (with dictionary, vaiables...)
 
 ----------------------------
+revision : 2.25
+date : 2006/1/12 13:0:30
+Author : 'fabrice'
+add OCT operator
+correct SPATx operators to allow replacement by capturing parentheses
+----------------------------
+revision : 2.24
+date : 2006/1/6 10:33:2
+add a function to modify the separator of the result
+----------------------------
+revision : 2.23
+date : 2006/1/6 9:6:31
+add the KEEP function
+----------------------------
 revision 2.19
 date: 2005-10-05 13:53:57 +0000;
 create name space for PERL function

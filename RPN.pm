@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.25 2006/01/12 13:00:30 fabrice Exp $
-# $Revision: 2.25 $
+# $Id: RPN.pm,v 2.26 2006/01/16 15:16:56 fabrice Exp $
+# $Revision: 2.26 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -76,7 +76,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = do { my @rev = ( q$Revision: 2.25 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.26 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1875,15 +1875,53 @@ $dict{ ';' } = sub {
     return \@ret, $#BLOCK + 2, 2;
 };
 
-=head2 : xxx name1 PERL
+=head2 : xxx yyy name1 PERL
 
-        execute the PERL function name1 with the parameter xxx
-	the default name space is "main::"
-	It is possible tu use a specific name space
+        execute the PERL code
+	with parameter(s) xxx yyy
+	!!! be care if the perl code need to use a coma (,) 
+	you need to enclose the line inside double quote
+	if you need double quote in code use qq{ ... }
 	
 =cut
 
 $dict{ 'PERL' } = sub {
+    my $work1   = shift;
+    my $return1 = shift;
+
+    my $b_ref      = pop @{ $return1 };
+    my $a_ref      = pop @{ $return1 };
+    my @in         = @{ $work1 };
+    my @pre        = splice @in, 0, $a_ref;
+    my @tmp        = ( @pre, @in );
+    my $len_before = scalar( @tmp );
+    process( \@tmp );
+    my $len_after = scalar( @tmp );
+    my $delta     = $len_before - $len_after;
+    my @BLOCK    = splice( @tmp, -$delta, $len_before - $delta );
+    my $name      = join ";", @BLOCK;
+    eval( $name );
+    if ( $@ )
+    {
+        chomp $@;
+        $DEBUG = $@;
+    }
+    my @ret = ();
+    return \@ret, scalar @BLOCK + $delta, 2;
+};
+
+=head2 : xxx name1 PERLFUNC
+
+        execute the PERL function name1 with the parameter xxx
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	the paramter are "stringified"
+	e.g. ':,5,filename,save,PERLFUNC'
+	call the function save("filename", 5);
+	
+=cut
+
+$dict{ 'PERLFUNC' } = sub {
     my $work1   = shift;
     my $return1 = shift;
 
@@ -1893,21 +1931,24 @@ $dict{ 'PERL' } = sub {
     my @BLOCK = splice @pre, $a_ref, $b_ref - $a_ref;
     my @tmp   = ( @pre, @BLOCK );
     pop @tmp;
-    pop @pre;
     my $name       = pop @BLOCK;
-    my $line       = join " | ", @tmp;
-    my $len_before = scalar( @tmp );
-    my $caller     = caller();
-    my $package    = __PACKAGE__;
-    print "caller=$caller\tpackage=$package\n";
-    process( \@tmp );
-    my $len_after = scalar( @tmp );
-    my $delta     = $len_before - $len_after;
-    my $line1     = join " | ", @tmp;
-    my $rev_name  = reverse $name;
-    my $arg       = join ",", reverse @tmp;
-    my $todo;
+    my $len_before = scalar( @BLOCK );
+#    process( \@tmp );
+    process( \@BLOCK );
 
+    foreach my $item ( @BLOCK )
+    {
+        if ( $item =~ /^(\d+|^\$\w+)$/ )
+        {
+            next;
+        }
+        $item =~ s/^(.*)$/"$1"/;
+    }
+    my $len_after = scalar( @BLOCK );
+    my $delta     = $len_before - $len_after;
+    my $rev_name  = reverse $name;
+    my $arg       = join ",", reverse @BLOCK;
+    my $todo;
     if ( $name !~ /::[^:]*$/ )
     {
         $todo = "main::" . $name . "(" . $arg . ");";
@@ -1925,7 +1966,7 @@ $dict{ 'PERL' } = sub {
         $DEBUG = $@;
         @ret   = ();
     }
-    return \@ret, $delta + 3, 2;
+    return \@ret, scalar( @BLOCK ) + $delta + 1, 2;
 };
 
 =head2 a >R
@@ -2129,6 +2170,7 @@ $dict{ 'REPEAT' } = sub {
             @HEAD = @TMP;
             my @RET;
             push @RET, 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
+
 #            my @RET = 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
             return \@RET, scalar( @TMP ) + $len + 3, 3;
         }
@@ -2235,6 +2277,7 @@ sub parse
     $remainder =~ s/^,//;
     my $before;
     my $is_string = 0;
+    $remainder =~ s/^\s+//;
     if ( $remainder =~ /^('|")(.*)/ )
     {
         $is_string = 1;
@@ -2285,6 +2328,7 @@ sub process
     my $is_do;
     my $is_else;
     my @work;
+
     while ( @{ $stack } )
     {
         my $op        = shift @{ $stack };
@@ -2311,6 +2355,11 @@ sub process
             push @return, ( scalar( @work ) );
         }
         if ( $op =~ /^PERL$/g )
+        {
+            $is_block = 0;
+            push @return, ( scalar( @work ) );
+        }
+        if ( $op =~ /^PERLFUNC$/g )
         {
             $is_block = 0;
             push @return, ( scalar( @work ) );
@@ -2410,7 +2459,6 @@ sub process
         {
             push @work, $op;
         }
-
     }
     unshift @{ $stack }, @work;
 }
@@ -2425,6 +2473,7 @@ sub rpn_separator
     $separator = shift;
 }
 1;
+
 __END__
 
 =head1 OPERATORS
@@ -2579,9 +2628,10 @@ __END__
 	    !			([a][b])		store the value [a] in the variable [b]
 	    @			([a])			([a]) return the value of the variable [a]
             : xxx yyy ;					create a new word (sub) into the dictionary with the xxx "code" with name yyy
-	    : xxx yyy PERL				execute the PERL function yyy with parameter(s) yyy 
+	    : xxx yyy PERLFUNC				execute the PERL function yyy with parameter(s) yyy 
 							the default name space is "main::"
 							It is possible tu use a specific name space
+	    : xxx yyy PERL				execute the PERL code xxx ; yyy					
 
 	
  	 Return Stack operators
@@ -2675,12 +2725,30 @@ __END__
 	   print "a=$a\tb=$b\ttotal=$c\n";
 	   return $c;
 	}
-	$test = ":,5,6,Test,PERL";
+	$test = ":,5,6,Test,PERLFUNC";
 	@ret =rpn($test); # call the function "Test" from the main package (the caller) with parameter 5,6 and return result (in @ret)
 	
-	$test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERL";
+	$test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERLFUNC";
 	@ret =rpn($test); # @ret = 1133391600
 	
+        $test = "1,2,3,+,:, my $b=7, "open LOG , qq{ >/tmp/log }",print LOG time,,PERL";
+	@ret =rpn($test); # @ret = 1,5
+	and the file /tmp/log contain a line with the tick time.
+	
+	$test = "11,55,*,5,2,401,+,:,my $b=,SWAP,CAT, "open LOG , qq{ >/tmp/log }",print LOG $b.qq{ \n },PERL"
+	@ret =rpn($test); # @ret =1 2 3 1 (the latest 1 is the succes result return)
+	and the file /tmp/log contain a line with 403 + a cariage return
+	
+	
+	The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.
+	This include two test functions named 'save' and 'restore'
+	Try RPN.pl to get a minimal help. 
+	Take a look to the minimalistic code, and put RPN.pl in your path.
+	
+	Sample of use:
+	RPN.pl -r '1,2,3,:,123,100,+,7,*,test,save,PERLFUNC'
+	save in file '/tmp/test' the value '1561' (whithout CR/LF) and return 1 2 3 1
+		
 
 =head1 AUTHOR
 

@@ -2,6 +2,11 @@ version <2 is only a RPN parser
 version >2 is more like  FORTH (with dictionary, vaiables...)
 
 ----------------------------
+revision : 2.26
+date : 2006/1/16 15:16:56
+the previous PERL for call of a perl function become PERLFUNC
+PERL become the inline perl code use
+----------------------------
 revision : 2.25
 date : 2006/1/12 13:0:30
 Author : 'fabrice'

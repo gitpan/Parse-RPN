@@ -51,3 +51,24 @@ sub print1
 
     return shift;
 }
+
+sub save
+{
+    my $file = shift;
+    my $data = shift;
+    print "save file=$file\tdata=$data\n";
+    open FILE, ">/tmp/$file";
+    print FILE $data;
+    close FILE;
+}
+
+sub restore
+{
+    my $file = shift;
+
+    open FILE, "/tmp/$file";
+    my $data = <FILE>;
+    close FILE;
+    print "restore file=$file\tdata=$data\n";
+    return $data;
+}

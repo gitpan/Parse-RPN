@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.26 2006/01/16 15:16:56 fabrice Exp $
-# $Revision: 2.26 $
+# $Id: RPN.pm,v 2.28 2006/03/13 14:33:55 fabrice Exp $
+# $Revision: 2.28 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -76,7 +76,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = do { my @rev = ( q$Revision: 2.26 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.28 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1721,6 +1721,58 @@ $dict{ 'FIND' } = sub {
     return \@ret, 1;
 };
 
+=head2 a SEARCH
+	
+	get the level of stack containing the REGEX 'a'
+
+=cut
+
+$dict{ 'SEARCH' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/ )
+        {
+            $ret = $i;
+            push( @ret, $ret );
+            return \@ret, 1;
+        }
+    }
+    push( @ret, 0 );
+    return \@ret, 1;
+};
+
+=head2 a SEARCHI
+	
+	get the level of stack containing the REGEX 'a' (cas insensitive)
+
+=cut
+
+$dict{ 'SEARCHI' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/i )
+        {
+            $ret = $i;
+            push( @ret, $ret );
+            return \@ret, 1;
+        }
+    }
+    push( @ret, 0 );
+    return \@ret, 1;
+};
+
 =head2 a KEEP
 	
 	delete all element on the stack except the level 'a'
@@ -1732,7 +1784,11 @@ $dict{ 'KEEP' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    if ( $a <= ( scalar @{ $work1 } ) )
+    if ( $a <= 0 )
+    {
+        return \@ret, 1 + ( scalar @{ $work1 } );
+    }
+    if ( $a < ( ( scalar @{ $work1 } ) + 1 ) )
     {
         push @ret, @{ $work1 }[ -( $a ) ];
         return \@ret, 1 + ( scalar @{ $work1 } );
@@ -1898,9 +1954,10 @@ $dict{ 'PERL' } = sub {
     process( \@tmp );
     my $len_after = scalar( @tmp );
     my $delta     = $len_before - $len_after;
-    my @BLOCK    = splice( @tmp, -$delta, $len_before - $delta );
+    my @BLOCK     = splice( @tmp, -$delta, $len_before - $delta );
     my $name      = join ";", @BLOCK;
     eval( $name );
+
     if ( $@ )
     {
         chomp $@;
@@ -2463,10 +2520,23 @@ sub process
     unshift @{ $stack }, @work;
 }
 
+=head2  rpn_error()
+
+	function which return the debug info from the calculation (like a division by 0)
+	
+=cut
+
 sub rpn_error
 {
     return $DEBUG;
 }
+
+=head2  rpn_separator( 'sep' )
+
+	function to set a specific separator for the returned stack (default = space)
+	This is useful when the result of rpn() is use inside another rpn() call 
+	
+=cut
 
 sub rpn_separator
 {
@@ -2615,6 +2685,9 @@ __END__
 	    DEL			([a][b])		delete [b] element on the stack from lebvel [a]
                						[a] and [b] is get in absolute value	    
 	    FIND		([a])     		get the level of stack containing [a]
+	    SEARCH		([a])     		get the level of stack containing the REGEX [a]
+	    SEARCHI		([a])     		get the level of stack containing the REGEX [a] ( case insensitive )
+	    
 	    KEEP		([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
             
 	 Dictionary operators

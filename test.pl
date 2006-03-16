@@ -48,7 +48,13 @@ push @tests, \@line;
 }
 {
 local @line;
-push @line,  "'Hello world',',',PAT,',',NE,IF,'Contain a coma',ELSE,'Without a coma',THEN";
+push @line,  '2,3,4,5,6,7,+,*,1+,-,1-,+-,+,+,2,+,10,/';
+push @line,  '7';
+push @tests, \@line;
+}
+{
+local @line;
+push @line,  "'Hello world',',',PAT,',',EQ,IF,'Contain a coma',ELSE,'Without a coma',THEN";
 push @line,  'Without a coma';
 push @tests, \@line;
 }
@@ -66,26 +72,26 @@ push @tests, \@line;
 }
 {
 local @line;
-push @line,  "test,DUP,second,third,ROT,ROT3,4,ROLL";
-push @line,  'test third second test';
+push @line,  "test,DUP,second,third,ROT,4,ROLL,3,PICK,3,GET,DEPTH,PUT";
+push @line,  'test second third test third';
 push @tests, \@line;
 }
 {
 local @line;
-push @line,  "test,DUP,second,third,ROT,ROT3,4,ROLL,DEPTH,DUP,1,+,PUT,4,POPN";
+push @line,  "test,DUP,second,third,ROT,4,ROLL,4,ROLL,DEPTH,DUP,1,+,PUT,4,POPN";
 push @line,  '4';
 push @tests, \@line;
 }
 {
 local @line;
-push @line, "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,<,WHILE,####,a,@,****,REPEAT";
+push @line, "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,3,<,WHILE,####,a,@,****,REPEAT";
 push @line,  '## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb';
 push @tests, \@line;
 }	
 {
 local @line;
-push @line,"VARIABLE,a,0,a,!,z,0,5,DO,a,INC,6,1,DO,A,_I_,2,+LOOP,#,-1,+LOOP,##,a,@";
-push @line,"z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6" ;
+push @line,"0,a,!,z,0,4,DO,a,INC,6,1,DO,A,_I_,2,+LOOP,#,-1,+LOOP,##,a,@";
+push @line,"z A 1 A 3 A 5 # A 1 A 3 A 5 # A 1 A 3 A 5 # A 1 A 3 A 5 # A 1 A 3 A 5 # ## 6" ;
 push @tests, \@line;
 }
 

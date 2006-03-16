@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.28 2006/03/13 14:33:55 fabrice Exp $
-# $Revision: 2.28 $
+# $Id: RPN.pm,v 2.32 2006/03/16 16:02:41 fabrice Exp $
+# $Revision: 2.32 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -68,7 +68,8 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 require Exporter;
 require AutoLoader;
 
-use Carp;
+use Carp qw(cluck croak carp);
+# use Carp::Clan qw(verbose);
 
 use Data::Dumper;
 
@@ -76,7 +77,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = do { my @rev = ( q$Revision: 2.28 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.32 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1577,11 +1578,11 @@ $dict{ 'POPN' } = sub {
     return \@ret, 1 + $a;
 };
 
-=head2	a b c d e f ROLL
+=head2	a b c d e n ROLL
 
-	rotate the stack on 'f' element
+	rotate the stack on 'n' element
 	a,b,c,d,e,4,ROLL -> a c d e b
-	if n= 3 = ROT
+	if n = 3 <=> ROT
 
 =cut
 
@@ -1615,7 +1616,8 @@ $dict{ 'PICK' } = sub {
 
 =head2 a GET
 	
-	get (remove) element from depth 'a' 
+	get (remove) element from depth 'a'
+	and put on top of stack 
 
 =cut
 
@@ -1675,10 +1677,11 @@ $dict{ 'PUT' } = sub {
 =cut
 
 $dict{ 'DEL' } = sub {
-    my $work1  = shift;
-    my $len    = scalar( @{ $work1 } );
-    my $start  = abs pop @{ $work1 };
-    my $length = abs pop @{ $work1 };
+    my $work1   = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $start   = abs pop @{ $work1 };
+    my $length1 = abs pop @{ $work1 };
+    my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 2 : $length1 );
     my @temp;
     @temp = splice @{ $work1 }, $len - 2 - $start - $length, $length;
     my @ret;
@@ -1688,7 +1691,7 @@ $dict{ 'DEL' } = sub {
 
 =head2 a FIND
 	
-	get the level of stack containing the value 'a'
+	get the level of stack containing the exact value 'a'
 
 =cut
 
@@ -1799,6 +1802,82 @@ $dict{ 'KEEP' } = sub {
     }
 };
 
+=head2 a b KEEPN
+	
+	keep 'b' element on the stack from level 'a'
+	and delete all other element
+	'a' and 'b' is get in absolute value 
+
+=cut
+
+$dict{ 'KEEPN' } = sub {
+    my $work1   = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $start   = abs pop @{ $work1 };
+    my $length1 = abs pop @{ $work1 };
+    my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 1 : $length1 );
+    my @temp;
+    @temp = splice @{ $work1 }, $len - 1 - $start - $length, $length;
+    return \@temp, $len;
+};
+
+=head2 a b PRESERVE
+	
+	keep  element on the stack from level 'a'
+	to level 'b'
+	and delete all other element
+	'a' and 'b' is get in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{ 'PRESERVE' } = sub {
+    my $work1 = shift;
+    my $len   = scalar( @{ $work1 } );
+    my $start = ( abs pop @{ $work1 } );
+    my $end   = ( abs pop @{ $work1 } );
+    my $len1  = scalar( @{ $work1 } );
+    my @temp;
+    if ( $start <= $end )
+    {
+        @temp = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+    }
+    else
+    {
+        push @temp, @{ $work1 }[ ( $start - 1 ) .. ( $#$work1 ) ];
+        push @temp, @{ $work1 }[ 0 .. ( $end - 1 ) ];
+    }
+    return \@temp, $len;
+};
+
+=head2 a b COPY
+	
+	copy  element on the stack from level 'a'
+	to level 'b'
+	'a' and 'b' is get in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{ 'COPY' } = sub {
+    my $work1 = shift;
+    my $len   = scalar( @{ $work1 } );
+    my $start = ( abs pop @{ $work1 } );
+    my $end   = ( abs pop @{ $work1 } );
+    my $len1  = scalar( @{ $work1 } );
+    my @temp;
+    if ( $start <= $end )
+    {
+        @temp = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+    }
+    else
+    {
+        push @temp, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
+        push @temp, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
+    }
+    return \@temp, 2;
+};
+
 ########################
 # DICT operator
 ########################
@@ -1818,7 +1897,6 @@ $dict{ 'WORDS' } = sub {
     my @ret;
     push @ret, @tmp;
     return \@ret, 0;
-
 };
 
 =head2 VARS
@@ -1843,7 +1921,10 @@ $dict{ 'VARS' } = sub {
 $dict{ 'INC' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    ( $var{ $a } )++;
+    if ( ( !ref( $var{ $a } ) ) && $var{ $a } =~ /\d+/ )
+    {
+        ( $var{ $a } )++;
+    }
     my @ret;
     return \@ret, 1;
 };
@@ -1857,7 +1938,10 @@ $dict{ 'INC' } = sub {
 $dict{ 'DEC' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    ( $var{ $a } )--;
+    if ( ( !ref( $var{ $a } ) ) && $var{ $a } =~ /\d+/ )
+    {
+        ( $var{ $a } )--;
+    }
     my @ret;
     return \@ret, 1;
 };
@@ -1876,9 +1960,9 @@ $dict{ 'VARIABLE' } = sub {
     return \@ret, 1;
 };
 
-=head2 xx var1 !
+=head2 xx var !
 
-        set the value xx to the variable var1
+        set the value xx to the variable 'var'
 	
 =cut
 
@@ -1891,9 +1975,117 @@ $dict{ '!' } = sub {
     return \@ret, 2;
 };
 
-=head2  var1 @
+=head2 x1 x2 x3 ... n var !!
+	
+	put and delete 'n' element(s) from the stack in the variable 'var'
+	'n' is in absolute value 
 
-        reyrn the value of the variable var1
+=cut
+
+$dict{ '!!' } = sub {
+
+    my $work1     = shift;
+    my $len       = scalar( @{ $work1 } );
+    my $name      = pop @{ $work1 };
+    my $len_to_rm = ( abs pop @{ $work1 } );
+    my @temp;
+    my @TMP = @{ $work1 }[ $len_to_rm .. ( $#$work1 ) ];
+    $var{ $name } = \@TMP;
+    return \@temp, $len_to_rm + 2;
+};
+
+=head2 x1 x2 x3 ... n var !!C
+	
+	copy 'n' element(s) from the stack in the variable 'var'
+	'n' is in absolute value 
+
+=cut
+
+$dict{ '!!C' } = sub {
+
+    my $work1     = shift;
+    my $len       = scalar( @{ $work1 } );
+    my $name      = pop @{ $work1 };
+    my $len_to_rm = ( abs pop @{ $work1 } );
+    my @temp;
+    my @TMP = @{ $work1 }[ $len_to_rm .. ( $#$work1 ) ];
+    $var{ $name } = \@TMP;
+    return \@temp, 2;
+};
+
+=head2 x1 x2 x3 ... b a var !!
+	
+	put and delete ' element(s) from the stack in the variable 'var'
+	starting at element  'a' to element 'b'
+	'a' and 'b' in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{ '!!!' } = sub {
+
+    my $work1 = shift;
+    my $len   = scalar( @{ $work1 } );
+    my $name  = pop @{ $work1 };
+    my $start = ( abs pop @{ $work1 } );
+    my $end   = ( abs pop @{ $work1 } );
+    my $len1  = scalar( @{ $work1 } );
+    my @temp;
+    my @TMP;
+
+    if ( $start <= $end )
+    {
+        @TMP = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+        push @temp, @{ $work1 }[ 0 .. ( $len1 - $end - 1 ) ];
+        push @temp, @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $#$work1 ) ];
+    }
+    else
+    {
+        push @TMP, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
+        push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
+        @temp = @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $len1 - $end - 1 ) ];
+    }
+    $var{ $name } = \@TMP;
+    return \@temp, $len;
+};
+
+=head2 x1 x2 x3 ... b a var !!C
+	
+	copy element(s) on the stack in the variable 'var'
+	starting at element  'a' to element 'b'	
+	'a' and 'b' in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{ '!!!C' } = sub {
+
+    my $work1     = shift;
+    my $len       = scalar( @{ $work1 } );
+    my $name      = pop @{ $work1 };
+    my $start     = ( abs pop @{ $work1 } );
+    my $end       = ( abs pop @{ $work1 } );
+    my $len1      = scalar( @{ $work1 } );
+    my $len_to_rm = abs( $start - $end );
+    my @temp;
+    my @TMP;
+
+    if ( $start <= $end )
+    {
+        @TMP = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+    }
+    else
+    {
+        push @TMP, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
+        push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
+    }
+    $var{ $name } = \@TMP;
+    return \@temp, 2;
+};
+
+=head2  var @
+
+        return the value of the variable 'var'
 	
 =cut
 
@@ -1901,9 +2093,15 @@ $dict{ '@' } = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my @ret;
-    push @ret, $var{ $name };
+    if ( ref( $var{ $name } ) =~ /ARRAY/i )
+    {
+        push @ret, @{ $var{ $name } };
+    }
+    else
+    {
+        push @ret, $var{ $name };
+    }
     return \@ret, 1;
-
 };
 
 =head2 :xxx  name1 ;
@@ -1990,7 +2188,6 @@ $dict{ 'PERLFUNC' } = sub {
     pop @tmp;
     my $name       = pop @BLOCK;
     my $len_before = scalar( @BLOCK );
-#    process( \@tmp );
     process( \@BLOCK );
 
     foreach my $item ( @BLOCK )
@@ -2075,7 +2272,7 @@ $dict{ 'RL' } = sub {
 
 =head2 R@
 
-       copy return stack ion normal stack
+       copy return stack on normal stack
 	
 =cut
 
@@ -2126,7 +2323,6 @@ $dict{ 'THEN' } = sub {
         $len_d = scalar( @pre ) + $len + 1;
         @ret   = @TMP;
     }
-
     return \@ret, $len_d, 2;
 };
 
@@ -2185,7 +2381,7 @@ $dict{ 'THENELSE' } = sub {
 
 	execute 'xxx' block
 	test the element on top of stack 
-		if ==0 execute 'zzz' block and branch again at 'BEGIN'
+		if == 0 execute 'zzz' block and branch again at 'BEGIN'
 		if != 0 end the loop
 		
 	The loop is executed always one time
@@ -2213,34 +2409,27 @@ $dict{ 'REPEAT' } = sub {
     push @TMP, @BEGIN;
     process( \@TMP );
     my $res = pop @TMP;
-    push @TMP, $head;
+    $len += scalar( @WHILE );
 
     if ( !$res )
     {
-        $len += scalar( @TMP );
-        my @TMP = @HEAD;
         push @TMP, @WHILE;
         process( \@TMP );
         push @ret, @TMP;
-        if ( !scalar @TMP )
-        {
-            @HEAD = @TMP;
-            my @RET;
-            push @RET, 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
-
-#            my @RET = 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
-            return \@RET, scalar( @TMP ) + $len + 3, 3;
-        }
         @BEGIN = splice @pre, $a_ref, $b_ref - $a_ref;
-        push @ret, 'BEGIN', @BEGIN, 'WHILE', @WHILE2,, 'REPEAT';
+        push @ret, 'BEGIN', @BEGIN, 'WHILE', @WHILE2, 'REPEAT';
         return \@ret, scalar( @TMP ) + $len + 1, 3;
     }
-    return \@ret, $len + 3, 3;
+    my @BEGIN1 = @BEGIN;
+    process( \@BEGIN1 );
+    $res = pop @BEGIN1;
+    push @ret, @BEGIN1;
+    return \@ret, scalar( @WHILE2 ) + scalar( @BEGIN ) + 1, 3;
 };
 
 =head2  end start DO,block,LOOP
 
-	process 'block' with iterator from value 'start' untill 'end' value,with increment of 1;
+	process 'block' with iterator from value 'start' until 'end' value,with increment of 1;
 	The iterator variable is the second value on the stack (start argument)
 	
 =cut
@@ -2273,7 +2462,7 @@ $dict{ 'LOOP' } = sub {
     return \@pre, $len + 1;
 };
 
-=head2  end start increment DO,block,LOOP
+=head2  end start increment DO,block,+LOOP
 
 	process 'block' with iterator from value 'start' untill 'end' value,with increment of 'increment' 
 	This allow rational or negative value
@@ -2292,10 +2481,15 @@ $dict{ '+LOOP' } = sub {
     my @pre1    = @{ $work1 };
     my @HEAD    = splice @pre1, 0, $a_ref;
     pop @pre;
-    my $inc   = pop @pre;
-    my $start = pop @pre;
-    my $end   = pop @pre;
-    my $ind   = $start;
+    my $start      = pop @pre;
+    my $end        = pop @pre;
+    my @TMP1       = @pre;
+    my $subs_start = scalar( @TMP1 ) - 1;
+
+    push @TMP1, @BLOCK;
+    process( \@TMP1 );
+    my $inc = pop @TMP1;
+    my $ind = $start;
     my @ret;
 
     if ( $inc < 0 )
@@ -2303,24 +2497,36 @@ $dict{ '+LOOP' } = sub {
         if ( $ind >= $end )
         {
             $ind += $inc;
-            my @TMP = @pre;
-            push @TMP, @BLOCK;
-            process( \@TMP );
-            @pre = @TMP;
-            push @pre, $end, $ind, $inc, "DO", @BLOCK, "+LOOP";
+            for ( my $i = $subs_start ; $i <= $#TMP1 ; $i++ )
+            {
+                if ( $TMP1[$i] =~ /_I_/ )
+                {
+                    $TMP1[$i] = "<" . ( $ind - $inc ) . ">";
+                }
+            }
+            @pre = @TMP1;
+            push @pre, $end, $ind, "DO", @BLOCK, "+LOOP";
         }
     }
-    else
+    elsif ( $inc > 0 )
     {
         if ( $ind <= $end )
         {
             $ind += $inc;
-            my @TMP = @pre;
-            push @TMP, @BLOCK;
-            process( \@TMP );
-            @pre = @TMP;
-            push @pre, $end, $ind, $inc, "DO", @BLOCK, "+LOOP";
+            for ( my $i = $subs_start ; $i <= $#TMP1 ; $i++ )
+            {
+                if ( $TMP1[$i] =~ /_I_/ )
+                {
+                    $TMP1[$i] = ( $ind - $inc );
+                }
+            }
+            @pre = @TMP1;
+            push @pre, $end, $ind, "DO", @BLOCK, "+LOOP";
         }
+    }
+    else
+    {
+        my @pre = ();
     }
     return \@pre, $len + 1, 2;
 };
@@ -2427,51 +2633,53 @@ sub process
             push @return, ( scalar( @work ) );
             next;
         }
-        if ( $op =~ /^BEGIN$/g )
+        if ( !$is_block )
         {
-            $is_begin = 1;
-            push @return, ( scalar( @work ) );
-            next;
-        }
-        if ( ( $op =~ /^WHILE$/g ) )
-        {
-            $is_begin = 0;
-            $is_do    = 1;
-            push @return, ( scalar( @work ) );
-        }
-        if ( $is_do && ( $op =~ /^REPEAT$/g ) )
-        {
-            $is_do = 0;
-            push @return, ( scalar( @work ) - 1 );
-        }
-        if ( $op =~ /^DO$/g )
-        {
-            $is_do = 1;
-            push @return, ( scalar( @work ) );
-        }
-        if ( ( $op =~ /^LOOP|\+LOOP$/g ) )
-        {
-            $is_do = 0;
-            push @return, scalar( @work );
-        }
-        if ( $op =~ /^IF$/g )
-        {
-            $is_do = 1;
-            push @return, ( scalar( @work ) );
-        }
-        if ( $op =~ /^ELSE$/g )
-        {
-            $is_else = 1;
-            push @return, ( scalar( @work ) );
-        }
-
-        if ( $op =~ /^THEN$/g )
-        {
-            $is_do = 0;
-            push @return, ( scalar( @work ) );
-            if ( $is_else )
+            if ( $op =~ /^BEGIN$/g )
             {
-                $op = "THENELSE";
+                $is_begin = 1;
+                push @return, ( scalar( @work ) );
+                next;
+            }
+            if ( ( $op =~ /^WHILE$/g ) )
+            {
+                $is_begin = 0;
+                $is_do    = 1;
+                push @return, ( scalar( @work ) );
+            }
+            if ( $is_do && ( $op =~ /^REPEAT$/g ) )
+            {
+                $is_do = 0;
+                push @return, ( scalar( @work ) - 1 );
+            }
+            if ( $op =~ /^DO$/g )
+            {
+                $is_do = 1;
+                push @return, ( scalar( @work ) );
+            }
+            if ( ( $op =~ /^LOOP|\+LOOP$/g ) )
+            {
+                $is_do = 0;
+                push @return, scalar( @work );
+            }
+            if ( $op =~ /^IF$/g )
+            {
+                $is_do = 1;
+                push @return, ( scalar( @work ) );
+            }
+            if ( $op =~ /^ELSE$/g )
+            {
+                $is_else = 1;
+                push @return, ( scalar( @work ) );
+            }
+            if ( $op =~ /^THEN$/g )
+            {
+                $is_do = 0;
+                push @return, ( scalar( @work ) );
+                if ( $is_else )
+                {
+                    $op = "THENELSE";
+                }
             }
         }
         if ( !$is_string )
@@ -2520,6 +2728,9 @@ sub process
     unshift @{ $stack }, @work;
 }
 
+=head1 Useful functions for the module (not related to the RPN language)
+
+.
 =head2  rpn_error()
 
 	function which return the debug info from the calculation (like a division by 0)
@@ -2675,38 +2886,55 @@ __END__
 	    DEPTH		([r1]...)		([re1]...[nbr])	Return the number of elements in the statck
 	    POP			([a][b])		([a])
 	    POPN                ([a][b][c]...[x])	([l]...[x]) remove [b] element from the stack (starting at [c])
-	    DEL			([a][b][c][d]...[x])	([c]...[n][m]...[x]) delete [b] elements from element number [a]
 	    SWAP2		([a][b][c])     	([a][c][b])
             ROLL		([a][b][c][d][e][n])	([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
 	    						if  [n] =3 it is equivalent to ROT
 	    PICK		([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element from depth [n] on top 
 	    GET			([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element from depth [n] and put on top 
 	    PUT			([a][b][c][d][v][n])	([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
-	    DEL			([a][b])		delete [b] element on the stack from lebvel [a]
+	    DEL			([a][b])		delete [b] element on the stack from level [a]
                						[a] and [b] is get in absolute value	    
+	    KEEPN		([a][b])		keep [b] element(s) on the stack from level [a] 
+	    						(and delete all other elements)
+               						[a] and [b] is get in absolute value	    					
+	    PRESERVE		([a][b])		keep element(s) on the stack from level [a] to level [b]
+	    						(and delete all other elements)
+               						[a] and [b] is get in absolute value
+	    COPY		([a][b])		copy element(s) on the stack from level [a] to level [b]
+               						[a] and [b] is get in absolute value					
 	    FIND		([a])     		get the level of stack containing [a]
 	    SEARCH		([a])     		get the level of stack containing the REGEX [a]
 	    SEARCHI		([a])     		get the level of stack containing the REGEX [a] ( case insensitive )
-	    
 	    KEEP		([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
             
 	 Dictionary operators
 	 --------------------	 
 	  
-	    WORDS		()			([a])return as one stack element the list of WORD in DICT separated by a |	
-	    VARS   		()			([a])return as one stack element the list of VARIABLE in VAR separated by a |				
-            INC			([a])     		() increment (+1) the value of variable [a]
-            DEC			([a])     		() decrement (-1) the value of variable [a]
-            VARIABLE            ([a])			() create a entry in VAR for the variable [a]
-	    !			([a][b])		store the value [a] in the variable [b]
-	    @			([a])			([a]) return the value of the variable [a]
-            : xxx yyy ;					create a new word (sub) into the dictionary with the xxx "code" with name yyy
-	    : xxx yyy PERLFUNC				execute the PERL function yyy with parameter(s) yyy 
-							the default name space is "main::"
-							It is possible tu use a specific name space
-	    : xxx yyy PERL				execute the PERL code xxx ; yyy					
+	    WORDS		()				([a])return as one stack element the list of WORD in DICT separated by a |	
+	    VARS   		()				([a])return as one stack element the list of VARIABLE in VAR separated by a |				
+            INC			([a])     			() increment (+1) the value of variable [a]
+            DEC			([a])     			() decrement (-1) the value of variable [a]
+            VARIABLE            ([a])				() create a entry in VAR for the variable [a]
+	    !			([a][b])			store the value [a] in the variable [b]
+	    !!			([a][b][c]...[n] [var])		put and delete 'n' element(s) from the stack in the variable 'var'
+	    							'n' is in absolute value 	
+	    !!C			([a][b][c]...[n] [var])		copy 'n' element(s) from the stack in the variable 'var'
+	    							'n' is in absolute value 	
+	    !!!			([a][b][c]...[n1] [n2] [var])	put and delete element(s) from the stack in the variable 'var'
+	    							starting at element  'a' to element 'b'
+								'a' and 'b' in absolute value 
+								if 'a' > 'b'  keep the reverse of selection (boustrophedon)	
+	    !!!C			([a][b][c]...[n] [var])	copy 'element(s) from the stack in the variable 'var'
+	    							starting at element  'a' to element 'b'
+								'a' and 'b' in absolute value 
+								if 'a' > 'b'  keep the reverse of selection (boustrophedon)										    
+	    @			([a])				([a]) return the value of the variable [a]
+            : xxx yyy ;						create a new word (sub) into the dictionary with the xxx "code" and name yyy
+	    : xxx yyy PERLFUNC					execute the PERL function yyy with parameter(s) yyy 
+								the default name space is "main::"
+								It is possible tu use a specific name space
+	    : xxx yyy PERL					execute the PERL code xxx ; yyy					
 
-	
  	 Return Stack operators
 	 ----------------------
 	 
@@ -2737,7 +2965,7 @@ __END__
 							with increment of 1;
                						The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
 	
-	[a] [b] DO [...xxx...] [c] LOOP	([a][b])	rocess block [...xxx...] with iterator from value [b] untill [a] value,
+	[a] [b] DO [...xxx...] [c] +LOOP	([a][b])	process block [...xxx...] with iterator from value [b] untill [a] value,
 							with increment of [c];
                						The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
 
@@ -2760,11 +2988,12 @@ __END__
 	$ret = rpn($test);  # $ret = 8 with a warning because the stack is not empty ([Hello] [8])
 			    # be care to close your quoted string 
 	
-	$test = "'Hello,world',',',pat,',',eq,'Contain a coma','Without a coma',if";
+	$test = "'Hello world','or',PAT,'or',EQ,IF,'string contain or',ELSE,'No or in string',THEN"
 	$ret = rpn($test);  # $ret = "Contain a coma"
 	
-	$test = "'Hello world',',',pat,',',eq,'Contain a coma','Without a coma',if";
-	$ret = rpn($test);  # $ret = "Without a coma"
+	$test = "'Hello world','or',TPAT,IF,'string contain or',ELSE,'No or in string',THEN";
+	$ret = rpn($test);  # $ret = "string contain or"
+	
 	
 	$test = "3,10,/,5,+,82,*,%b,PRINTF";
 	$ret = rpn($test);  # $ret = "110110010"
@@ -2790,6 +3019,11 @@ __END__
 	$test = "1,2,3,4,5,6,7,8,9,30,KEEP";
 	ret =rpn($test); # @ret = 1,2,3,4,5,6,7,8,9
 	
+	$test = "h,g,f,e,d,c,b,a,4,3,DEL";
+	ret =rpn($test); # @ret = h,c,b,a
+		
+	$test = "h,g,f,e,d,c,b,a,4,3,KEEPN"";
+	ret =rpn($test); # @ret = g,f,e,d
 	
 	sub Test {
 	   my $a  = shift;

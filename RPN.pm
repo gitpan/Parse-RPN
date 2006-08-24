@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.32 2006/03/16 16:02:41 fabrice Exp $
-# $Revision: 2.32 $
+# $Id: RPN.pm,v 2.33 2006/08/24 09:27:54 fabrice Exp $
+# $Revision: 2.33 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,6 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
+  $Revision: 2.33 $
 
 =head1 SYNOPSIS
 
@@ -77,7 +78,7 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = do { my @rev = ( q$Revision: 2.32 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
+$VERSION = do { my @rev = ( q$Revision: 2.33 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -1081,6 +1082,25 @@ $dict{ 'CAT' } = sub {
     my @ret;
     push @ret, ( "'" . $b . $a . "'" );
     return \@ret, 2;
+};
+
+=head2 a b CATALL
+
+      return the concatenation all element on the stack 
+	
+=cut
+
+$dict{ 'CATALL' } = sub {
+    my $work1 = shift;
+    my $dep   = scalar @{ $work1 };
+    my $ret;
+    for ( 1 .. $dep )
+    {
+        $ret .= shift @{ $work1 };
+    }
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 1 + $dep;
 };
 
 =head2 a b REP
@@ -2845,6 +2865,7 @@ __END__
             CMP			([a][b])		([-1]) if [a] gt [b],([1]) if [a] lt [b], ([0])if [a] eq [b]
             LEN 		([a])			([LENGTH a])
 	    CAT			([a][b])		([ab])	String concatenation
+	    CATALL		([a][b]...[z])		([ab...z]) String concatenation of all elements on the stack
             REP			([a][b])		([a x b]) repeat [b] time the motif [a]
 	    REV			([a])			([REVERSE a])
             SUBSTR		([a][b][c])		([SUBSTR [a], [b], [c]) get substring of [a] starting from [b] untill [c]

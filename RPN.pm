@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm,v 2.33 2006/08/24 09:27:54 fabrice Exp $
-# $Revision: 2.33 $
+# $Id: RPN.pm 34 2007-06-06 20:57:46Z fabrice $
+# $Revision: 34 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 2.33 $
+  $Revision: 34 $
 
 =head1 SYNOPSIS
 
@@ -77,8 +77,10 @@ use Data::Dumper;
 @ISA = qw(Exporter AutoLoader);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
+ 
+#$VERSION = do { my @rev = ( q$Revision: 34 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 34 $ ' =~ /(\d+)/;
 
-$VERSION = do { my @rev = ( q$Revision: 2.33 $ =~ /\d+/g ); sprintf "%d." . "%d" x $#rev, @rev };
 my $mod = "Tie::IxHash";
 my %dict;
 my %var;
@@ -112,7 +114,7 @@ $dict{ '+' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, $a + $b;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b -
@@ -127,7 +129,7 @@ $dict{ '-' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, $b - $a;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b *
@@ -142,7 +144,7 @@ $dict{ '*' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, $b * $a;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b /
@@ -169,7 +171,7 @@ $dict{ '/' } = sub {
     {
         push @ret, $c;
     }
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b **
@@ -184,7 +186,7 @@ $dict{ '**' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, $b**$a;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a 1+
@@ -198,7 +200,7 @@ $dict{ '1+' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, $a + 1;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a 1-
@@ -212,7 +214,7 @@ $dict{ '1-' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, $a - 1;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a 2-
@@ -226,7 +228,7 @@ $dict{ '2-' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, $a - 2;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a 2+
@@ -240,7 +242,7 @@ $dict{ '2+' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, $a + 2;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a b MOD
@@ -255,7 +257,7 @@ $dict{ 'MOD' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, $a % $b;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a ABS
@@ -269,7 +271,7 @@ $dict{ 'ABS' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, abs( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 
 };
 
@@ -284,7 +286,7 @@ $dict{ 'INT' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, int( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a +-
@@ -298,7 +300,7 @@ $dict{ '+-' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, -( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a REMAIN
@@ -312,7 +314,7 @@ $dict{ 'REMAIN' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, $a - int( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a SIN
@@ -326,7 +328,7 @@ $dict{ 'SIN' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, sin( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a COS
@@ -340,7 +342,7 @@ $dict{ 'COS' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, cos( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a TAN
@@ -354,7 +356,7 @@ $dict{ 'TAN' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( sin( $a ) / cos( $a ) );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a CTAN
@@ -368,7 +370,7 @@ $dict{ 'CTAN' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( cos( $a ) / sin( $a ) );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a LN
@@ -394,7 +396,7 @@ $dict{ 'LN' } = sub {
     {
         push @ret, $c;
     }
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a EXP
@@ -408,7 +410,7 @@ $dict{ 'EXP' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, exp( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 PI
@@ -420,7 +422,7 @@ $dict{ 'EXP' } = sub {
 $dict{ 'PI' } = sub {
     my @ret;
     push @ret, "3.14159265358979";
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 ########################
@@ -443,7 +445,7 @@ $dict{ '<' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a < $b ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b <=
@@ -458,7 +460,7 @@ $dict{ '<=' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a <= $b ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b >
@@ -473,7 +475,7 @@ $dict{ '>' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a > $b ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b >=
@@ -488,7 +490,7 @@ $dict{ '>=' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a >= $b ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b ==
@@ -503,7 +505,7 @@ $dict{ '==' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b == $a ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b <=>
@@ -518,7 +520,7 @@ $dict{ '<=>' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b <=> $a );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b !=
@@ -533,7 +535,7 @@ $dict{ '!=' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b != $a ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b OR=
@@ -562,7 +564,7 @@ $dict{ 'OR' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a || $b );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b AND
@@ -577,7 +579,7 @@ $dict{ 'AND' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a && $b );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b XOR
@@ -592,7 +594,7 @@ $dict{ 'XOR' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a xor $b ) ? 1 : 0;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a NOT
@@ -608,7 +610,7 @@ $dict{ 'NOT' } = sub {
 
     my @ret;
     push @ret, ( not $a ) ? 1 : 0;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a TRUE
@@ -636,7 +638,7 @@ $dict{ 'TRUE' } = sub {
     }
     my @ret;
     push @ret, $b;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a FALSE
@@ -664,7 +666,7 @@ $dict{ 'FALSE' } = sub {
     }
     my @ret;
     push @ret, $b;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 ########################
@@ -687,7 +689,7 @@ $dict{ '>>' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a >> $b );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b <<
@@ -703,7 +705,7 @@ $dict{ '<<' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a << $b );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b MIN
@@ -718,7 +720,7 @@ $dict{ 'MIN' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a < $b ? $a : $b );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b MAX
@@ -733,7 +735,7 @@ $dict{ 'MAX' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $a > $b ? $a : $b );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 TICK
@@ -745,7 +747,7 @@ $dict{ 'MAX' } = sub {
 $dict{ 'TICK' } = sub {
     my @ret;
     push @ret, ( time() );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a LTIME
@@ -763,7 +765,7 @@ $dict{ 'LTIME' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( localtime( $a ) );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a GTIME
@@ -781,7 +783,7 @@ $dict{ 'GTIME' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( gmtime( $a ) );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a HLTIME
@@ -795,7 +797,7 @@ $dict{ 'HLTIME' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, scalar( localtime( $a ) );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a HGTIME
@@ -809,7 +811,7 @@ $dict{ 'HGTIME' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, scalar( gmtime( $a ) );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 RAND
@@ -821,7 +823,7 @@ $dict{ 'HGTIME' } = sub {
 $dict{ 'RAND' } = sub {
     my @ret;
     push @ret, rand();
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2 a LRAND
@@ -835,7 +837,7 @@ $dict{ 'LRAND' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, rand( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a SPACE
@@ -852,7 +854,7 @@ $dict{ 'SPACE' } = sub {
     $text = reverse $text;
     my @ret;
     push @ret, $text;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a DOT
@@ -869,7 +871,7 @@ $dict{ 'DOT' } = sub {
     $text = reverse $text;
     my @ret;
     push @ret, $text;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a NORM
@@ -893,7 +895,7 @@ $dict{ 'NORM' } = sub {
     my $ret = "$a $EXP[$exp]";
     my @ret;
     push @ret, "'" . $ret . "'";
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a NORM2
@@ -917,7 +919,7 @@ $dict{ 'NORM2' } = sub {
     my $ret = "$a $EXP[$exp]";
     my @ret;
     push @ret, "'" . $ret . "'";
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a OCT
@@ -939,7 +941,7 @@ $dict{ 'OCT' } = sub {
         $a = "0x" . $a;
     }
     push @ret, oct( $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 ########################
@@ -977,7 +979,7 @@ $dict{ 'NE' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b ne $a ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b LT
@@ -992,7 +994,7 @@ $dict{ 'LT' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b lt $a ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b GT
@@ -1007,7 +1009,7 @@ $dict{ 'GT' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b gt $a ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b LE
@@ -1022,7 +1024,7 @@ $dict{ 'LE' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b le $a ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b GE
@@ -1037,7 +1039,7 @@ $dict{ 'GE' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b ge $a ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b CMP
@@ -1052,7 +1054,7 @@ $dict{ 'CMP' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b cmp $a );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a LEN
@@ -1066,7 +1068,7 @@ $dict{ 'LEN' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( length $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a b CAT
@@ -1081,7 +1083,7 @@ $dict{ 'CAT' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( "'" . $b . $a . "'" );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b CATALL
@@ -1100,7 +1102,7 @@ $dict{ 'CATALL' } = sub {
     }
     my @ret;
     push @ret, $ret;
-    return \@ret, 1 + $dep;
+    return \@ret, 1 + $dep, 0;
 };
 
 =head2 a b REP
@@ -1115,7 +1117,7 @@ $dict{ 'REP' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, ( $b x $a );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a REV
@@ -1130,7 +1132,7 @@ $dict{ 'REV' } = sub {
     my $b     = reverse $a;
     my @ret;
     push @ret, ( $b );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a b c SUBSTR
@@ -1146,7 +1148,7 @@ $dict{ 'SUBSTR' } = sub {
     my $c     = pop @{ $work1 };
     my @ret;
     push @ret, ( substr( $c, $b, $a ) );
-    return \@ret, 3;
+    return \@ret, 3, 0;
 };
 
 =head2 a UC
@@ -1160,7 +1162,7 @@ $dict{ 'UC' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( uc $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a LC
@@ -1174,7 +1176,7 @@ $dict{ 'LC' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( lc $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a UCFIRST
@@ -1188,7 +1190,7 @@ $dict{ 'UCFIRST' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( ucfirst $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a LCFIRST
@@ -1202,7 +1204,7 @@ $dict{ 'LCFIRST' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, ( lcfirst $a );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a b SPLIT
@@ -1222,7 +1224,7 @@ $dict{ 'SPLIT' } = sub {
     my @r     = grep /[^(^$)]/, split /$a/, $b;
     my @ret;
     push @ret, @r;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b SPLITI
@@ -1242,7 +1244,7 @@ $dict{ 'SPLITI' } = sub {
     my @r     = grep /[^(^$)]/, split /$a/i, $b;
     my @ret;
     push @ret, @r;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b PAT
@@ -1260,7 +1262,7 @@ $dict{ 'PAT' } = sub {
     my @r     = ( $b =~ m/$a/g );
     my @ret;
     push @ret, @r;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b PATI
@@ -1278,7 +1280,7 @@ $dict{ 'PATI' } = sub {
     my @r     = ( $b =~ m/$a/ig );
     my @ret;
     push @ret, @r;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b TPAT
@@ -1296,7 +1298,7 @@ $dict{ 'TPAT' } = sub {
     my $r     = ( $b =~ m/$a/g );
     my @ret;
     push @ret, ( $r ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b TPATI
@@ -1314,7 +1316,7 @@ $dict{ 'TPATI' } = sub {
     my $r     = ( $b =~ m/$a/ig );
     my @ret;
     push @ret, ( $r ? 1 : 0 );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 a b c SPAT
@@ -1334,7 +1336,7 @@ $dict{ 'SPAT' } = sub {
     eval( $to_eval );
     my @ret;
     push @ret, $c;
-    return \@ret, 3;
+    return \@ret, 3, 0;
 };
 
 =head2 a b c SPATG
@@ -1354,7 +1356,7 @@ $dict{ 'SPATG' } = sub {
     eval( $to_eval );
     my @ret;
     push @ret, $c;
-    return \@ret, 3;
+    return \@ret, 3, 0;
 };
 
 =head2 a b c SPATI
@@ -1374,7 +1376,7 @@ $dict{ 'SPATI' } = sub {
     eval( $to_eval );
     my @ret;
     push @ret, $c;
-    return \@ret, 3;
+    return \@ret, 3, 0;
 };
 
 =head2 a b c SPATGI
@@ -1395,7 +1397,7 @@ $dict{ 'SPATGI' } = sub {
     eval( $to_eval );
     my @ret;
     push @ret, $c;
-    return \@ret, 3;
+    return \@ret, 3, 0;
 };
 
 =head2 a ... z PRINTF
@@ -1418,7 +1420,7 @@ $dict{ 'PRINTF' } = sub {
     }
     my @ret;
     push @ret, sprintf $format, @var;
-    return \@ret, 2 + $#r;
+    return \@ret, 2 + $#r, 0;
 };
 
 =head2 a b PACK
@@ -1440,7 +1442,7 @@ $dict{ 'PACK' } = sub {
     }
     my @ret;
     push @ret,, pack( $format, @var );
-    return \@ret, 2 + $#r;
+    return \@ret, 2 + $#r, 0;
 };
 
 =head2 a b UNPACK
@@ -1457,7 +1459,7 @@ $dict{ 'UNPACK' } = sub {
     my $var    = pop @{ $work1 };
     my @ret;
     push @ret, unpack( $format, $var );
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 ########################
@@ -1480,7 +1482,7 @@ $dict{ 'SWAP' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, $a, $b;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2	a b OVER
@@ -1493,7 +1495,7 @@ $dict{ 'OVER' } = sub {
     my $work1 = shift;
     my @ret;
     push @ret, @{ $work1 }[-2];
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2	a DUP
@@ -1506,7 +1508,7 @@ $dict{ 'DUP' } = sub {
     my $work1 = shift;
     my @ret;
     push @ret, @{ $work1 }[-1];
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2	a b DDUP
@@ -1519,7 +1521,7 @@ $dict{ 'DDUP' } = sub {
     my $work1 = shift;
     my @ret;
     push @ret, @{ $work1 }[-2], @{ $work1 }[-1];
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2	a b c ROT
@@ -1535,7 +1537,7 @@ $dict{ 'ROT' } = sub {
     my $c     = pop @{ $work1 };
     my @ret;
     push @ret, $b, $a, $c;
-    return \@ret, 3;
+    return \@ret, 3, 0;
 };
 
 =head2	a b c RROT
@@ -1551,7 +1553,7 @@ $dict{ 'RROT' } = sub {
     my $c     = pop @{ $work1 };
     my @ret;
     push @ret, $a, $c, $b;
-    return \@ret, 3;
+    return \@ret, 3, 0;
 };
 
 =head2	DEPTH
@@ -1565,7 +1567,7 @@ $dict{ 'DEPTH' } = sub {
     my $ret   = scalar @{ $work1 };
     my @ret;
     push @ret, $ret;
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2	a b POP
@@ -1578,7 +1580,7 @@ $dict{ 'POP' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2	a ... z POPN
@@ -1595,7 +1597,7 @@ $dict{ 'POPN' } = sub {
         pop @{ $work1 };
     }
     my @ret;
-    return \@ret, 1 + $a;
+    return \@ret, 1 + $a, 0;
 };
 
 =head2	a b c d e n ROLL
@@ -1613,7 +1615,7 @@ $dict{ 'ROLL' } = sub {
     my $b     = pop @{ $work1 };
     my @ret;
     push @ret, @tmp, $b;
-    return \@ret, 1 + $a;
+    return \@ret, 1 + $a, 0;
 };
 
 =head2 a PICK
@@ -1631,7 +1633,7 @@ $dict{ 'PICK' } = sub {
         push @ret, @{ $work1 }[ -( $a ) ];
     }
 
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a GET
@@ -1653,11 +1655,11 @@ $dict{ 'GET' } = sub {
         $line = join " | ", @tmp;
         $b = pop @{ $work1 };
         push @ret, @tmp, $b;
-        return \@ret, 1 + $a;
+        return \@ret, 1 + $a, 0;
     }
     else
     {
-        return \@ret, 1;
+        return \@ret, 1, 0;
     }
 
 };
@@ -1686,7 +1688,7 @@ $dict{ 'PUT' } = sub {
         @tmp = splice @ret, -$a;
     }
     push( @ret, $b, @tmp );
-    return \@ret, $len;
+    return \@ret, $len, 0;
 };
 
 =head2 a b DEL
@@ -1706,7 +1708,7 @@ $dict{ 'DEL' } = sub {
     @temp = splice @{ $work1 }, $len - 2 - $start - $length, $length;
     my @ret;
     push( @ret, @{ $work1 } );
-    return \@ret, $len;
+    return \@ret, $len, 0;
 };
 
 =head2 a FIND
@@ -1741,7 +1743,7 @@ $dict{ 'FIND' } = sub {
     }
     my @ret;
     push( @ret, $ret );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a SEARCH
@@ -1763,11 +1765,11 @@ $dict{ 'SEARCH' } = sub {
         {
             $ret = $i;
             push( @ret, $ret );
-            return \@ret, 1;
+            return \@ret, 1, 0;
         }
     }
     push( @ret, 0 );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a SEARCHI
@@ -1789,11 +1791,11 @@ $dict{ 'SEARCHI' } = sub {
         {
             $ret = $i;
             push( @ret, $ret );
-            return \@ret, 1;
+            return \@ret, 1, 0;
         }
     }
     push( @ret, 0 );
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 a KEEP
@@ -1814,11 +1816,11 @@ $dict{ 'KEEP' } = sub {
     if ( $a < ( ( scalar @{ $work1 } ) + 1 ) )
     {
         push @ret, @{ $work1 }[ -( $a ) ];
-        return \@ret, 1 + ( scalar @{ $work1 } );
+        return \@ret, 1 + ( scalar @{ $work1 } ), 0;
     }
     else
     {
-        return \@ret, 1;
+        return \@ret, 1, 0;
     }
 };
 
@@ -1838,7 +1840,7 @@ $dict{ 'KEEPN' } = sub {
     my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 1 : $length1 );
     my @temp;
     @temp = splice @{ $work1 }, $len - 1 - $start - $length, $length;
-    return \@temp, $len;
+    return \@temp, $len, 0;
 };
 
 =head2 a b PRESERVE
@@ -1867,7 +1869,7 @@ $dict{ 'PRESERVE' } = sub {
         push @temp, @{ $work1 }[ ( $start - 1 ) .. ( $#$work1 ) ];
         push @temp, @{ $work1 }[ 0 .. ( $end - 1 ) ];
     }
-    return \@temp, $len;
+    return \@temp, $len, 0;
 };
 
 =head2 a b COPY
@@ -1895,7 +1897,7 @@ $dict{ 'COPY' } = sub {
         push @temp, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
         push @temp, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
     }
-    return \@temp, 2;
+    return \@temp, 2, 0;
 };
 
 ########################
@@ -1916,7 +1918,7 @@ $dict{ 'WORDS' } = sub {
     my @tmp = join " | ", keys( %dict );
     my @ret;
     push @ret, @tmp;
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2 VARS
@@ -1929,7 +1931,7 @@ $dict{ 'VARS' } = sub {
     my @tmp = join " | ", keys( %var );
     my @ret;
     push @ret, @tmp;
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2 INC
@@ -1946,7 +1948,7 @@ $dict{ 'INC' } = sub {
         ( $var{ $a } )++;
     }
     my @ret;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 DEC
@@ -1963,7 +1965,7 @@ $dict{ 'DEC' } = sub {
         ( $var{ $a } )--;
     }
     my @ret;
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 VARIABLE xxx
@@ -1977,7 +1979,7 @@ $dict{ 'VARIABLE' } = sub {
     my $a     = pop @{ $work1 };
     my @ret;
     $var{ $a } = '';
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 xx var !
@@ -1992,7 +1994,7 @@ $dict{ '!' } = sub {
     my $val   = pop @{ $work1 };
     $var{ $name } = $val;
     my @ret;
-    return \@ret, 2;
+    return \@ret, 2, 0;
 };
 
 =head2 x1 x2 x3 ... n var !!
@@ -2011,7 +2013,7 @@ $dict{ '!!' } = sub {
     my @temp;
     my @TMP = @{ $work1 }[ $len_to_rm .. ( $#$work1 ) ];
     $var{ $name } = \@TMP;
-    return \@temp, $len_to_rm + 2;
+    return \@temp, $len_to_rm + 2, 0;
 };
 
 =head2 x1 x2 x3 ... n var !!C
@@ -2030,7 +2032,7 @@ $dict{ '!!C' } = sub {
     my @temp;
     my @TMP = @{ $work1 }[ $len_to_rm .. ( $#$work1 ) ];
     $var{ $name } = \@TMP;
-    return \@temp, 2;
+    return \@temp, 2, 0;
 };
 
 =head2 x1 x2 x3 ... b a var !!
@@ -2066,7 +2068,7 @@ $dict{ '!!!' } = sub {
         @temp = @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $len1 - $end - 1 ) ];
     }
     $var{ $name } = \@TMP;
-    return \@temp, $len;
+    return \@temp, $len, 0;
 };
 
 =head2 x1 x2 x3 ... b a var !!C
@@ -2100,7 +2102,7 @@ $dict{ '!!!C' } = sub {
         push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
     }
     $var{ $name } = \@TMP;
-    return \@temp, 2;
+    return \@temp, 2, 0;
 };
 
 =head2  var @
@@ -2121,7 +2123,7 @@ $dict{ '@' } = sub {
     {
         push @ret, $var{ $name };
     }
-    return \@ret, 1;
+    return \@ret, 1, 0;
 };
 
 =head2 :xxx  name1 ;
@@ -2144,7 +2146,7 @@ $dict{ ';' } = sub {
     $dict{ $name } = sub {
         my $ret;
         @ret = @BLOCK;
-        return \@ret, 0;
+        return \@ret, 0, 0;
     };
     return \@ret, $#BLOCK + 2, 2;
 };
@@ -2287,7 +2289,7 @@ $dict{ 'RL' } = sub {
     my $work1   = shift;
     my $return1 = shift;
     push @ret, scalar @{ $return1 };
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 =head2 R@
@@ -2301,7 +2303,7 @@ $dict{ 'R@' } = sub {
     my $work1   = shift;
     my $return1 = shift;
     push @ret, @{ $return1 };
-    return \@ret, 0;
+    return \@ret, 0, 0;
 };
 
 ########################
@@ -2479,7 +2481,7 @@ $dict{ 'LOOP' } = sub {
         @pre = @TMP;
         push @pre, $b, $ind, "DO", @BLOCK, "LOOP";
     }
-    return \@pre, $len + 1;
+    return \@pre, $len + 1, 0;
 };
 
 =head2  end start increment DO,block,+LOOP
@@ -3097,7 +3099,7 @@ __END__
 =head1 CREDITS
 	
 	Thank's to Stefan Moser <sm@open.ch> for the idea 
-	to call a perl function from the rpn() 
+	to call a perl function from the rpn() and also for pin-pointing an error in stack return. 
 	
 =head1 LICENSE
 
@@ -3118,11 +3120,13 @@ __END__
 	Free Software Foundation, Inc., 59 Temple Place, 
 	Suite 330, Boston, MA 02111-1307 USA
 
-	Parse::RPN   Copyright (C) 2004 DULAUNOY Fabrice  
+	Parse::RPN   Copyright (C) 2004 2005 2006 2007 DULAUNOY Fabrice  
 	Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
 	for details See: L<http://www.gnu.org/licenses/gpl.html> 
 	This is free software, and you are welcome to redistribute 
 	it under certain conditions;
    
-
+   
 =cut
+ 
+

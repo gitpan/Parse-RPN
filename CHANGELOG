@@ -2,6 +2,10 @@ version <2 is only a RPN parser
 version >2 is more like  FORTH (with dictionary, vaiables...)
 
 ----------------------------
+revision : 2.34
+date : 2007/6/7 9:29:40
+correct the return from dict (retrun always 3 values)
+----------------------------
 revision : 2.33
 date : 2006/8/23 11:29:40
 add CATALL

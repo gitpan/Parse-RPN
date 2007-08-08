@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Parse-RPN
-version:             2.35
+version:             2.37
 abstract:            Parse::RPN Is a minimalist RPN parser/processor (a little like FORTH)
 license:             ~
 generated_by:        ExtUtils::MakeMaker version 6.32

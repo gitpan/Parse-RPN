@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 35 2007-08-08 08:48:11Z fabrice $
-# $Revision: 35 $
+# $Id: RPN.pm 37 2007-08-08 14:01:37Z fabrice $
+# $Revision: 37 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 35 $
+  $Revision: 37 $
 
 =head1 SYNOPSIS
 
@@ -78,8 +78,8 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
  
-#$VERSION = do { my @rev = ( q$Revision: 35 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 35 $ ' =~ /(\d+)/;
+#$VERSION = do { my @rev = ( q$Revision: 37 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 37 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -2334,7 +2334,10 @@ $dict{ 'THEN' } = sub {
     my $len     = scalar @BEGIN;
     my $r       = scalar @{ $work1 };
     my $i       = $r - $len - 2;
-    my $res     =   $pre[$i];
+    my $res     = $pre[$i];
+#    my $res     = pop @pre;
+    pop @pre;
+
     my $len_d   = 2 + $len;
 
     if ( $res )
@@ -2346,6 +2349,7 @@ $dict{ 'THEN' } = sub {
         $len_d = scalar( @pre ) + $len + 1;
         @ret   = @TMP;
     }
+  
     return \@ret, $len_d, 2;
 };
 
@@ -2380,7 +2384,7 @@ $dict{ 'THENELSE' } = sub {
     if ( $res )
     {
         my @TMP = @pre;
-        pop @TMP;
+        pop @TMP;	
         push @TMP, 'THEN';
         process( \@TMP );
         @ret   = @TMP;

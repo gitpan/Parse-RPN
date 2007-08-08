@@ -2,6 +2,18 @@ version <2 is only a RPN parser
 version >2 is more like  FORTH (with dictionary, vaiables...)
 
 ----------------------------
+revision : 2.37
+date : 2007/8/8 16:01:37
+correct IF ELSE THEN to follow the IF THEN code
+----------------------------
+revision : 2.36
+date : 2007/8/8 11:01:53
+remove extra value on the return stack in IF THEN
+----------------------------
+revision : 2.35
+date : 2007/8/8 10:48:11
+correct the IF THEN
+----------------------------
 revision : 2.34
 date : 2007/6/7 9:29:40
 correct the return from dict (retrun always 3 values)

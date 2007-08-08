@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 34 2007-06-06 20:57:46Z fabrice $
-# $Revision: 34 $
+# $Id: RPN.pm 35 2007-08-08 08:48:11Z fabrice $
+# $Revision: 35 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 34 $
+  $Revision: 35 $
 
 =head1 SYNOPSIS
 
@@ -78,8 +78,8 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
  
-#$VERSION = do { my @rev = ( q$Revision: 34 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 34 $ ' =~ /(\d+)/;
+#$VERSION = do { my @rev = ( q$Revision: 35 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 35 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -2317,7 +2317,7 @@ $dict{ 'R@' } = sub {
 =head2 a IF xxx THEN
 
 	test the element on top of stack 
-		if ==0 execute 'xxx' block
+		if == 0 execute 'xxx' block
 		
 	The loop is executed always one time
 
@@ -2334,8 +2334,9 @@ $dict{ 'THEN' } = sub {
     my $len     = scalar @BEGIN;
     my $r       = scalar @{ $work1 };
     my $i       = $r - $len - 2;
-    my $res     = pop @pre;
+    my $res     =   $pre[$i];
     my $len_d   = 2 + $len;
+
     if ( $res )
     {
         my @TMP = @pre;
@@ -2351,7 +2352,7 @@ $dict{ 'THEN' } = sub {
 =head2 a IF zzz ELSE xxx THEN
 
 	test the element on top of stack 
-		if ==0 execute 'xxx' block
+		if == 0 execute 'xxx' block
 		if != 0 execute 'zzz' block 
 		
 	The loop is executed always one time

@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 37 2007-08-08 14:01:37Z fabrice $
-# $Revision: 37 $
+# $Id: RPN.pm 38 2007-09-25 14:12:30Z fabrice $
+# $Revision: 38 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 37 $
+  $Revision: 38 $
 
 =head1 SYNOPSIS
 
@@ -78,8 +78,8 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
  
-#$VERSION = do { my @rev = ( q$Revision: 37 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 37 $ ' =~ /(\d+)/;
+#$VERSION = do { my @rev = ( q$Revision: 38 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 38 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -1462,6 +1462,98 @@ $dict{ 'UNPACK' } = sub {
     return \@ret, 2, 0;
 };
 
+
+=head2 a b ISNUM
+
+      test if top of the stack is a number
+      return 1 if if it is a NUMBER otherwise return 0
+	
+=cut
+
+$dict{ 'ISNUM' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0);
+    return \@ret, 0, 0;
+};
+
+=head2 a b ISNUMD
+
+      test if top of the stack is a number
+      delete the top element on the statck and return 1 if it is a NUMBER otherwise return 0 
+	
+=cut
+
+$dict{ 'ISNUMD' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0);
+    return \@ret, 1, 0;
+};
+
+=head2 a b ISINT
+
+      test if top of the stack is a integer (natural number)
+      return 1 if if it is a INTEGER otherwise return 0
+	
+=cut
+
+$dict{ 'ISINT' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a =~ /^\d+$/ ? 1 : 0);
+    return \@ret, 0, 0;
+};
+
+=head2 a b ISINTD
+
+      test if top of the stack is a integer (natural number)
+      delete the top element on the statck and return 1 if it is a INTEGER otherwise return 0 
+	
+=cut
+
+$dict{ 'ISINTD' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a =~ /^\d+$/ ? 1 : 0);
+    return \@ret, 1, 0;
+};
+
+=head2 a b ISHEX
+
+      test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
+      return 1 if if it is a HEXADECIMAL otherwise return 0
+	
+=cut
+
+$dict{ 'ISHEX' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0);
+    return \@ret, 0, 0;
+};
+
+=head2 a b ISHEXD
+
+      test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
+      delete the top element on the statck and return 1 if it is a HEXADECIMAL otherwise return 0 
+	
+=cut
+
+$dict{ 'ISHEXD' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ($a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0);
+    return \@ret, 1, 0;
+};
+
+
 ########################
 # stack operators
 ########################
@@ -1742,7 +1834,7 @@ $dict{ 'FIND' } = sub {
         }
     }
     my @ret;
-    push( @ret, $ret );
+    push( @ret, $ret - 1 );
     return \@ret, 1, 0;
 };
 
@@ -2317,7 +2409,7 @@ $dict{ 'R@' } = sub {
 =head2 a IF xxx THEN
 
 	test the element on top of stack 
-		if == 0 execute 'xxx' block
+		if == 1 execute 'xxx' block
 		
 	The loop is executed always one time
 
@@ -2356,8 +2448,8 @@ $dict{ 'THEN' } = sub {
 =head2 a IF zzz ELSE xxx THEN
 
 	test the element on top of stack 
-		if == 0 execute 'xxx' block
-		if != 0 execute 'zzz' block 
+		if == 1 execute 'xxx' block
+		if != 1 execute 'zzz' block 
 		
 	The loop is executed always one time
 
@@ -2901,6 +2993,23 @@ __END__
 	    PACK                ([a][b]...[x])	        Do an unpack on variable [b] to [x] using format [b] 
 	    UNPACK              ([a][b])		Do an unpack on variable [b] using format [a]
 	    
+	    ISNUM		([a])			Test if a is a NUMBER return 1 if success ( [a] [1|0] )
+	    						Keep the value on the stack
+	    ISNUMD		([a])			Test if a is a NUMBER return 1 if success ( [1|0] )
+	    						Remove the value from the stack
+	    ISINT		([a])			Test if a is a INTEGER (natural number )
+	    						Return 1 if success ( [a] [1|0] )
+	    						Keep the value on the stack
+	    ISINTD		([a])			Test if a is a INTEGER (natural number )
+	    						Return 1 if success ( [1|0] )
+	    						Remove the value from the stack					
+	    ISHEX		([a])			Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
+	    						Return 1 if success ( [a] [1|0] )
+	    						Keep the value on the stack
+	    ISHEXD		([a])			Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
+	    						Return 1 if success ( [1|0] )
+	    						Remove the value from the stack					
+							
  
 	 Stack operators
 	 ---------------

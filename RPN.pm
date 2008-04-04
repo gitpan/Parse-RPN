@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 38 2007-09-25 14:12:30Z fabrice $
-# $Revision: 38 $
+# $Id: RPN.pm 39 2008-04-04 09:44:23Z fabrice $
+# $Revision: 39 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 38 $
+  $Revision: 39 $
 
 =head1 SYNOPSIS
 
@@ -78,8 +78,8 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
  
-#$VERSION = do { my @rev = ( q$Revision: 38 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 38 $ ' =~ /(\d+)/;
+#$VERSION = do { my @rev = ( q$Revision: 39 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 39 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -2127,7 +2127,7 @@ $dict{ '!!C' } = sub {
     return \@temp, 2, 0;
 };
 
-=head2 x1 x2 x3 ... b a var !!
+=head2 x1 x2 x3 ... b a var !!!
 	
 	put and delete ' element(s) from the stack in the variable 'var'
 	starting at element  'a' to element 'b'
@@ -2163,7 +2163,7 @@ $dict{ '!!!' } = sub {
     return \@temp, $len, 0;
 };
 
-=head2 x1 x2 x3 ... b a var !!C
+=head2 x1 x2 x3 ... b a var !!!C
 	
 	copy element(s) on the stack in the variable 'var'
 	starting at element  'a' to element 'b'	
@@ -2194,7 +2194,7 @@ $dict{ '!!!C' } = sub {
         push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
     }
     $var{ $name } = \@TMP;
-    return \@temp, 2, 0;
+    return \@temp, 3, 0;
 };
 
 =head2  var @

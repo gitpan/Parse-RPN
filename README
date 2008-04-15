@@ -1,934 +1,927 @@
-RPN(3)                User Contributed Perl Documentation               RPN(3)
-
-
-
-PPaarrssee--RRPPNN ((VV 22..xxxx)) -- IInnttrroodduuccttiioonn
-         Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-
-SSYYNNOOPPSSIISS
-         use Parse::RPN;
-         $result=rpn(string ...);
-         @results=rpn(string ...);
-
-         $error=rpn_error();
-
-         string... is a list of RPN operator and value separated by a coma
-         in scalar mode RPN return the result of the calculation (If the stack contain more then one element,
-         you receive a warning and the top value on the stack)
-         in array mode, you receive the content of the stack after evaluation
-
-DDEESSCCRRIIPPTTIIOONN
-         rpn() receive in entry a scalar of one or more elements coma separated
-         and evaluate as an RPN (Reverse Polish Notation) command.
-         The function split all elements and put in the stack.
-         The operator are case sensitive.
-         The operator are detect as is, if they are alone in the element of the stack.
-         Extra space before or after are allowed
-         (e.g "3,4,ADD" here ADD is an opeartor but it is not the case in "3,4,ADD 1")
-         If element is not part of the predefined operator (dictionary), the element is push as a litteral.
-         If you would like to put a string which is part of the dictionary, put it between quote or double-quote
-         (e.g "3,4,'ADD'" here ADD is a literal and the evaluation reurn ADD and a warning because the stack is not empty)
-         If the string contain a coma, you need also to quote or double-quote the string.
-         (be care to close your quoted or double-quoted string)
-
-         The evaluation follow the rule of RPN or FORTH or POSTCRIPT or pockect calcutor HP.
-         Look on web for documentation about the use of RPN notation.
-
-         I use this module in a application where the final user need to create an maintain
-         a configuration file with the possibility to do calculation on variable returned from application.
-
-         The idea of this module is comming from Math::RPN of Owen DeLong, owen@delong.com that I used for more then a year
-         before some of my customer would like more ...
-         I correct a bug (interversion of > and >=), add the STRING function, pattern search and some STACK functions.
-
-         rpn_error() return the last error from the evaluation (illegal division by 0, error from the PERL function execution...)
-         each time that rpn() is call the rpn_error() is reinitianised.
-
-MMAATTHHEEMMAATTIICC ooppeerraattoorrss
-       .
-
-       aa bb ++
-
-             return the result of 'a' + 'b'
-
-       aa bb --
-
-             return the result of 'a' - 'b'
-
-       aa bb **
-
-             return the result of 'a' * 'b'
-
-       aa bb //
-
-             return the result of 'a' / 'b'
-             if b =0 return '' (to prevent exception raise)
-
-       aa bb ****
-
-             return the result of 'a' ** 'b'  (exponant)
-
-       aa 11++
-
-             return the result of 'a' +1
-
-       aa 11--
-
-             return the result of 'a' -1
-
-       aa 22--
-
-             return the result of 'a' -2
-
-       aa 22++
-
-             return the result of 'a' +2
-
-       aa bb MMOODD
-
-             return the result of 'a' % 'b'
-
-       aa AABBSS
-
-             return the result of  abs 'a'
-
-       aa IINNTT
-
-             return the result of INT 'a'
-
-       aa ++--
-
-             return the result negate value of 'a' (- 'a' )
-
-       aa RREEMMAAIINN
-
-             return the result of 'a' - int 'a' (fractional part of 'a' )
-
-       aa SSIINN
-
-             return the result of sin 'a'  ('a' in RADIAN)
-
-       aa CCOOSS
-
-             return the result of cos 'a'  ('a' in RADIAN)
-
-       aa TTAANN
-
-             return the result of tan 'a'  ('a' in RADIAN)
-
-       aa CCTTAANN
-
-             return the result of cotan 'a'  ('a' in RADIAN)
-
-       aa LLNN
-
-             return the result of ln 'a'
-             if = 0 return '' (to prevent exception raise)
-
-       aa EEXXPP
-
-             return the result of 'e' ** 'a'
-
-       PPII
-
-             return the value of PI (3.14159265358979)
-
-rreellaattiioonnaall ooppeerraattoorrss
-       .
-
-       aa bb <<
-
-             return the result of 'a' < 'b'  ( BOOLEAN value )
-
-       aa bb <<==
-
-             return the result of 'a' <= 'b'  ( BOOLEAN value )
-
-       aa bb >>
-
-             return the result of 'a' > 'b'  ( BOOLEAN value )
-
-       aa bb >>==
-
-             return the result of 'a' >= 'b'  ( BOOLEAN value )
-
-       aa bb ====
-
-             return the result of 'a' == 'b'  ( BOOLEAN value ) 1 if a == b else 0
-
-       aa bb <<==>>
-
-             return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
-
-       aa bb !!==
-
-             return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
-
-       aa bb OORR==
-
-             return the result of 'a' || 'b'  ( BOOLEAN value ) 0 if a == b else 1
-
-LLOOGGIICCAALL ooppeerraattoorrss
-       aa bb OORR
-
-             return the 1 one of the 2 argument are not equal to 0
-
-       aa bb AANNDD
-
-             return the 0 one of the 2 argument are equal to 0
-
-       aa bb XXOORR
-
-             return the 0 if the  2 argument are equal
-
-       aa NNOOTT
-
-             return the 0 if the argument is not eqauk to 0
-             return the 1 if the argument is  eqauk to 0
-
-       aa TTRRUUEE
-
-             return the 1 if the top of stack is !=0 and if stack not empty
-
-       aa FFAALLSSEE
-
-             return the 0 if the top of stack is !=0
-
-MMIISSCC ooppeerraattoorrss
-       aa bb >>>>
-
-             bitwise shift to the right
-             shift the bits in a to the left of b level
-
-       aa bb <<<<
-
-             bitwise shift to the left
-             shift the bits in a to the left of b level
-
-       aa bb MMIINN
-
-             return the result smallest of the 2 arguments
-
-       aa bb MMAAXX
-
-             return the result greatest of the 2 arguments
-
-       TTIICCKK
-
-             return the current time in ticks
-
-       aa LLTTIIMMEE
-
-             return the localtime coresponding to the ticks value 'a'
-             the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
-             'year' is the elapsed year since 1900
-             'month' start to 0
-             The format is the same as localtime() in perl
-
-       aa GGTTIIMMEE
-
-             return the gmtime coresponding to the ticks value 'a'
-             the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
-             'year' is the elapsed year since 1900
-             'month' start to 0
-             The format is the same as gmtime() in perl
-
-       aa HHLLTTIIMMEE
-
-             return the localtime coresponding to the ticks value 'a' in a human readable format
-
-       aa HHGGTTIIMMEE
-
-             return the gmtime coresponding to the ticks value 'a' in a human readable format
-
-       RRAANNDD
-
-             return a random value in the range [0,1[
-
-       aa LLRRAANNDD
-
-             return a random value in the range [0,'a'[
-
-       aa SSPPAACCEE
-
-             return the number 'a' formated with space each 3 digits
-
-       aa DDOOTT
-
-             return the number 'a' formated with . (dot) each 3 digits
-
-       aa NNOORRMM
-
-             return the number 'a' normalize by slice of 1000 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1000)
-
-       aa NNOORRMM22
-
-             return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
-
-       aa OOCCTT
-
-             return the decimal value for the HEX, BINARY or OCTAL value 'a'
-             OCTAL is like  '0nn' where n is in the range of 0-7
-             BINARY is like '0bnnn...'   where n is in the range of 0-1
-             HEX is like '0xnnn' where n is in the range of 0-9A-F
-             if no specific format convert as an hexadecimal by default
-
-SSTTRRIINNGG ooppeerraattoorrss
-       .
-
-       aa bb EEQQ
-
-             return the result of 'a' EQ 'b'  ( BOOLEAN value )
-
-       aa bb NNEE
-
-             return the result of 'a' NE 'b'  ( BOOLEAN value )
-
-       aa bb LLTT
-
-             return the result of 'a' LT 'b'  ( BOOLEAN value )
-
-       aa bb GGTT
-
-             return the result of 'a' GT 'b'  ( BOOLEAN value )
-
-       aa bb LLEE
-
-             return the result of 'a' LE 'b'  ( BOOLEAN value )
-
-       aa bb GGEE
-
-             return the result of 'a' GE 'b'  ( BOOLEAN value )
-
-       aa bb CCMMPP
-
-             return the result of 'a' CMP 'b'  ( BOOLEAN value )
-
-       aa LLEENN
-
-             return the length of 'a' EQ 'b'
-
-       aa bb CCAATT
-
-             return the concatenation 'a' and 'b'
-
-       aa bb RREEPP
-
-             return the result of 'a' x 'b'  duplicate 'a' by the number of 'x'
-
-       aa RREEVV
-
-             return the reverse of 'a' EQ 'b'
-
-       aa bb cc SSUUBBSSTTRR
-
-             return the substring of 'c' starting at 'b' with the length of 'a'
-
-       aa UUCC
-
-             return 'a' in uppercase
-
-       aa LLCC
-
-             return 'a' in lowercase
-
-       aa UUCCFFIIRRSSTT
-
-             return 'a' with the first letter in uppercase
-
-       aa LLCCFFIIRRSSTT
-
-             return 'a' with the first letter in lowercase
-
-       aa bb SSPPLLIITT
-
-             return all splitted item of 'a' by the separator 'b'
-             'b' is a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-             !!! if the split match on the beginning of string,
-             SPLIT return the matched value WITHOUT the empty string of the beginning
-
-       aa bb SSPPLLIITTII
-
-             return all splitted item of 'a' by the separator 'b'
-             'b' is a REGEX case insensitive
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-             !!! if the split match on the beginning of string,
-             SPLIT return the matched value WITHOUT the empty string of the beginning
-
-       aa bb PPAATT
-
-             return one or more occurance of 'b' in 'a'
-             'b' is a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa bb PPAATTII
-
-             return one or more occurance of 'b' in 'a'
-             'b' is a REGEX case insensitive
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa bb TTPPAATT
-
-             test if the pattern 'b' is in 'a'
-             'b' is a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa bb TTPPAATTII
-
-             test if the pattern 'b' is in 'a'
-             'b' is a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa bb cc SSPPAATT
-
-             substitute the pattern 'b' by the pattern 'a'  in 'c'
-             'b' and 'c' are a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa bb cc SSPPAATTGG
-
-             substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
-             'b' and 'c' are a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa bb cc SSPPAATTII
-
-             substitute the pattern 'b' by the pattern 'a'  in 'c'case insensitive (i flag in REGEX)
-             'b' and 'c' are a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa bb cc SSPPAATTGGII
-
-             substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
-             and case insensitive (1 flag in REGEX)
-             'b' and 'c' are a REGEX
-             !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-
-       aa ...... zz PPRRIINNTTFF
-
-            use the format 'z' to print the value(s) on the stack
-            7,3,/,10,3,/,%d %f,PRINTF -> 2 3.333333
-            see printf in perl
-
-       aa bb PPAACCKK
-
-             pack the value 'a' with the format 'b'
-             2004,06,08,a4 a2 a2,PACK -> 20040608
-             see pack in perl
-
-       aa bb UUNNPPAACCKK
-
-             unpack the value 'a' with the format 'b'
-             20040608,a4 a2 a2,PACK -> 2004,06,08
-             see unpack in perl
-
-SSTTAACCKK ooppeerraattoorrss
-       .
-
-       aa bb SSWWAAPP
-
-               return 'b' 'a'
-
-       aa bb OOVVEERR
-
-               return 'a' 'b' 'a'
-
-       aa DDUUPP
-
-               return 'a' 'a'
-
-       aa bb DDDDUUPP
-
-               return 'a' 'b' 'a' 'b'
-
-       aa bb cc RROOTT
-
-               return 'b' 'c' 'a'
-
-       aa bb cc RRRROOTT
-
-               return 'c' 'a' 'b'
-
-       DDEEPPTTHH
-
-               return the number of elements on the stack
-
-       aa bb PPOOPP
-
-               remove the last element on the stack
-
-       aa ...... zz PPOOPPNN
-
-               remove the 'z' last element(s) from the stack
-
-       aa bb cc dd ee ff RROOLLLL
-
-               rotate the stack on 'f' element
-               a,b,c,d,e,4,ROLL -> a c d e b
-               if n= 3 = ROT
-
-       aa PPIICCKK
-
-               copy element from depth 'a' to the stack
-
-       aa GGEETT
-
-               get (remove) element from depth 'a'
-
-       aa bb PPUUTT
-
-               put element 'a' at the level 'b' of the stack
-               if 'b' gretaer than the stack put at first place
-               if 'b' < 0 start to the reverse order of the stack
-
-       aa bb DDEELL
-
-               delete 'b' element on the stack from level 'a'
-               'a' and 'b' is get in absolute value
-
-       aa FFIINNDD
-
-               get the level of stack containing the value 'a'
-
-       aa SSEEAARRCCHH
-
-               get the level of stack containing the REGEX 'a'
-
-       aa SSEEAARRCCHHII
-
-               get the level of stack containing the REGEX 'a' (cas insensitive)
-
-       aa KKEEEEPP
-
-               delete all element on the stack except the level 'a'
-               if 'a' is deeper then stack, keep the stack untouched
-
-DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrss
-       .
-
-       WWOORRDDSS
-
-               return as one stack element the list of WORD in DICT separated by a |
-
-       VVAARRSS
-
-               return as one stack element the list of VARS  separated by a |
-
-       IINNCC
-
-               incremente (+ 1) the value of the variable on the statck
-
-       DDEECC
-
-               decremente (- 1) the value of the variable on the statck
-
-       VVAARRIIAABBLLEE xxxxxx
-
-              deckare the variable 'xxx' (reserve memory)
-
-       xxxx vvaarr11 !!
-
-               set the value xx to the variable var1
-
-       vvaarr11 @@
-
-               reyrn the value of the variable var1
-
-       ::xxxxxx  nnaammee11 ;;
-
-               create a new entry in the dictionary whith name name1 and store the progam xxx
-
-       :: xxxxxx yyyyyy nnaammee11 PPEERRLL
-
-               execute the PERL code
-               with parameter(s) xxx yyy
-               !!! be care if the perl code need to use a coma (,)
-               you need to enclose the line inside double quote
-               if you need double quote in code use qq{ ... }
-
-       :: xxxxxx nnaammee11 PPEERRLLFFUUNNCC
-
-               execute the PERL function name1 with the parameter xxx
-               the default name space is "main::"
-               It is possible tu use a specific name space
-               the paramter are "stringified"
-               e.g. ':,5,filename,save,PERLFUNC'
-               call the function save("filename", 5);
-
-       aa >>RR
-
-               put 'a' on the return stack
-
-       RR>>
-
-              remove first element from the return stack and copy on the normal stack
-
-       RRLL
-
-              return the depth of the return stack
-
-       RR@@
-
-              copy return stack ion normal stack
-
-LLOOOOPP aanndd DDEECCIISSIIOONN ooppeerraattoorrss
-       .
-
-       aa IIFF xxxxxx TTHHEENN
-
-               test the element on top of stack
-                       if ==0 execute 'xxx' block
-
-               The loop is executed always one time
-
-       aa IIFF zzzzzz EELLSSEE xxxxxx TTHHEENN
-
-               test the element on top of stack
-                       if ==0 execute 'xxx' block
-                       if != 0 execute 'zzz' block
-
-               The loop is executed always one time
-
-       BBEEGGIINN xxxxxx WWHHIILLEE zzzzzz RREEPPEEAATT
-
-               execute 'xxx' block
-               test the element on top of stack
-                       if ==0 execute 'zzz' block and branch again at 'BEGIN'
-                       if != 0 end the loop
-
-               The loop is executed always one time
-
-       eenndd ssttaarrtt DDOO,,bblloocckk,,LLOOOOPP
-
-               process 'block' with iterator from value 'start' untill 'end' value,with increment of 1;
-               The iterator variable is the second value on the stack (start argument)
-
-       eenndd ssttaarrtt iinnccrreemmeenntt DDOO,,bblloocckk,,LLOOOOPP
-
-               process 'block' with iterator from value 'start' untill 'end' value,with increment of 'increment'
-               This allow rational or negative value
-               The iterator variable is the second value on the stack (start argument)
-
-       _r_p_n___e_r_r_o_r_(_)
-
-               function which return the debug info from the calculation (like a division by 0)
-
-       rrppnn__sseeppaarraattoorr(( ''sseepp'' ))
-
-               function to set a specific separator for the returned stack (default = space)
-               This is useful when the result of rpn() is use inside another rpn() call
-
-OOPPEERRAATTOORRSS
-            The operators get value from the stack and push the result on top
-            In the following explanation, the stack is represented as a pair of brackets ()
-            and each elements by a pair of square barcket []
-            The left part is the state before evalutation
-            and the right part is the state of the stack after evaluation
-
-               Arithmetic operators
-               ---------------------
-                   +                   ([a][b])                ([a+b])
-                   -                   ([a][b])                ([a-b])
-                   *                   ([a][b])                ([a*b])
-                   /                   ([a][b])                ([a/b])         Becare if division by null return a blank value
-                   **                  ([a][b])                ([a**b])
-                   1+                  ([a])                   ([a+1])
-                   1-                  ([a])                   ([a-1])
-                   2+                  ([a])                   ([a+2])
-                   2-                  ([a])                   ([a-2])
-                   MOD                 ([a][b])                ([a%b])
-                   ABS                 ([a])                   ([ABS a])
-                   INT                 ([a])                   ([INT a])
-                   +-                  ([a])                   ([-a])
-                   REMAIN              ([a])                   ([a- INT a])
-
-               Rationnal operators
-               -------------------
-                   SIN                 ([a])                   ([SIN a])       Unit in radian
-                   COS                 ([a])                   ([COS a])       Unit in radian
-                   TAN                 ([a])                   ([TAN a])       Unit in radian
-                   CTAN                ([a])                   ([CTAN a])      Unit in radian
-                   LN                  ([a])                   ([LOG a])
-                   EXP                 ([a])                   ([EXP a])
-                   PI                                          ([3.14159265358979])
-
-               Relational operator
-               ----------------
-                   <                   ([a][b])                ([1]) if [a]<[b] else ([0])
-                   <=                  ([a][b])                ([1]) if [a]<=[b] else ([0])
-                   >                   ([a][b])                ([1]) if [a]>[b] else ([0])
-                   >=                  ([a][b])                ([1]) if [a]>=[b] else ([0])
-                   ==                  ([a][b])                ([1]) if [a]==[b] else ([0])
-                   <=>                 ([a][b])                ([-1]) if [a]>[b],([1]) if [a]<[b], ([0])if [a]==[b]
-                   !=                  ([a][b])                ([0]) if [a]==[b] else ([1])
-                   TRUE                ([a])                   Return 1 if [a]>0 and exist
-                   FALSE               ([a])                   Return 0 if [a]>0
-
-               Logical operator
-               ----------------
-
-                   OR                  ([a][b])                ([1]) if [a] or [b] >0
-                   AND                 ([a][b])                ([1]) if [a] and [b] >0
-                   XOR                 ([a][b])                ([1]) if [a] and [b] are >0 or ==0
-                   NOT                 ([a])                   Return 0 if [a]>0, Return 1 if[a]==0,
-
-               Other operator
-               ----------------
-
-                   >>                  ([a][b])                shift to the right the bits from [a] of [b] rank
-                   <<                  ([a][b])                shift to the left the bits from [a] of [b] rank
-                   MIN                 ([a][b])                ([a]) if  [a]<[b] else ([b])
-                   MAX                 ([a][b])                ([a]) if  [a]>[b] else ([b])
-                   TICK                ()                      ([time]) time in ticks
-                   LTIME               ([a])                   ([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
-                                                               localtime of [a] like PERL
-                   GTIME               ([a])                   ([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
-                                                               ([a]) gmtime of [a] like PERL
-                   HLTIME              ([a])                   ([a]) localtime human readeable
-                   HGTIME              ([a])                   gmtime human readeable
-                   RAND                ()                      ([rand]) a random numder between 0 and 1
-                   LRAND               ([a])                   ([rand]) a random numder between 0 and [a]
-                   SPACE               ([a])                   Return [a] with space between each 3 digits
-                   DOT                 ([a])                   Return [a] with dot (.) between each 3 digits
-                   NORM                ([a])                   Return [a] normalized by 1000 (K,M,G = 1000 * unit)
-                   NORM2               ([a])                   Return [a] normalized by 1000 (K,M,G = 1024 * unit)
-                   OCT                 (|a|)                   Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
-
-               String operators
-               ----------------
-                   EQ                  ([a][b])                ([1]) if [a] eq [b] else ([0])
-                   NE                  ([a][b])                ([1]) if [a] ne [b] else ([0])
-                   LT                  ([a][b])                ([1]) if [a] lt [b] else ([0])
-                   GT                  ([a][b])                ([1]) if [a] gt [b] else ([0])
-                   LE                  ([a][b])                ([1]) if [a] le [b] else ([0])
-                   GE                  ([a][b])                ([1]) if [a] ge [b] else ([0])
-                   CMP                 ([a][b])                ([-1]) if [a] gt [b],([1]) if [a] lt [b], ([0])if [a] eq [b]
-                   LEN                 ([a])                   ([LENGTH a])
-                   CAT                 ([a][b])                ([ab])  String concatenation
-                   REP                 ([a][b])                ([a x b]) repeat [b] time the motif [a]
-                   REV                 ([a])                   ([REVERSE a])
-                   SUBSTR              ([a][b][c])             ([SUBSTR [a], [b], [c]) get substring of [a] starting from [b] untill [c]
-                   UC                  ([a])                   ([UC a])
-                   LC                  ([a])                   ([LC a])
-                   UCFIRST             ([a])                   ([UCFIRST a])
-                   LCFIRST             ([a])                   ([LCFIRST a])
-                   PAT                 ([a][b])                ([r1]...) use the pattern [b] on the string [a] and return result
-                                                               if more then one result like $1, $2 ... return all the results
-                   PATI                ([a][b])                ([r1]...) use the pattern CASE INSENSITIVE [b] on the string [a] and return result
-                                                               if more then one result like $1, $2 ... return all the results
-                   TPAT                ([a][b])                ([r]) use the pattern [b] on the string [a] and return 1 if pattern macth
-                                                               otherwise return 0
-                   TPATI               ([a][b])                ([r]) use the pattern CASE INSENSITIVE [b] on the string [a] and return 1 if pattern macth
-                                                               otherwise return 0
-                   SPLIT               ([a][b])                split ([a]) using the pattern ([b]) and return all elements on stack
-                   SPLITI                                      split ([a]) using the pattern CASE INSENSITIVE  ([b])) and return all elements on stack
-                   SPAT                ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/>
-                   SPATG               ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/g>
-                   SPATI               ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i>
-                                                               (case insensitive)
-                   SPATGI              ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/gi>
-                                                               (case insensitive)
-                   PRINTF              ([a][b]...[x])          use the format present in [a] to print the value [b] to [x]
-                                                               the format is the same as (s)printf
-                   PACK                ([a][b]...[x])          Do an unpack on variable [b] to [x] using format [b]
-                   UNPACK              ([a][b])                Do an unpack on variable [b] using format [a]
-
-                Stack operators
-                ---------------
-
-                   SWAP                ([a][b])                ([b][a])
-                   OVER                ([a][b])                ([a][b][a])
-                   DUP                 ([a])                   ([a][a])
-                   DDUP                ([a][b])                ([a][b][a][b])
-                   ROT                 ([a][b][c])             ([b][c][a])
-                   RROT                ([a][b][c])             ([c][a][b])
-                   DEPTH               ([r1]...)               ([re1]...[nbr]) Return the number of elements in the statck
-                   POP                 ([a][b])                ([a])
-                   POPN                ([a][b][c]...[x])       ([l]...[x]) remove [b] element from the stack (starting at [c])
-                   DEL                 ([a][b][c][d]...[x])    ([c]...[n][m]...[x]) delete [b] elements from element number [a]
-                   SWAP2               ([a][b][c])             ([a][c][b])
-                   ROLL                ([a][b][c][d][e][n])    ([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
-                                                               if  [n] =3 it is equivalent to ROT
-                   PICK                ([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element from depth [n] on top
-                   GET                 ([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element from depth [n] and put on top
-                   PUT                 ([a][b][c][d][v][n])    ([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
-                   DEL                 ([a][b])                delete [b] element on the stack from lebvel [a]
-                                                               [a] and [b] is get in absolute value
-                   FIND                ([a])                   get the level of stack containing [a]
-                   SEARCH              ([a])                   get the level of stack containing the REGEX [a]
-                   SEARCHI             ([a])                   get the level of stack containing the REGEX [a] ( case insensitive )
-
-                   KEEP                ([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
-
-                Dictionary operators
-                --------------------
-
-                   WORDS               ()                      ([a])return as one stack element the list of WORD in DICT separated by a |
-                   VARS                ()                      ([a])return as one stack element the list of VARIABLE in VAR separated by a |
-                   INC                 ([a])                   () increment (+1) the value of variable [a]
-                   DEC                 ([a])                   () decrement (-1) the value of variable [a]
-                   VARIABLE            ([a])                   () create a entry in VAR for the variable [a]
-                   !                   ([a][b])                store the value [a] in the variable [b]
-                   @                   ([a])                   ([a]) return the value of the variable [a]
-                   : xxx yyy ;                                 create a new word (sub) into the dictionary with the xxx "code" with name yyy
-                   : xxx yyy PERLFUNC                          execute the PERL function yyy with parameter(s) yyy
-                                                               the default name space is "main::"
-                                                               It is possible tu use a specific name space
-                   : xxx yyy PERL                              execute the PERL code xxx ; yyy
-
-                Return Stack operators
-                ----------------------
-
-                  >R                   ([a])                   put ^a$ on the return stack
-                  R>                   ()                      remove first element from the return stack and copy on the normal
-                  RL                   ()                      return the depth of the return stack
-                  R@                   ()                      copy return stack ion normal stack
-
-               LOOP and DECISION operators
-               ---------------------------
-
-                [a] IF [..xxx] THEN                            Test the element on top of stack
-                                                                 if ==0, execute 'xxx' block
-                                                               The loop is executed always one time
-
-                [a] IF [...zzz...] ELSE [..xxx...] THEN        Test the element on top of stack
-                                                                 if ==0, execute 'xxx' block
-                                                                 if != 0 execute 'zzz' block
-                                                               The loop is executed always one time
-
-                BEGIN xxx WHILE zzz REPEAT                     Execute 'xxx' block
-                                                               Test the element on top of stack
-                                                                 if ==0 execute 'zzz' block and branch again to BEGIN
-                                                                 if != 0 end the loop
-                                                               The loop is executed always one time
-
-               [a] [b] DO [...xxx...] LOOP     ([a][b])        process block [...xxx...] with iterator from value [b] untill [a] value,
-                                                               with increment of 1;
-                                                               The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
-
-               [a] [b] DO [...xxx...] [c] LOOP ([a][b])        rocess block [...xxx...] with iterator from value [b] untill [a] value,
-                                                               with increment of [c];
-                                                               The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
-
-EEXXAAMMPPLLEESS
-               use Parse::RPN;
-
-               $test ="3,5,+";
-               $ret = rpn($test);  # $ret = 8
-
-               $test = "Hello World,len,3,+";
-               $ret = rpn($test);  # $ret = 14
-
-               $test = "'Hello,World',len,3,+";
-               $ret = rpn($test);  # $ret = 14
-
-               $test = "'Hello,World,len,3,+";
-               ---------^-----------^-
-               $ret = rpn($test);  # $ret = 8 with a warning because the stack is not empty ([Hello] [8])
-                                   # be care to close your quoted string
-
-               $test = "'Hello,world',',',pat,',',eq,'Contain a coma','Without a coma',if";
-               $ret = rpn($test);  # $ret = "Contain a coma"
-
-               $test = "'Hello world',',',pat,',',eq,'Contain a coma','Without a coma',if";
-               $ret = rpn($test);  # $ret = "Without a coma"
-
-               $test = "3,10,/,5,+,82,*,%b,PRINTF";
-               $ret = rpn($test);  # $ret = "110110010"
-
-               $test = "3,10,/,5,+,82,*,%016b,PRINTF";
-               $ret = rpn($test);  # $ret = "0000000110110010"
-
-               $test = "55,N,pack,B32,unpack,^0+(?=\d), ,spat,'+',ds";
-               $ret = rpn($test);  # $ret = 110111
-
-               $test = "7,3,/,10,3,/,%d %f,PRINTF";
-               @ret = rpn($test); # @ret = 2 3.333333
-
-               $test = "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,<,WHILE,####,a,@,****,REPEAT";
-               @ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb
-
-               $test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
-               @ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
-
-               $test = "1,2,3,4,5,6,7,8,9,3,KEEP";
-               ret =rpn($test); # @ret = 7
-
-               $test = "1,2,3,4,5,6,7,8,9,30,KEEP";
-               ret =rpn($test); # @ret = 1,2,3,4,5,6,7,8,9
-
-               sub Test {
-                  my $a  = shift;
-                  my $b = shift;
-                  my $c = $a/$b;
-                  print "a=$a\tb=$b\ttotal=$c\n";
-                  return $c;
-               }
-               $test = ":,5,6,Test,PERLFUNC";
-               @ret =rpn($test); # call the function "Test" from the main package (the caller) with parameter 5,6 and return result (in @ret)
-
-               $test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERLFUNC";
-               @ret =rpn($test); # @ret = 1133391600
-
-               $test = "1,2,3,+,:, my $b=7, "open LOG , qq{ >/tmp/log }",print LOG time,,PERL";
-               @ret =rpn($test); # @ret = 1,5
-               and the file /tmp/log contain a line with the tick time.
-
-               $test = "11,55,*,5,2,401,+,:,my $b=,SWAP,CAT, "open LOG , qq{ >/tmp/log }",print LOG $b.qq{ \n },PERL"
-               @ret =rpn($test); # @ret =1 2 3 1 (the latest 1 is the succes result return)
-               and the file /tmp/log contain a line with 403 + a cariage return
-
-               The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.
-               This include two test functions named 'save' and 'restore'
-               Try RPN.pl to get a minimal help.
-               Take a look to the minimalistic code, and put RPN.pl in your path.
-
-               Sample of use:
-               RPN.pl -r '1,2,3,:,123,100,+,7,*,test,save,PERLFUNC'
-               save in file '/tmp/test' the value '1561' (whithout CR/LF) and return 1 2 3 1
-
-AAUUTTHHOORR
-               Fabrice Dulaunoy <fabrice@dulaunoy.com>
-               It is a full rewrite from the version 1.xx to allow DICTIONNARY use
-               and STRUCTURE control
-               Thanks to the module Math::RPN from  Owen DeLong, <owen@delong.com>
-               for the idea of using RPN in a config file
-
-SSEEEE AALLSSOO
-               Math-RPN from  Owen DeLong, <owen@delong.com>
-
-TTOODDOO
-               Error processing, stack underflow...
-
-CCRREEDDIITTSS
-               Thank's to Stefan Moser <sm@open.ch> for the idea
-               to call a perl function from the rpn()
-
-LLIICCEENNSSEE
-               Under the GNU GPL2
-
-               This program is free software; you can redistribute it and/or modify it
-               under the terms of the GNU General Public
-               License as published by the Free Software Foundation; either version 2
-               of the License, or (at your option) any later version.
-
-               This program is distributed in the hope that it will be useful,
-               but WITHOUT ANY WARRANTY;  without even the implied warranty of
-               MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
-               See the GNU General Public License for more details.
-
-               You should have received a copy of the GNU General Public License
-               along with this program; if not, write to the
-               Free Software Foundation, Inc., 59 Temple Place,
-               Suite 330, Boston, MA 02111-1307 USA
-
-               Parse::RPN   Copyright (C) 2004 DULAUNOY Fabrice
-               Parse::RPN comes with ABSOLUTELY NO WARRANTY;
-               for details See: L<http://www.gnu.org/licenses/gpl.html>
-               This is free software, and you are welcome to redistribute
-               it under certain conditions;
-
-
-
-perl v5.8.8                       2006-03-13                            RPN(3)
+Parse-RPN (V 2.xx) - Introduction
+      Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
+      $Revision: 41 $
+
+SYNOPSIS
+      use Parse::RPN;
+      $result=rpn(string ...);
+      @results=rpn(string ...);
+  
+      $error=rpn_error();
+
+      string... is a list of RPN operator and value separated by a coma
+      in scalar mode RPN return the result of the calculation (If the stack contain more then one element, 
+      you receive a warning and the top value on the stack)
+      in array mode, you receive the content of the stack after evaluation
+
+DESCRIPTION
+      rpn() receive in entry a scalar of one or more elements coma separated 
+      and evaluate as an RPN (Reverse Polish Notation) command.
+      The function split all elements and put in the stack.
+      The operator are case sensitive.
+      The operator are detect as is, if they are alone in the element of the stack. 
+      Extra space before or after are allowed
+      (e.g "3,4,ADD" here ADD is an opeartor but it is not the case in "3,4,ADD 1")
+      If element is not part of the predefined operator (dictionary), the element is push as a litteral.
+      If you would like to put a string which is part of the dictionary, put it between quote or double-quote 
+      (e.g "3,4,'ADD'" here ADD is a literal and the evaluation reurn ADD and a warning because the stack is not empty)
+      If the string contain a coma, you need also to quote or double-quote the string. 
+      (be care to close your quoted or double-quoted string)
+
+      The evaluation follow the rule of RPN or FORTH or POSTCRIPT or pockect calcutor HP.
+      Look on web for documentation about the use of RPN notation.
+  
+      I use this module in a application where the final user need to create an maintain 
+      a configuration file with the possibility to do calculation on variable returned from application.
+  
+      The idea of this module is comming from Math::RPN of Owen DeLong, owen@delong.com that I used for more then a year
+      before some of my customer would like more ...
+      I correct a bug (interversion of > and >=), add the STRING function, pattern search and some STACK functions.
+
+      rpn_error() return the last error from the evaluation (illegal division by 0, error from the PERL function execution...)
+      each time that rpn() is call the rpn_error() is reinitianised.
+
+MATHEMATIC operators
+    .
+
+  a b +
+          return the result of 'a' + 'b' 
+        
+  a b -
+          return the result of 'a' - 'b' 
+        
+  a b *
+          return the result of 'a' * 'b' 
+        
+  a b /
+          return the result of 'a' / 'b' 
+          if b =0 return '' (to prevent exception raise)
+        
+  a b **
+          return the result of 'a' ** 'b'  (exponant)
+        
+  a 1+
+          return the result of 'a' +1 
+        
+  a 1-
+          return the result of 'a' -1 
+        
+  a 2-
+          return the result of 'a' -2 
+        
+  a 2+
+          return the result of 'a' +2 
+        
+  a b MOD
+          return the result of 'a' % 'b'
+        
+  a ABS
+          return the result of  abs 'a'
+        
+  a INT
+          return the result of INT 'a' 
+        
+  a +-
+          return the result negate value of 'a' (- 'a' )
+        
+  a REMAIN
+          return the result of 'a' - int 'a' (fractional part of 'a' ) 
+        
+  a SIN
+          return the result of sin 'a'  ('a' in RADIAN)
+        
+  a COS
+          return the result of cos 'a'  ('a' in RADIAN)
+        
+  a TAN
+          return the result of tan 'a'  ('a' in RADIAN)
+        
+  a CTAN
+          return the result of cotan 'a'  ('a' in RADIAN)
+        
+  a LN
+          return the result of ln 'a' 
+          if = 0 return '' (to prevent exception raise)
+        
+  a EXP
+          return the result of 'e' ** 'a' 
+        
+  PI
+          return the value of PI (3.14159265358979)
+        
+relational operators
+    .
+
+  a b <
+          return the result of 'a' < 'b'  ( BOOLEAN value ) 
+        
+  a b <=
+          return the result of 'a' <= 'b'  ( BOOLEAN value )
+        
+  a b >
+          return the result of 'a' > 'b'  ( BOOLEAN value )
+        
+  a b >=
+          return the result of 'a' >= 'b'  ( BOOLEAN value )
+        
+  a b ==
+          return the result of 'a' == 'b'  ( BOOLEAN value ) 1 if a == b else 0
+        
+  a b <=>
+          return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
+        
+  a b !=
+          return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
+        
+  a b OR=
+          return the result of 'a' || 'b'  ( BOOLEAN value ) 0 if a == b else 1
+        
+LOGICAL operators
+  a b OR
+          return the 1 one of the 2 argument are not equal to 0
+        
+  a b AND
+          return the 0 one of the 2 argument are equal to 0
+        
+  a b XOR
+          return the 0 if the  2 argument are equal
+        
+  a NOT
+          return the 0 if the argument is not eqauk to 0
+          return the 1 if the argument is  eqauk to 0
+        
+  a TRUE
+          return the 1 if the top of stack is !=0 and if stack not empty
+        
+  a FALSE
+          return the 0 if the top of stack is !=0
+        
+MISC operators
+  a b >>
+          bitwise shift to the right
+          shift the bits in a to the left of b level
+        
+  a b <<
+          bitwise shift to the left
+          shift the bits in a to the left of b level
+        
+  a b MIN
+          return the result smallest of the 2 arguments
+        
+  a b MAX
+          return the result greatest of the 2 arguments
+        
+  TICK
+          return the current time in ticks
+        
+  a LTIME
+          return the localtime coresponding to the ticks value 'a'
+          the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
+          'year' is the elapsed year since 1900
+          'month' start to 0
+          The format is the same as localtime() in perl
+        
+  a GTIME
+          return the gmtime coresponding to the ticks value 'a'
+          the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
+          'year' is the elapsed year since 1900
+          'month' start to 0
+          The format is the same as gmtime() in perl
+        
+  a HLTIME
+          return the localtime coresponding to the ticks value 'a' in a human readable format
+        
+  a HGTIME
+          return the gmtime coresponding to the ticks value 'a' in a human readable format
+        
+  RAND
+          return a random value in the range [0,1[
+        
+  a LRAND
+          return a random value in the range [0,'a'[
+        
+  a SPACE
+          return the number 'a' formated with space each 3 digits
+        
+  a DOT
+          return the number 'a' formated with . (dot) each 3 digits
+        
+  a NORM
+          return the number 'a' normalize by slice of 1000 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1000)
+        
+  a NORM2
+          return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
+        
+  a OCT
+          return the decimal value for the HEX, BINARY or OCTAL value 'a'
+          OCTAL is like  '0nn' where n is in the range of 0-7
+          BINARY is like '0bnnn...'   where n is in the range of 0-1
+          HEX is like '0xnnn' where n is in the range of 0-9A-F
+          if no specific format convert as an hexadecimal by default
+        
+STRING operators
+    .
+
+  a b EQ
+          return the result of 'a' EQ 'b'  ( BOOLEAN value )
+        
+  a b NE
+          return the result of 'a' NE 'b'  ( BOOLEAN value )
+        
+  a b LT
+          return the result of 'a' LT 'b'  ( BOOLEAN value )
+        
+  a b GT
+          return the result of 'a' GT 'b'  ( BOOLEAN value )
+        
+  a b LE
+          return the result of 'a' LE 'b'  ( BOOLEAN value )
+        
+  a b GE
+          return the result of 'a' GE 'b'  ( BOOLEAN value )
+        
+  a b CMP
+          return the result of 'a' CMP 'b'  ( BOOLEAN value )
+        
+  a LEN
+          return the length of 'a' EQ 'b' 
+        
+  a b CAT
+          return the concatenation 'a' and 'b' 
+        
+  a b CATALL
+          return the concatenation all element on the stack 
+        
+  a b REP
+          return the result of 'a' x 'b'  duplicate 'a' by the number of 'x' 
+        
+  a REV
+          return the reverse of 'a' EQ 'b' 
+        
+  a b c SUBSTR
+          return the substring of 'c' starting at 'b' with the length of 'a'
+        
+  a UC
+          return 'a' in uppercase
+        
+  a LC
+          return 'a' in lowercase
+        
+  a UCFIRST
+          return 'a' with the first letter in uppercase
+        
+  a LCFIRST
+          return 'a' with the first letter in lowercase
+        
+  a b SPLIT
+          return all splitted item of 'a' by the separator 'b' 
+          'b' is a REGEX 
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+          !!! if the split match on the beginning of string,
+          SPLIT return the matched value WITHOUT the empty string of the beginning
+        
+  a b SPLITI
+          return all splitted item of 'a' by the separator 'b' 
+          'b' is a REGEX case insensitive
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+          !!! if the split match on the beginning of string,
+          SPLIT return the matched value WITHOUT the empty string of the beginning
+      
+  a b PAT
+          return one or more occurance of 'b' in 'a' 
+          'b' is a REGEX
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a b PATI
+          return one or more occurance of 'b' in 'a' 
+          'b' is a REGEX case insensitive
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a b TPAT
+          test if the pattern 'b' is in 'a' 
+          'b' is a REGEX
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a b TPATI
+          test if the pattern 'b' is in 'a' 
+          'b' is a REGEX
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a b c SPAT
+          substitute the pattern 'b' by the pattern 'a'  in 'c'
+          'b' and 'c' are a REGEX
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a b c SPATG
+          substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
+          'b' and 'c' are a REGEX
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a b c SPATI
+          substitute the pattern 'b' by the pattern 'a'  in 'c'case insensitive (i flag in REGEX)
+          'b' and 'c' are a REGEX
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a b c SPATGI
+          substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
+          and case insensitive (1 flag in REGEX)
+          'b' and 'c' are a REGEX
+          !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+        
+  a ... z PRINTF
+         use the format 'z' to print the value(s) on the stack
+         7,3,/,10,3,/,%d %f,PRINTF -> 2 3.333333
+         see printf in perl
+        
+  a b PACK
+          pack the value 'a' with the format 'b'
+          2004,06,08,a4 a2 a2,PACK -> 20040608
+          see pack in perl
+        
+  a b UNPACK
+          unpack the value 'a' with the format 'b'
+          20040608,a4 a2 a2,PACK -> 2004,06,08
+          see unpack in perl
+        
+  a b ISNUM
+          test if top of the stack is a number
+          return 1 if if it is a NUMBER otherwise return 0
+        
+  a b ISNUMD
+          test if top of the stack is a number
+          delete the top element on the statck and return 1 if it is a NUMBER otherwise return 0 
+        
+  a b ISINT
+          test if top of the stack is a integer (natural number)
+          return 1 if if it is a INTEGER otherwise return 0
+        
+  a b ISINTD
+          test if top of the stack is a integer (natural number)
+          delete the top element on the statck and return 1 if it is a INTEGER otherwise return 0 
+        
+  a b ISHEX
+          test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
+          return 1 if if it is a HEXADECIMAL otherwise return 0
+        
+  a b ISHEXD
+          test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
+          delete the top element on the statck and return 1 if it is a HEXADECIMAL otherwise return 0 
+        
+STACK operators
+    .
+
+  a b SWAP
+            return 'b' 'a'
+
+  a b OVER
+            return 'a' 'b' 'a'
+
+  a DUP
+            return 'a' 'a'
+
+  a b DDUP
+            return 'a' 'b' 'a' 'b'
+
+  a b c ROT
+            return 'b' 'c' 'a'
+
+  a b c RROT
+            return 'c' 'a' 'b'
+
+  DEPTH
+            return the number of elements on the stack
+
+  a b POP
+            remove the last element on the stack
+
+  a ... z POPN
+            remove the 'z' last element(s) from the stack
+
+  a b c d e n ROLL
+            rotate the stack on 'n' element
+            a,b,c,d,e,4,ROLL -> a c d e b
+            if n = 3 <=> ROT
+
+  a PICK
+            copy element from depth 'a' to the stack
+
+  a GET
+            get (remove) element from depth 'a'
+            and put on top of stack 
+
+  a b PUT
+            put element 'a' at the level 'b' of the stack
+            if 'b' gretaer than the stack put at first place
+            if 'b' < 0 start to the reverse order of the stack
+
+  a b DEL
+            delete 'b' element on the stack from level 'a'
+            'a' and 'b' is get in absolute value 
+
+  a FIND
+            get the level of stack containing the exact value 'a'
+
+  a SEARCH
+            get the first level of stack containing the REGEX 'a'
+
+  a SEARCHI
+            get the first level of stack containing the REGEX 'a' (cas insensitive)
+
+  a SEARCHK
+            keep all level of stack containing the REGEX 'a' (cas sensitive)
+
+  a SEARCHK
+            keep all level of stack containing the REGEX 'a' (cas insensitive)
+
+  a KEEP
+            delete all element on the stack except the level 'a'
+            if 'a' is deeper then stack, keep the stack untouched
+        
+  a b KEEPN
+            keep 'b' element on the stack from level 'a'
+            and delete all other element
+            'a' and 'b' is get in absolute value 
+
+  a b PRESERVE
+            keep  element on the stack from level 'a'
+            to level 'b'
+            and delete all other element
+            'a' and 'b' is get in absolute value 
+            if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+  a b COPY
+            copy  element on the stack from level 'a'
+            to level 'b'
+            'a' and 'b' is get in absolute value 
+            if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+DICTIONARY and VARS operators
+    .
+
+  WORDS
+            return as one stack element the list of WORD in DICT separated by a |
+        
+  VARS
+            return as one stack element the list of VARS  separated by a |
+        
+  INC
+            incremente (+ 1) the value of the variable on the statck
+        
+  DEC
+            decremente (- 1) the value of the variable on the statck
+        
+  VARIABLE xxx
+           deckare the variable 'xxx' (reserve memory)
+        
+  xx var !
+            set the value xx to the variable 'var'
+        
+  x1 x2 x3 ... n var !!
+            put and delete 'n' element(s) from the stack in the variable 'var'
+            'n' is in absolute value 
+
+  x1 x2 x3 ... n var !!C
+            copy 'n' element(s) from the stack in the variable 'var'
+            'n' is in absolute value 
+
+  x1 x2 x3 ... b a var !!!
+            put and delete ' element(s) from the stack in the variable 'var'
+            starting at element  'a' to element 'b'
+            'a' and 'b' in absolute value 
+            if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+  x1 x2 x3 ... b a var !!!C
+            copy element(s) on the stack in the variable 'var'
+            starting at element  'a' to element 'b' 
+            'a' and 'b' in absolute value 
+            if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+  var @
+            return the value of the variable 'var'
+        
+  :xxx  name1 ;
+            create a new entry in the dictionary whith name name1 and store the progam xxx
+        
+  : xxx yyy name1 PERL
+            execute the PERL code
+            with parameter(s) xxx yyy
+            !!! be care if the perl code need to use a coma (,) 
+            you need to enclose the line inside double quote
+            if you need double quote in code use qq{ ... }
+        
+  : xxx name1 PERLFUNC
+            execute the PERL function name1 with the parameter xxx
+            the default name space is "main::"
+            It is possible tu use a specific name space
+            the paramter are "stringified"
+            e.g. ':,5,filename,save,PERLFUNC'
+            call the function save("filename", 5);
+        
+  a >R
+            put 'a' on the return stack
+        
+  R>
+           remove first element from the return stack and copy on the normal stack
+        
+  RL
+           return the depth of the return stack
+        
+  R@
+           copy return stack on normal stack
+        
+LOOP and DECISION operators
+    .
+
+  a IF xxx THEN
+            test the element on top of stack 
+                    if == 1 execute 'xxx' block
+                
+            The loop is executed always one time
+
+  a IF zzz ELSE xxx THEN
+            test the element on top of stack 
+                    if == 1 execute 'xxx' block
+                    if != 1 execute 'zzz' block 
+                
+            The loop is executed always one time
+
+  BEGIN xxx WHILE zzz REPEAT
+            execute 'xxx' block
+            test the element on top of stack 
+                    if == 0 execute 'zzz' block and branch again at 'BEGIN'
+                    if != 0 end the loop
+                
+            The loop is executed always one time
+
+  end start DO,block,LOOP
+            process 'block' with iterator from value 'start' until 'end' value,with increment of 1;
+            The iterator variable is the second value on the stack (start argument)
+        
+  end start increment DO,block,+LOOP
+            process 'block' with iterator from value 'start' untill 'end' value,with increment of 'increment' 
+            This allow rational or negative value
+            The iterator variable is the second value on the stack (start argument)
+        
+Useful functions for the module (not related to the RPN language)
+    . =head2 rpn_error()
+
+            function which return the debug info from the calculation (like a division by 0)
+        
+  rpn_separator( 'sep' )
+            function to set a specific separator for the returned stack (default = space)
+            This is useful when the result of rpn() is use inside another rpn() call 
+        
+OPERATORS
+         The operators get value from the stack and push the result on top
+         In the following explanation, the stack is represented as a pair of brackets ()
+         and each elements by a pair of square barcket []
+         The left part is the state before evalutation 
+         and the right part is the state of the stack after evaluation 
+
+            Arithmetic operators
+            ---------------------
+                +                   ([a][b])                ([a+b])
+                -                   ([a][b])                ([a-b])
+                *                   ([a][b])                ([a*b])
+                /                   ([a][b])                ([a/b])         Becare if division by null return a blank value
+                **                  ([a][b])                ([a**b])
+                1+                  ([a])                   ([a+1])
+                1-                  ([a])                   ([a-1])
+                2+                  ([a])                   ([a+2])
+                2-                  ([a])                   ([a-2])    
+                MOD                 ([a][b])                ([a%b])
+                ABS                 ([a])                   ([ABS a])
+                INT                 ([a])                   ([INT a])
+                +-                  ([a])                   ([-a])
+                REMAIN              ([a])                   ([a- INT a])
+            
+            Rationnal operators
+            -------------------  
+                SIN                 ([a])                   ([SIN a])       Unit in radian
+                COS                 ([a])                   ([COS a])       Unit in radian
+                TAN                 ([a])                   ([TAN a])       Unit in radian
+                CTAN                ([a])                   ([CTAN a])      Unit in radian
+                LN                  ([a])                   ([LOG a])
+                EXP                 ([a])                   ([EXP a])
+                PI                                          ([3.14159265358979])    
+            
+            Relational operator
+            ----------------
+                <                   ([a][b])                ([1]) if [a]<[b] else ([0])
+                <=                  ([a][b])                ([1]) if [a]<=[b] else ([0])
+                >                   ([a][b])                ([1]) if [a]>[b] else ([0])
+                >=                  ([a][b])                ([1]) if [a]>=[b] else ([0])    
+                ==                  ([a][b])                ([1]) if [a]==[b] else ([0])
+                <=>                 ([a][b])                ([-1]) if [a]>[b],([1]) if [a]<[b], ([0])if [a]==[b]
+                !=                  ([a][b])                ([0]) if [a]==[b] else ([1])
+                TRUE                ([a])                   Return 1 if [a]>0 and exist
+                FALSE               ([a])                   Return 0 if [a]>0
+            
+            Logical operator
+            ----------------
+        
+                OR                  ([a][b])                ([1]) if [a] or [b] >0
+                AND                 ([a][b])                ([1]) if [a] and [b] >0
+                XOR                 ([a][b])                ([1]) if [a] and [b] are >0 or ==0
+                NOT                 ([a])                   Return 0 if [a]>0, Return 1 if[a]==0, 
+        
+            Other operator
+            ----------------
+        
+                >>                  ([a][b])                shift to the right the bits from [a] of [b] rank
+                <<                  ([a][b])                shift to the left the bits from [a] of [b] rank
+                MIN                 ([a][b])                ([a]) if  [a]<[b] else ([b]) 
+                MAX                 ([a][b])                ([a]) if  [a]>[b] else ([b]) 
+                TICK                ()                      ([time]) time in ticks
+                LTIME               ([a])                   ([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
+                                                            localtime of [a] like PERL
+                GTIME               ([a])                   ([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
+                                                            ([a]) gmtime of [a] like PERL
+                HLTIME              ([a])                   ([a]) localtime human readeable
+                HGTIME              ([a])                   gmtime human readeable          
+                RAND                ()                      ([rand]) a random numder between 0 and 1
+                LRAND               ([a])                   ([rand]) a random numder between 0 and [a]
+                SPACE               ([a])                   Return [a] with space between each 3 digits
+                DOT                 ([a])                   Return [a] with dot (.) between each 3 digits
+                NORM                ([a])                   Return [a] normalized by 1000 (K,M,G = 1000 * unit)
+                NORM2               ([a])                   Return [a] normalized by 1000 (K,M,G = 1024 * unit)
+                OCT                 (|a|)                   Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
+
+            String operators
+            ----------------
+                EQ                  ([a][b])                ([1]) if [a] eq [b] else ([0])
+                NE                  ([a][b])                ([1]) if [a] ne [b] else ([0])
+                LT                  ([a][b])                ([1]) if [a] lt [b] else ([0])
+                GT                  ([a][b])                ([1]) if [a] gt [b] else ([0])
+                LE                  ([a][b])                ([1]) if [a] le [b] else ([0])
+                GE                  ([a][b])                ([1]) if [a] ge [b] else ([0])
+                CMP                 ([a][b])                ([-1]) if [a] gt [b],([1]) if [a] lt [b], ([0])if [a] eq [b]
+                LEN                 ([a])                   ([LENGTH a])
+                CAT                 ([a][b])                ([ab])  String concatenation
+                CATALL              ([a][b]...[z])          ([ab...z]) String concatenation of all elements on the stack
+                REP                 ([a][b])                ([a x b]) repeat [b] time the motif [a]
+                REV                 ([a])                   ([REVERSE a])
+                SUBSTR              ([a][b][c])             ([SUBSTR [a], [b], [c]) get substring of [a] starting from [b] untill [c]
+                UC                  ([a])                   ([UC a])
+                LC                  ([a])                   ([LC a])
+                UCFIRST             ([a])                   ([UCFIRST a])
+                LCFIRST             ([a])                   ([LCFIRST a])
+                PAT                 ([a][b])                ([r1]...) use the pattern [b] on the string [a] and return result 
+                                                            if more then one result like $1, $2 ... return all the results 
+                PATI                ([a][b])                ([r1]...) use the pattern CASE INSENSITIVE [b] on the string [a] and return result 
+                                                            if more then one result like $1, $2 ... return all the results                                          
+                TPAT                ([a][b])                ([r]) use the pattern [b] on the string [a] and return 1 if pattern macth 
+                                                            otherwise return 0
+                TPATI               ([a][b])                ([r]) use the pattern CASE INSENSITIVE [b] on the string [a] and return 1 if pattern macth 
+                                                            otherwise return 0
+                SPLIT               ([a][b])                split ([a]) using the pattern ([b]) and return all elements on stack
+                SPLITI                                      split ([a]) using the pattern CASE INSENSITIVE  ([b])) and return all elements on stack                                 
+                SPAT                ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/>
+                SPATG               ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/g>
+                SPATI               ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i> 
+                                                            (case insensitive)
+                SPATGI              ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/gi> 
+                                                            (case insensitive)
+                PRINTF              ([a][b]...[x])          use the format present in [a] to print the value [b] to [x] 
+                                                            the format is the same as (s)printf 
+                PACK                ([a][b]...[x])          Do an unpack on variable [b] to [x] using format [b] 
+                UNPACK              ([a][b])                Do an unpack on variable [b] using format [a]
+            
+                ISNUM               ([a])                   Test if a is a NUMBER return 1 if success ( [a] [1|0] )
+                                                            Keep the value on the stack
+                ISNUMD              ([a])                   Test if a is a NUMBER return 1 if success ( [1|0] )
+                                                            Remove the value from the stack
+                ISINT               ([a])                   Test if a is a INTEGER (natural number )
+                                                            Return 1 if success ( [a] [1|0] )
+                                                            Keep the value on the stack
+                ISINTD              ([a])                   Test if a is a INTEGER (natural number )
+                                                            Return 1 if success ( [1|0] )
+                                                            Remove the value from the stack                                 
+                ISHEX               ([a])                   Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
+                                                            Return 1 if success ( [a] [1|0] )
+                                                            Keep the value on the stack
+                ISHEXD              ([a])                   Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
+                                                            Return 1 if success ( [1|0] )
+                                                            Remove the value from the stack                                 
+                                                        
+             Stack operators
+             ---------------
+                
+                SWAP                ([a][b])                ([b][a])
+                OVER                ([a][b])                ([a][b][a])
+                DUP                 ([a])                   ([a][a])
+                DDUP                ([a][b])                ([a][b][a][b])
+                ROT                 ([a][b][c])             ([b][c][a])
+                RROT                ([a][b][c])             ([c][a][b])
+                DEPTH               ([r1]...)               ([re1]...[nbr]) Return the number of elements in the statck
+                POP                 ([a][b])                ([a])
+                POPN                ([a][b][c]...[x])       ([l]...[x]) remove [b] element from the stack (starting at [c])
+                SWAP2               ([a][b][c])             ([a][c][b])
+                ROLL                ([a][b][c][d][e][n])    ([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
+                                                            if  [n] =3 it is equivalent to ROT
+                PICK                ([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element from depth [n] on top 
+                GET                 ([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element from depth [n] and put on top 
+                PUT                 ([a][b][c][d][v][n])    ([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
+                DEL                 ([a][b])                delete [b] element on the stack from level [a]
+                                                            [a] and [b] is get in absolute value        
+                KEEPN               ([a][b])                keep [b] element(s) on the stack from level [a] 
+                                                            (and delete all other elements)
+                                                            [a] and [b] is get in absolute value                                            
+                PRESERVE            ([a][b])                keep element(s) on the stack from level [a] to level [b]
+                                                            (and delete all other elements)
+                                                            [a] and [b] is get in absolute value
+                COPY                ([a][b])                copy element(s) on the stack from level [a] to level [b]
+                                                            [a] and [b] is get in absolute value                                    
+                FIND                ([a])                   get the level of stack containing [a]
+                SEARCH              ([a])                   get the level of stack containing the REGEX [a]
+                SEARCHI             ([a])                   get the level of stack containing the REGEX [a] ( case insensitive )
+                SEARCHK             ([a])                   keep only level of stack matching the REGEX [a]
+                SEARCHIK            ([a])                   keep only level of stack matching the REGEX [a] ( case insensitive )
+                KEEP                ([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
+            
+             Dictionary operators
+             --------------------    
+          
+                WORDS               ()                              ([a])return as one stack element the list of WORD in DICT separated by a |      
+                VARS                ()                              ([a])return as one stack element the list of VARIABLE in VAR separated by a |                           
+                INC                 ([a])                           () increment (+1) the value of variable [a]
+                DEC                 ([a])                           () decrement (-1) the value of variable [a]
+                VARIABLE            ([a])                           () create a entry in VAR for the variable [a]
+                !                   ([a][b])                        store the value [a] in the variable [b]
+                !!                  ([a][b][c]...[n] [var])         put and delete 'n' element(s) from the stack in the variable 'var'
+                                                                    'n' is in absolute value        
+                !!C                 ([a][b][c]...[n] [var])         copy 'n' element(s) from the stack in the variable 'var'
+                                                                    'n' is in absolute value        
+                !!!                 ([a][b][c]...[n1] [n2] [var])   put and delete element(s) from the stack in the variable 'var'
+                                                                    starting at element  'a' to element 'b'
+                                                                    'a' and 'b' in absolute value 
+                                                                    if 'a' > 'b'  keep the reverse of selection (boustrophedon)     
+                !!!C                        ([a][b][c]...[n] [var]) copy 'element(s) from the stack in the variable 'var'
+                                                                    starting at element  'a' to element 'b'
+                                                                    'a' and 'b' in absolute value 
+                                                                    if 'a' > 'b'  keep the reverse of selection (boustrophedon)                                                                                 
+                @                   ([a])                           ([a]) return the value of the variable [a]
+                : xxx yyy ;                                         create a new word (sub) into the dictionary with the xxx "code" and name yyy
+                : xxx yyy PERLFUNC                                  execute the PERL function yyy with parameter(s) yyy 
+                                                                    the default name space is "main::"
+                                                                    It is possible tu use a specific name space
+                : xxx yyy PERL                                      execute the PERL code xxx ; yyy                                 
+
+             Return Stack operators
+             ----------------------
+         
+               >R                   ([a])                   put ^a$ on the return stack
+               R>                   ()                      remove first element from the return stack and copy on the normal
+               RL                   ()                      return the depth of the return stack
+               R@                   ()                      copy return stack ion normal stack
+
+            LOOP and DECISION operators
+            ---------------------------
+        
+             [a] IF [..xxx] THEN                            Test the element on top of stack
+                                                              if ==0, execute 'xxx' block
+                                                            The loop is executed always one time
+         
+             [a] IF [...zzz...] ELSE [..xxx...] THEN        Test the element on top of stack
+                                                              if ==0, execute 'xxx' block
+                                                              if != 0 execute 'zzz' block
+                                                            The loop is executed always one time
+
+             BEGIN xxx WHILE zzz REPEAT                     Execute 'xxx' block
+                                                            Test the element on top of stack
+                                                              if ==0 execute 'zzz' block and branch again to BEGIN
+                                                              if != 0 end the loop
+                                                            The loop is executed always one time
+
+            [a] [b] DO [...xxx...] LOOP     ([a][b])        process block [...xxx...] with iterator from value [b] untill [a] value,
+                                                            with increment of 1;
+                                                            The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
+        
+            [a] [b] DO [...xxx...] [c] +LOOP        ([a][b])        process block [...xxx...] with iterator from value [b] untill [a] value,
+                                                            with increment of [c];
+                                                            The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
+
+EXAMPLES
+            use Parse::RPN;
+        
+            $test ="3,5,+";
+            $ret = rpn($test);  # $ret = 8
+        
+            $test = "Hello World,len,3,+";
+            $ret = rpn($test);  # $ret = 14
+        
+            $test = "'Hello,World',len,3,+";
+            $ret = rpn($test);  # $ret = 14
+        
+            $test = "'Hello,World,len,3,+";
+            ---------^-----------^-
+            $ret = rpn($test);  # $ret = 8 with a warning because the stack is not empty ([Hello] [8])
+                                # be care to close your quoted string 
+        
+            $test = "'Hello world','or',PAT,'or',EQ,IF,'string contain or',ELSE,'No or in string',THEN"
+            $ret = rpn($test);  # $ret = "Contain a coma"
+        
+            $test = "'Hello world','or',TPAT,IF,'string contain or',ELSE,'No or in string',THEN";
+            $ret = rpn($test);  # $ret = "string contain or"
+        
+            $test = "3,10,/,5,+,82,*,%b,PRINTF";
+            $ret = rpn($test);  # $ret = "110110010"
+        
+            $test = "3,10,/,5,+,82,*,%016b,PRINTF";
+            $ret = rpn($test);  # $ret = "0000000110110010"
+        
+            $test = "55,N,pack,B32,unpack,^0+(?=\d), ,spat,'+',ds";
+            $ret = rpn($test);  # $ret = 110111
+        
+            $test = "7,3,/,10,3,/,%d %f,PRINTF";
+            @ret = rpn($test); # @ret = 2 3.333333
+        
+            $test = "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,<,WHILE,####,a,@,****,REPEAT";
+            @ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb
+        
+            $test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
+            @ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
+        
+            $test = "1,2,3,4,5,6,7,8,9,3,KEEP";
+            ret =rpn($test); # @ret = 7
+        
+            $test = "1,2,3,4,5,6,7,8,9,30,KEEP";
+            ret =rpn($test); # @ret = 1,2,3,4,5,6,7,8,9
+        
+            $test = "h,g,f,e,d,c,b,a,4,3,DEL";
+            ret =rpn($test); # @ret = h,c,b,a
+                
+            $test = "h,g,f,e,d,c,b,a,4,3,KEEPN"";
+            ret =rpn($test); # @ret = g,f,e,d
+        
+            sub Test {
+               my $a  = shift;
+               my $b = shift;
+               my $c = $a/$b;
+               print "a=$a\tb=$b\ttotal=$c\n";
+               return $c;
+            }
+            $test = ":,5,6,Test,PERLFUNC";
+            @ret =rpn($test); # call the function "Test" from the main package (the caller) with parameter 5,6 and return result (in @ret)
+        
+            $test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERLFUNC";
+            @ret =rpn($test); # @ret = 1133391600
+        
+            $test = "1,2,3,+,:, my $b=7, "open LOG , qq{ >/tmp/log }",print LOG time,,PERL";
+            @ret =rpn($test); # @ret = 1,5
+            and the file /tmp/log contain a line with the tick time.
+        
+            $test = "11,55,*,5,2,401,+,:,my $b=,SWAP,CAT, "open LOG , qq{ >/tmp/log }",print LOG $b.qq{ \n },PERL"
+            @ret =rpn($test); # @ret =1 2 3 1 (the latest 1 is the succes result return)
+            and the file /tmp/log contain a line with 403 + a cariage return
+        
+            The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.
+            This include two test functions named 'save' and 'restore'
+            Try RPN.pl to get a minimal help. 
+            Take a look to the minimalistic code, and put RPN.pl in your path.
+        
+            Sample of use:
+            RPN.pl -r '1,2,3,:,123,100,+,7,*,test,save,PERLFUNC'
+            save in file '/tmp/test' the value '1561' (whithout CR/LF) and return 1 2 3 1
+                
+AUTHOR
+            Fabrice Dulaunoy <fabrice@dulaunoy.com> 
+            It is a full rewrite from the version 1.xx to allow DICTIONNARY use
+            and STRUCTURE control
+            Thanks to the module Math::RPN from  Owen DeLong, <owen@delong.com> 
+            for the idea of using RPN in a config file
+
+SEE ALSO
+            Math-RPN from  Owen DeLong, <owen@delong.com> 
+
+TODO
+            Error processing, stack underflow...
+
+CREDITS
+            Thank's to Stefan Moser <sm@open.ch> for the idea 
+            to call a perl function from the rpn() and also for pin-pointing an error in stack return. 
+        
+LICENSE
+            Under the GNU GPL2
+
+            This program is free software; you can redistribute it and/or modify it 
+            under the terms of the GNU General Public 
+            License as published by the Free Software Foundation; either version 2 
+            of the License, or (at your option) any later version.
+
+            This program is distributed in the hope that it will be useful, 
+            but WITHOUT ANY WARRANTY;  without even the implied warranty of
+            MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+            See the GNU General Public License for more details.
+
+            You should have received a copy of the GNU General Public License 
+            along with this program; if not, write to the 
+            Free Software Foundation, Inc., 59 Temple Place, 
+            Suite 330, Boston, MA 02111-1307 USA
+
+            Parse::RPN   Copyright (C) 2004 2005 2006 2007 DULAUNOY Fabrice  
+            Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
+            for details See: L<http://www.gnu.org/licenses/gpl.html> 
+            This is free software, and you are welcome to redistribute 
+            it under certain conditions;
+   

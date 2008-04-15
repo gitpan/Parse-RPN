@@ -1,6 +1,19 @@
 version <2 is only a RPN parser
 version >2 is more like  FORTH (with dictionary, vaiables...)
 
+
+----------------------------
+revision : 2.41
+date : 2008/4/15 15:41:38
+add SEARCHK and SEARCHKI
+----------------------------
+revision : 2.39
+date : 2008/4/4 11:44:23
+correct !!! operators
+----------------------------
+revision : 2.38
+date : 2007/9/25 16:12:30
+add ISNUM ISNUMD ISINT ISINTD ISHEX ISHEXD
 ----------------------------
 revision : 2.37
 date : 2007/8/8 16:01:37

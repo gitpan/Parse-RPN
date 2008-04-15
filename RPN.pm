@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 39 2008-04-04 09:44:23Z fabrice $
-# $Revision: 39 $
+# $Id: RPN.pm 41 2008-04-15 13:41:38Z fabrice $
+# $Revision: 41 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 39 $
+  $Revision: 41 $
 
 =head1 SYNOPSIS
 
@@ -78,8 +78,8 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
  
-#$VERSION = do { my @rev = ( q$Revision: 39 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 39 $ ' =~ /(\d+)/;
+#$VERSION = do { my @rev = ( q$Revision: 41 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 41 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -1840,7 +1840,7 @@ $dict{ 'FIND' } = sub {
 
 =head2 a SEARCH
 	
-	get the level of stack containing the REGEX 'a'
+	get the first level of stack containing the REGEX 'a'
 
 =cut
 
@@ -1860,13 +1860,14 @@ $dict{ 'SEARCH' } = sub {
             return \@ret, 1, 0;
         }
     }
+    
     push( @ret, 0 );
     return \@ret, 1, 0;
 };
 
 =head2 a SEARCHI
 	
-	get the level of stack containing the REGEX 'a' (cas insensitive)
+	get the first level of stack containing the REGEX 'a' (cas insensitive)
 
 =cut
 
@@ -1889,6 +1890,60 @@ $dict{ 'SEARCHI' } = sub {
     push( @ret, 0 );
     return \@ret, 1, 0;
 };
+
+=head2 a SEARCHK
+	
+	keep all level of stack containing the REGEX 'a' (cas sensitive)
+
+=cut
+
+$dict{ 'SEARCHK' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    my $len ; 
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/ )
+        {
+            $ret = $i;
+            push @ret, $b;
+	    $len++;
+        }
+    }    
+    return \@ret, $nbr +1, 0;
+};
+
+=head2 a SEARCHK
+	
+	keep all level of stack containing the REGEX 'a' (cas insensitive)
+
+=cut
+
+$dict{ 'SEARCHIK' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    my $len ; 
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/i )
+        {
+            $ret = $i;
+            push @ret, $b;
+	    $len++;
+        }
+    }    
+    return \@ret, $nbr +1, 0;
+};
+
+
 
 =head2 a KEEP
 	
@@ -3042,6 +3097,8 @@ __END__
 	    FIND		([a])     		get the level of stack containing [a]
 	    SEARCH		([a])     		get the level of stack containing the REGEX [a]
 	    SEARCHI		([a])     		get the level of stack containing the REGEX [a] ( case insensitive )
+	    SEARCHK		([a])			keep only level of stack matching the REGEX [a]
+	    SEARCHIK		([a])			keep only level of stack matching the REGEX [a] ( case insensitive )
 	    KEEP		([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
             
 	 Dictionary operators

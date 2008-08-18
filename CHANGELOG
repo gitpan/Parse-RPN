@@ -1,7 +1,11 @@
 version <2 is only a RPN parser
-version >2 is more like  FORTH (with dictionary, vaiables...)
+version >2 is more like  FORTH (with dictionary, variables...)
 
-
+----------------------------
+revision : 2.42
+date : 2008/8/18 13:22:38
+add LOOKUP and LOOKUPOP 
+fix !! and !!C parameter
 ----------------------------
 revision : 2.41
 date : 2008/4/15 15:41:38

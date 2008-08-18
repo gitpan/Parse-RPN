@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 41 2008-04-15 13:41:38Z fabrice $
-# $Revision: 41 $
+# $Id: RPN.pm 42 2008-08-18 11:22:38Z fabrice $
+# $Revision: 42 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 41 $
+  $Revision: 42 $
 
 =head1 SYNOPSIS
 
@@ -77,9 +77,9 @@ use Data::Dumper;
 @ISA = qw(Exporter AutoLoader);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
- 
-#$VERSION = do { my @rev = ( q$Revision: 41 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 41 $ ' =~ /(\d+)/;
+
+#$VERSION = do { my @rev = ( q$Revision: 42 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 42 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -736,6 +736,59 @@ $dict{ 'MAX' } = sub {
     my @ret;
     push @ret, ( $a > $b ? $a : $b );
     return \@ret, 2, 0;
+};
+
+=head2 a VAL,RET, "operator" LOOKUP
+
+      test with the "operator" the [a] value on each elements of VAL and if test succeed return the corresponding item from RET
+      the "operator" must be quoted to prevent evaluation
+	
+=cut
+
+$dict{ 'LOOKUP' } = sub {
+    my $work1 = shift;
+    my $ope   = pop @{ $work1 };
+    my @RET   = @{ $var{ pop @{ $work1 } } };
+    my @VAL   = @{ $var{ pop @{ $work1 } } };
+    my $item  = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my $test  = $item . $ope . $VAL[$ind];
+        my $state = eval $test;
+        if ( $state )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
+};
+
+=head2 a VAL,RET,OPE LOOKUP
+
+      loop on each item of array VAL and test the value [ a ] against the corresponding value in array VAL and return the value from array RET with the same index
+	
+=cut
+
+$dict{ 'LOOKUPOP' } = sub {
+    my $work1 = shift;
+    my @OPE   = @{ $var{ pop @{ $work1 } } };
+    my @RET   = @{ $var{ pop @{ $work1 } } };
+    my @VAL   = @{ $var{ pop @{ $work1 } } };
+    my $item  = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my $test  = $item . $OPE[$ind] . $VAL[$ind];
+        my $state = eval $test;
+        if ( $state )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
 };
 
 =head2 TICK
@@ -1462,7 +1515,6 @@ $dict{ 'UNPACK' } = sub {
     return \@ret, 2, 0;
 };
 
-
 =head2 a b ISNUM
 
       test if top of the stack is a number
@@ -1474,7 +1526,7 @@ $dict{ 'ISNUM' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0);
+    push @ret, ( $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0 );
     return \@ret, 0, 0;
 };
 
@@ -1489,7 +1541,7 @@ $dict{ 'ISNUMD' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0);
+    push @ret, ( $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0 );
     return \@ret, 1, 0;
 };
 
@@ -1504,7 +1556,7 @@ $dict{ 'ISINT' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a =~ /^\d+$/ ? 1 : 0);
+    push @ret, ( $a =~ /^\d+$/ ? 1 : 0 );
     return \@ret, 0, 0;
 };
 
@@ -1519,7 +1571,7 @@ $dict{ 'ISINTD' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a =~ /^\d+$/ ? 1 : 0);
+    push @ret, ( $a =~ /^\d+$/ ? 1 : 0 );
     return \@ret, 1, 0;
 };
 
@@ -1534,7 +1586,7 @@ $dict{ 'ISHEX' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0);
+    push @ret, ( $a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0 );
     return \@ret, 0, 0;
 };
 
@@ -1549,10 +1601,9 @@ $dict{ 'ISHEXD' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ($a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0);
+    push @ret, ( $a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0 );
     return \@ret, 1, 0;
 };
-
 
 ########################
 # stack operators
@@ -1860,7 +1911,7 @@ $dict{ 'SEARCH' } = sub {
             return \@ret, 1, 0;
         }
     }
-    
+
     push( @ret, 0 );
     return \@ret, 1, 0;
 };
@@ -1903,7 +1954,7 @@ $dict{ 'SEARCHK' } = sub {
     my $ret   = 1;
     my $nbr   = scalar( @{ $work1 } );
     my @ret;
-    my $len ; 
+    my $len;
     for ( my $i = $nbr ; $i ; $i-- )
     {
         my $b = @{ $work1 }[ $nbr - $i ];
@@ -1911,10 +1962,10 @@ $dict{ 'SEARCHK' } = sub {
         {
             $ret = $i;
             push @ret, $b;
-	    $len++;
+            $len++;
         }
-    }    
-    return \@ret, $nbr +1, 0;
+    }
+    return \@ret, $nbr + 1, 0;
 };
 
 =head2 a SEARCHK
@@ -1929,7 +1980,7 @@ $dict{ 'SEARCHIK' } = sub {
     my $ret   = 1;
     my $nbr   = scalar( @{ $work1 } );
     my @ret;
-    my $len ; 
+    my $len;
     for ( my $i = $nbr ; $i ; $i-- )
     {
         my $b = @{ $work1 }[ $nbr - $i ];
@@ -1937,13 +1988,11 @@ $dict{ 'SEARCHIK' } = sub {
         {
             $ret = $i;
             push @ret, $b;
-	    $len++;
+            $len++;
         }
-    }    
-    return \@ret, $nbr +1, 0;
+    }
+    return \@ret, $nbr + 1, 0;
 };
-
-
 
 =head2 a KEEP
 	
@@ -2158,7 +2207,9 @@ $dict{ '!!' } = sub {
     my $name      = pop @{ $work1 };
     my $len_to_rm = ( abs pop @{ $work1 } );
     my @temp;
-    my @TMP = @{ $work1 }[ $len_to_rm .. ( $#$work1 ) ];
+    my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
+    $from = $from < 0 ? 0 : $from;
+    my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
     $var{ $name } = \@TMP;
     return \@temp, $len_to_rm + 2, 0;
 };
@@ -2177,7 +2228,9 @@ $dict{ '!!C' } = sub {
     my $name      = pop @{ $work1 };
     my $len_to_rm = ( abs pop @{ $work1 } );
     my @temp;
-    my @TMP = @{ $work1 }[ $len_to_rm .. ( $#$work1 ) ];
+    my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
+    $from = $from < 0 ? 0 : $from;
+    my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
     $var{ $name } = \@TMP;
     return \@temp, 2, 0;
 };
@@ -2485,7 +2538,7 @@ $dict{ 'THEN' } = sub {
 #    my $res     = pop @pre;
     pop @pre;
 
-    my $len_d   = 2 + $len;
+    my $len_d = 2 + $len;
 
     if ( $res )
     {
@@ -2496,7 +2549,7 @@ $dict{ 'THEN' } = sub {
         $len_d = scalar( @pre ) + $len + 1;
         @ret   = @TMP;
     }
-  
+
     return \@ret, $len_d, 2;
 };
 
@@ -2531,7 +2584,7 @@ $dict{ 'THENELSE' } = sub {
     if ( $res )
     {
         my @TMP = @pre;
-        pop @TMP;	
+        pop @TMP;
         push @TMP, 'THEN';
         process( \@TMP );
         @ret   = @TMP;
@@ -2993,6 +3046,10 @@ __END__
 	    <<		       	([a][b])		shift to the left the bits from [a] of [b] rank
             MIN	     	       	([a][b])		([a]) if  [a]<[b] else ([b]) 
             MAX		       	([a][b])		([a]) if  [a]>[b] else ([b]) 
+            LOOKUP		([a] V R [ope] )	test [ a ] on all value of array V with the operator [ope] 
+							if succeed, return the value from array R at the succesfull indice
+            LOOKUPOP		([a] V R O] )		test [ a ] on all value of array V with the operator from the array OPE with the same indice
+							if succeed, return the value from array R at the succesfull indice
             TICK		()			([time]) time in ticks
 	    LTIME		([a])			([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
 							localtime of [a] like PERL
@@ -3232,7 +3289,7 @@ __END__
 	$test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERLFUNC";
 	@ret =rpn($test); # @ret = 1133391600
 	
-        $test = "1,2,3,+,:, my $b=7, "open LOG , qq{ >/tmp/log }",print LOG time,,PERL";
+        $test = "1,2,3,+,:, my $b=7, "open LOG , qq{ >/tmp/log }",print LOG time,PERL";
 	@ret =rpn($test); # @ret = 1,5
 	and the file /tmp/log contain a line with the tick time.
 	
@@ -3240,7 +3297,12 @@ __END__
 	@ret =rpn($test); # @ret =1 2 3 1 (the latest 1 is the succes result return)
 	and the file /tmp/log contain a line with 403 + a cariage return
 	
-	
+	$test = '5,1,2,3,4,5,5,V,!!," "," ",ok," ",nok,5,R,!!,V,R,"<=",LOOKUP'
+	@ret =rpn($test); # @ret = nok
+
+	$test = ' '3,1,2,3,4,5,5,V,!!,a,b,ok,d,nok,5,R,!!,"<","<","<","<","<",5,O,!!,V,R,O,LOOKUPOP'
+        @ret =rpn($test); # @ret = d
+
 	The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.
 	This include two test functions named 'save' and 'restore'
 	Try RPN.pl to get a minimal help. 
@@ -3299,5 +3361,3 @@ __END__
    
    
 =cut
- 
-

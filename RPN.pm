@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 42 2008-08-18 11:22:38Z fabrice $
-# $Revision: 42 $
+# $Id: RPN.pm 43 2008-08-18 11:22:38Z fabrice $
+# $Revision: 43 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 42 $
+  $Revision: 43 $
 
 =head1 SYNOPSIS
 
@@ -78,8 +78,8 @@ use Data::Dumper;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-#$VERSION = do { my @rev = ( q$Revision: 42 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 42 $ ' =~ /(\d+)/;
+#$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
+$VERSION = sprintf "2.%02d", '$Revision: 43 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -740,12 +740,40 @@ $dict{ 'MAX' } = sub {
 
 =head2 a VAL,RET, "operator" LOOKUP
 
-      test with the "operator" the [a] value on each elements of VAL and if test succeed return the corresponding item from RET
+      test with the "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
       the "operator" must be quoted to prevent evaluation
 	
 =cut
 
 $dict{ 'LOOKUP' } = sub {
+    my $work1 = shift;
+    my $ope   = pop @{ $work1 };
+    my @RET   = @{ $var{ pop @{ $work1 } } };
+    my @VAL   = @{ $var{ pop @{ $work1 } } };
+    my $item  = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my @tmp;
+        push @tmp, $item, $VAL[$ind], $ope;
+        process( \@tmp );
+        if ( $tmp[0] )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
+};
+
+=head2 a VAL,RET, "operator" LOOKUPP
+
+      test with the perl "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
+      the "operator" must be quoted to prevent evaluation
+	
+=cut
+
+$dict{ 'LOOKUPP' } = sub {
     my $work1 = shift;
     my $ope   = pop @{ $work1 };
     my @RET   = @{ $var{ pop @{ $work1 } } };
@@ -767,11 +795,38 @@ $dict{ 'LOOKUP' } = sub {
 
 =head2 a VAL,RET,OPE LOOKUP
 
-      loop on each item of array VAL and test the value [ a ] against the corresponding value in array VAL and return the value from array RET with the same index
+      loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
 	
 =cut
 
 $dict{ 'LOOKUPOP' } = sub {
+    my $work1 = shift;
+    my @OPE   = @{ $var{ pop @{ $work1 } } };
+    my @RET   = @{ $var{ pop @{ $work1 } } };
+    my @VAL   = @{ $var{ pop @{ $work1 } } };
+    my $item  = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my @tmp;
+        push @tmp, $item, $VAL[$ind], $OPE[$ind];
+        process( \@tmp );
+        if ( $tmp[0] )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
+};
+
+=head2 a VAL,RET,OPE LOOKUPP
+
+      loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
+	
+=cut
+
+$dict{ 'LOOKUPOPP' } = sub {
     my $work1 = shift;
     my @OPE   = @{ $var{ pop @{ $work1 } } };
     my @RET   = @{ $var{ pop @{ $work1 } } };
@@ -1385,7 +1440,7 @@ $dict{ 'SPAT' } = sub {
     my $a       = pop @{ $work1 };
     my $b       = pop @{ $work1 };
     my $c       = pop @{ $work1 } || '';
-    my $to_eval = qq{\$c =~ s/$b/$a/};
+    my $to_eval = qq{\$c =~ s#$b#$a#};
     eval( $to_eval );
     my @ret;
     push @ret, $c;
@@ -1405,7 +1460,7 @@ $dict{ 'SPATG' } = sub {
     my $a       = pop @{ $work1 };
     my $b       = pop @{ $work1 };
     my $c       = pop @{ $work1 };
-    my $to_eval = qq{\$c =~ s/$b/$a/g};
+    my $to_eval = qq{\$c =~ s#$b#$a#g};
     eval( $to_eval );
     my @ret;
     push @ret, $c;
@@ -1425,7 +1480,7 @@ $dict{ 'SPATI' } = sub {
     my $a       = pop @{ $work1 };
     my $b       = pop @{ $work1 };
     my $c       = pop @{ $work1 };
-    my $to_eval = qq{\$c =~ s/$b/$a/i};
+    my $to_eval = qq{\$c =~ s#$b#$a#i};
     eval( $to_eval );
     my @ret;
     push @ret, $c;
@@ -1446,7 +1501,7 @@ $dict{ 'SPATGI' } = sub {
     my $a       = pop @{ $work1 };
     my $b       = pop @{ $work1 };
     my $c       = pop @{ $work1 };
-    my $to_eval = qq{\$c =~ s/$b/$a/ig};
+    my $to_eval = qq{\$c =~ s#$b#$a#ig};
     eval( $to_eval );
     my @ret;
     push @ret, $c;
@@ -2571,35 +2626,34 @@ $dict{ 'THENELSE' } = sub {
     my $b_ref   = pop @{ $return1 };
     my $a_ref   = pop @{ $return1 };
     my @pre     = @{ $work1 };
-    my @ELSE    = splice @pre, $a_ref - 1, $b_ref - $a_ref - 1;
     my @BEGIN   = splice @pre, 0, $a_ref - 1;
     @pre = @{ $work1 };
-    my @THEN  = splice @pre, $b_ref + 1, $c_ref - $b_ref - 1;
-    my $len   = scalar @ELSE + scalar @THEN;
-    my $r     = scalar @{ $work1 };
-    my $i     = $r - $len - 3;
-    my $res   = $pre[$i];
-    my $len_d = 3 + $len;
+    my @THEN = splice @pre, $c_ref + 1, $b_ref - 1;
+    my @ELSE = splice @pre, scalar( @BEGIN ) + 2;
+    pop @ELSE;
 
-    if ( $res )
-    {
-        my @TMP = @pre;
-        pop @TMP;
-        push @TMP, 'THEN';
-        process( \@TMP );
-        @ret   = @TMP;
-        $len_d = scalar( @pre ) + $len;
-    }
-    else
+    my $VAR = $pre[-2];
+#     my $len   =scalar (@BEGIN) + scalar @THEN +2;
+
+    my $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar @THEN + 3;
+    if ( $VAR )
     {
         my @TMP = @BEGIN;
-        push @TMP, '1';
+        push @TMP, $VAR;
         push @TMP, 'IF';
         push @TMP, @THEN;
         push @TMP, 'THEN';
         process( \@TMP );
         @ret   = @TMP;
-        $len_d = scalar( @pre ) + $len;
+        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar @THEN + 3;
+    }
+    else
+    {
+        my @TMP = @BEGIN;
+        push @TMP, @ELSE;
+        process( \@TMP );
+        @ret   = @TMP;
+        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar @ELSE + scalar @THEN + 2;
     }
     return \@ret, $len_d, 3;
 };
@@ -2816,7 +2870,9 @@ sub process
     my $is_begin;
     my $is_while;
     my $is_do;
+    my $is_if;
     my $is_else;
+    my $else;
     my @work;
 
     while ( @{ $stack } )
@@ -2889,25 +2945,40 @@ sub process
                 $is_do = 0;
                 push @return, scalar( @work );
             }
+
             if ( $op =~ /^IF$/g )
             {
                 $is_do = 1;
-                push @return, ( scalar( @work ) );
+                if ( $is_if == 0 )
+                {
+                    push @return, ( scalar( @work ) );
+                }
+                $is_if++;
             }
             if ( $op =~ /^ELSE$/g )
             {
-                $is_else = 1;
-                push @return, ( scalar( @work ) );
+                if ( $is_if == 1 )
+                {
+                    $is_else++;
+                    $else = ( scalar( @work ) );
+                }
             }
             if ( $op =~ /^THEN$/g )
             {
-                $is_do = 0;
-                push @return, ( scalar( @work ) );
-                if ( $is_else )
+                $is_if--;
+                if ( $is_if == 0 )
                 {
-                    $op = "THENELSE";
+                    push @return, ( scalar( @work ) );
+                    $is_do = 0;
+
+                    if ( $is_else )
+                    {
+                        $op = "THENELSE";
+                        push @return, $else;
+                    }
                 }
             }
+
         }
         if ( !$is_string )
         {
@@ -3048,7 +3119,10 @@ __END__
             MAX		       	([a][b])		([a]) if  [a]>[b] else ([b]) 
             LOOKUP		([a] V R [ope] )	test [ a ] on all value of array V with the operator [ope] 
 							if succeed, return the value from array R at the succesfull indice
+            LOOKUPP		([a] V R [ope] )	test [ a ] on all value of array V with the perl operator [ope] 
+							if succeed, return the value from array R at the succesfull indice
             LOOKUPOP		([a] V R O] )		test [ a ] on all value of array V with the operator from the array OPE with the same indice
+            LOOKUPOPP		([a] V R O] )		test [ a ] on all value of array V with the perl operator from the array OPE with the same indice
 							if succeed, return the value from array R at the succesfull indice
             TICK		()			([time]) time in ticks
 	    LTIME		([a])			([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
@@ -3297,10 +3371,13 @@ __END__
 	@ret =rpn($test); # @ret =1 2 3 1 (the latest 1 is the succes result return)
 	and the file /tmp/log contain a line with 403 + a cariage return
 	
-	$test = '5,1,2,3,4,5,5,V,!!," "," ",ok," ",nok,5,R,!!,V,R,"<=",LOOKUP'
+	$test = 'mb,tb,gb,mb,kb,4,V,!!,12,9,6,3,4,R,!!,V,R,"TPATI",LOOKUP'
+	@ret =rpn($test); # @ret = 6
+
+	$test = '5,1,2,3,4,5,5,V,!!," "," ",ok," ",nok,5,R,!!,V,R,"<=",LOOKUPP'
 	@ret =rpn($test); # @ret = nok
 
-	$test = ' '3,1,2,3,4,5,5,V,!!,a,b,ok,d,nok,5,R,!!,"<","<","<","<","<",5,O,!!,V,R,O,LOOKUPOP'
+	$test = '3,1,2,3,4,5,5,V,!!,a,b,ok,d,nok,5,R,!!,"<","<","<","<","<",5,O,!!,V,R,O,LOOKUPOPP'
         @ret =rpn($test); # @ret = d
 
 	The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.

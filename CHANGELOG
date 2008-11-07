@@ -2,6 +2,11 @@ version <2 is only a RPN parser
 version >2 is more like  FORTH (with dictionary, variables...)
 
 ----------------------------
+revision : 2.43
+date : 2008/11/07 08:53:12
+add LOOKUPP and LOOKUPOPP 
+IF THEN and OF THEN ELSE become reentrant
+----------------------------
 revision : 2.42
 date : 2008/8/18 13:22:38
 add LOOKUP and LOOKUPOP 

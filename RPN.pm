@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 43 2008-08-18 11:22:38Z fabrice $
-# $Revision: 43 $
+# $Id: RPN.pm 44 2009-03-13 18:14:17 fabrice $
+# $Revision: 44 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 43 $
+  $Revision: 44 $
 
 =head1 SYNOPSIS
 
@@ -79,7 +79,7 @@ use Data::Dumper;
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
 #$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 43 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 44 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -1051,6 +1051,67 @@ $dict{ 'OCT' } = sub {
     push @ret, oct( $a );
     return \@ret, 1, 0;
 };
+
+=head2 a OCTSTR2HEX
+
+      return a HEX string from a OCTETSTRING.
+      useful when receiving an SNMP ASN.1 OCTETSTRING like mac address
+	
+=cut
+
+$dict{ 'OCTSTR2HEX' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, unpack( "H*" , pack("a*",$a));
+    return \@ret, 1, 0;
+};
+
+=head2 a HEX2OCTSTR
+
+      return a OCTETSTRING string from a HEX
+      useful when you need to check if an SNMP ASN.1 OCTETSTRING if matching the hex value provided
+	
+=cut
+
+$dict{ 'HEX2OCTSTR' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, unpack( "a*" , pack( "H*", $a));
+    return \@ret, 1, 0;
+};
+
+=head2 a DDEC2STR
+
+      return a string from a dotted DEC string
+      useful when you need to manipulate an SNMP extension with 'exec' 
+	
+=cut
+
+$dict{ 'DDEC2STR' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, join "", map { sprintf( "%c",$_ )} (split /\./,$a);
+    return \@ret, 1, 0;
+};
+
+=head2 a STR2DDEC
+
+      return a dotted DEC string to a string
+      useful when you need to manipulate an SNMP extension with 'exec' 
+	
+=cut
+
+$dict{ 'STR2DDEC' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, join '.', map { unpack( "c" ,$_) } (split // , $b);
+    return \@ret, 1, 0;
+};
+
 
 ########################
 # string operators
@@ -3138,6 +3199,10 @@ __END__
 	    NORM		([a])			Return [a] normalized by 1000 (K,M,G = 1000 * unit)
 	    NORM2		([a])			Return [a] normalized by 1000 (K,M,G = 1024 * unit)
 	    OCT			(|a|)			Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
+	    OCTSTR2HEX		(|a|)                   Return a HEX string from a OCTETSTRING
+	    OCTSTR2HEX		(|a|)                   Return a OCTETSTRING string from a HEX
+            DDEC2STR		(|a|)                   Return a string from a dotted DEC string
+            STR2DDEC		(|a|)                   Return a dotted DEC string to a string
 
 	String operators
 	----------------

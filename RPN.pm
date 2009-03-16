@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 44 2009-03-13 18:14:17 fabrice $
-# $Revision: 44 $
+# $Id: RPN.pm 45 2009-03-16 10:37:23 fabrice $
+# $Revision: 45 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 44 $
+  $Revision: 45 $
 
 =head1 SYNOPSIS
 
@@ -79,7 +79,7 @@ use Data::Dumper;
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
 #$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 44 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 45 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -1108,7 +1108,7 @@ $dict{ 'STR2DDEC' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, join '.', map { unpack( "c" ,$_) } (split // , $b);
+    push @ret, join '.', map { unpack( "c" ,$_) } (split // , $a);
     return \@ret, 1, 0;
 };
 

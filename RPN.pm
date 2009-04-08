@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 45 2009-03-16 10:37:23 fabrice $
-# $Revision: 45 $
+# $Id: RPN.pm 46 2009-04-08 11:32:54 fabrice $
+# $Revision: 46 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 45 $
+  $Revision: 46 $
 
 =head1 SYNOPSIS
 
@@ -79,7 +79,7 @@ use Data::Dumper;
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
 #$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 45 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 46 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -444,7 +444,7 @@ $dict{ '<' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $a < $b ? 1 : 0 );
+    push @ret, ( $a > $b ? 1 : 0 );
     return \@ret, 2, 0;
 };
 
@@ -459,7 +459,7 @@ $dict{ '<=' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $a <= $b ? 1 : 0 );
+    push @ret, ( $a >= $b ? 1 : 0 );
     return \@ret, 2, 0;
 };
 
@@ -474,7 +474,7 @@ $dict{ '>' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $a > $b ? 1 : 0 );
+    push @ret, ( $a < $b ? 1 : 0 );
     return \@ret, 2, 0;
 };
 
@@ -489,7 +489,7 @@ $dict{ '>=' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( $a >= $b ? 1 : 0 );
+    push @ret, ( $a <= $b ? 1 : 0 );
     return \@ret, 2, 0;
 };
 

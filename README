@@ -4,7 +4,7 @@ Parse::RPN(3)         User Contributed Perl Documentation        Parse::RPN(3)
 
 PPaarrssee--RRPPNN ((VV 22..xxxx)) -- IInnttrroodduuccttiioonn
          Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-         $Revision: 44 $
+         $Revision: 46 $
 
 SSYYNNOOPPSSIISS
          use Parse::RPN;
@@ -983,4 +983,4 @@ LLIICCEENNSSEE
 
 
 
-perl v5.10.0                      2009-03-13                     Parse::RPN(3)
+perl v5.10.0                      2009-04-08                     Parse::RPN(3)

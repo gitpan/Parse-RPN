@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 46 2009-04-08 11:32:54 fabrice $
-# $Revision: 46 $
+# $Id: RPN.pm 47 2009-04-30 18:24:12 fabrice $
+# $Revision: 47 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 46 $
+  $Revision: 47 $
 
 =head1 SYNOPSIS
 
@@ -63,23 +63,21 @@
 package Parse::RPN;
 use strict;
 
-use Data::Dumper;
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
 require Exporter;
 require AutoLoader;
 
-use Carp qw(cluck croak carp);
+# use Data::Dumper;
+# use Carp qw(cluck croak carp);
 # use Carp::Clan qw(verbose);
-
-use Data::Dumper;
 
 @ISA = qw(Exporter AutoLoader);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
 #$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 46 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 47 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 my %dict;
@@ -1063,7 +1061,7 @@ $dict{ 'OCTSTR2HEX' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, unpack( "H*" , pack("a*",$a));
+    push @ret, unpack( "H*", pack( "a*", $a ) );
     return \@ret, 1, 0;
 };
 
@@ -1078,7 +1076,7 @@ $dict{ 'HEX2OCTSTR' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, unpack( "a*" , pack( "H*", $a));
+    push @ret, unpack( "a*", pack( "H*", $a ) );
     return \@ret, 1, 0;
 };
 
@@ -1093,7 +1091,7 @@ $dict{ 'DDEC2STR' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, join "", map { sprintf( "%c",$_ )} (split /\./,$a);
+    push @ret, join "", map { sprintf( "%c", $_ ) } ( split /\./, $a );
     return \@ret, 1, 0;
 };
 
@@ -1108,10 +1106,9 @@ $dict{ 'STR2DDEC' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, join '.', map { unpack( "c" ,$_) } (split // , $a);
+    push @ret, join '.', map { unpack( "c", $_ ) } ( split //, $a );
     return \@ret, 1, 0;
 };
-
 
 ########################
 # string operators
@@ -2084,7 +2081,7 @@ $dict{ 'SEARCHK' } = sub {
     return \@ret, $nbr + 1, 0;
 };
 
-=head2 a SEARCHK
+=head2 a SEARCHIK
 	
 	keep all level of stack containing the REGEX 'a' (cas insensitive)
 
@@ -2210,6 +2207,83 @@ $dict{ 'COPY' } = sub {
         push @temp, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
     }
     return \@temp, 2, 0;
+};
+
+=head2 a SUM
+	
+	sum the a element on top of the stack
+	remove these a element
+	and return the result value on the stack
+
+=cut
+
+$dict{ 'SUM' } = sub {
+    my $work1 = shift;
+    my $nbr   = pop @{ $work1 };
+    my $len   = scalar( @{ $work1 } );
+    my @ret;
+    my $tmp;
+    for my $i ( 1 .. $nbr )
+    {
+        my $b = @{ $work1 }[ $len - $i ];
+        $tmp += $b;
+    }
+    push @ret, $tmp;
+    return \@ret, $nbr + 1, 0;
+};
+
+=head2 a STATS
+	
+	STATS the a element on top of the stack
+	remove these a element
+	the new variable _SUM_, _MULT_, _ARITH_MEAN_, _GEOM_MEAN_, _QUAD_MEAN_ (= _RMS_), _HARM_MEAN_, _STD_DEV_, _SAMPLE_STD_DEV_, _VARIANCE_,
+
+=cut
+
+$dict{ 'STATS' } = sub {
+    my $work1 = shift;
+    my $nbr   = pop @{ $work1 };
+    my $len   = scalar( @{ $work1 } );
+    my @ret;
+    my $sum;
+    my $mul = 1;
+    my $harm;
+    my $quad;
+    my @elem;
+    my $std_dev;
+
+    for my $i ( 1 .. $nbr )
+    {
+        my $b = @{ $work1 }[ $len - $i ];
+        push @elem, $b;
+        $sum += $b;
+        $mul *= $b;
+        $harm += 1 / $b if ( $b );
+        $quad += $b**2;
+
+    }
+
+    $var{ _ARITH_MEAN_ } = 0;
+    $var{ _GEOM_MEAN_ }  = 0;
+    $var{ _HARM_MEAN_ }  = 0;
+    $var{ _VARIANCE_ }   = 0;
+    $var{ _STD_DEV_ }    = 0;
+    
+    $var{ _SUM_ }  = $sum;
+    $var{ _MULT_ } = $mul;
+    $var{ _ARITH_MEAN_ } = $sum / $nbr if ( $nbr != 0 );
+    $var{ _GEOM_MEAN_ }  = $mul**( 1 / $nbr ) if ( $nbr != 0 );
+    $var{ _HARM_MEAN_ }  = $nbr / $harm if ( $harm );
+    $var{ _QUAD_MEAN_ }  = $var{ _RMS_ } = $quad**.5;
+    foreach my $c ( @elem )
+    {
+        $std_dev += ( $c - $var{ _ARITH_MEAN_ } )**2;
+    }
+    $var{ _VARIANCE_ } = ( $std_dev / ( $nbr - 1 ) ) if ( $nbr != 1 );
+    $var{ _STD_DEV_ } = ( $std_dev / $nbr )**.5 if ( $nbr != 0 );
+    $var{ _SAMPLE_STD_DEV_ } = $var{ _VARIANCE_ }**.5;
+
+    return \@ret, $nbr + 1, 0;
 };
 
 ########################
@@ -2361,7 +2435,6 @@ $dict{ '!!C' } = sub {
 =cut
 
 $dict{ '!!!' } = sub {
-
     my $work1 = shift;
     my $len   = scalar( @{ $work1 } );
     my $name  = pop @{ $work1 };

@@ -1,5 +1,9 @@
 version <2 is only a RPN parser
-version >2 is more like  FORTH (with dictionary, variables...)
+
+----------------------------
+revision : 2.47
+date : 2009/04/30 18:24:12 
+add SUM and STATS
 ----------------------------
 revision : 2.46
 date : 2009/04/08 11:32:54 

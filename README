@@ -4,7 +4,7 @@ Parse::RPN(3)         User Contributed Perl Documentation        Parse::RPN(3)
 
 PPaarrssee--RRPPNN ((VV 22..xxxx)) -- IInnttrroodduuccttiioonn
          Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-         $Revision: 46 $
+         $Revision: 47 $
 
 SSYYNNOOPPSSIISS
          use Parse::RPN;
@@ -464,7 +464,7 @@ SSTTAACCKK ooppeerraattoorrss
    aa SSEEAARRCCHHKK
                keep all level of stack containing the REGEX 'a' (cas sensitive)
 
-   aa SSEEAARRCCHHKK
+   aa SSEEAARRCCHHIIKK
                keep all level of stack containing the REGEX 'a' (cas insensitive)
 
    aa KKEEEEPP
@@ -488,6 +488,16 @@ SSTTAACCKK ooppeerraattoorrss
                to level 'b'
                'a' and 'b' is get in absolute value
                if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+   aa SSUUMM
+               sum the a element on top of the stack
+               remove these a element
+               and return the result value on the stack
+
+   aa SSTTAATTSS
+               STATS the a element on top of the stack
+               remove these a element
+               the new variable _SUM_, _MULT_, _ARITH_MEAN_, _GEOM_MEAN_, _QUAD_MEAN_ (= _RMS_), _HARM_MEAN_, _STD_DEV_, _SAMPLE_STD_DEV_, _VARIANCE_,
 
 DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrss
        .
@@ -983,4 +993,4 @@ LLIICCEENNSSEE
 
 
 
-perl v5.10.0                      2009-04-08                     Parse::RPN(3)
+perl v5.10.0                      2009-04-30                     Parse::RPN(3)

@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 47 2009-04-30 18:24:12 fabrice $
-# $Revision: 47 $
+# $Id: RPN.pm 48 2019-04-09 14:21:07 fabrice $
+# $Revision: 48 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 47 $
+  $Revision: 48 $
 
 =head1 SYNOPSIS
 
@@ -62,6 +62,7 @@
 
 package Parse::RPN;
 use strict;
+use HTTP::Date;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
@@ -77,9 +78,11 @@ require AutoLoader;
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
 #$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 47 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 48 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
+
+
 my %dict;
 my %var;
 
@@ -853,7 +856,7 @@ $dict{ 'LOOKUPOPP' } = sub {
 $dict{ 'TICK' } = sub {
     my @ret;
     push @ret, ( time() );
-    return \@ret, 1, 0;
+    return \@ret, 0, 0;
 };
 
 =head2 a LTIME
@@ -916,9 +919,25 @@ $dict{ 'HGTIME' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
+    warn $a;
     push @ret, scalar( gmtime( $a ) );
     return \@ret, 1, 0;
 };
+
+=head2 a HTTPTIME
+
+      return the ticks coresponding to the time value in a format accepted by HTTP::Date
+	
+=cut
+
+$dict{ 'HTTPTIME' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, str2time( $a );
+    return \@ret, 1, 0;
+};
+
 
 =head2 RAND
 

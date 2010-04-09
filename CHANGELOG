@@ -1,9 +1,14 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.48
+date : 2010/04/09 14:24:19
+add HTTPTIME
+correct TICK function ( don't remove first elem of the stack )
+----------------------------
 revision : 2.47
 date : 2009/04/30 18:24:12 
-add SUM and STATS
+add SUM and STATS 
 ----------------------------
 revision : 2.46
 date : 2009/04/08 11:32:54 

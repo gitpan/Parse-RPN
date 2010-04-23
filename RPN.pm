@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 48 2019-04-09 14:21:07 fabrice $
-# $Revision: 48 $
+# $Id: RPN.pm 49 2010-04-23 14:03:11 fabrice $
+# $Revision: 49 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 48 $
+  $Revision: 49 $
 
 =head1 SYNOPSIS
 
@@ -70,7 +70,7 @@ require Exporter;
 require AutoLoader;
 
 # use Data::Dumper;
-# use Carp qw(cluck croak carp);
+use Carp qw(cluck croak carp);
 # use Carp::Clan qw(verbose);
 
 @ISA = qw(Exporter AutoLoader);
@@ -78,7 +78,7 @@ require AutoLoader;
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
 #$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 48 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 49 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 
@@ -539,11 +539,6 @@ $dict{ '!=' } = sub {
     return \@ret, 2, 0;
 };
 
-=head2 a b OR=
-
-      return the result of 'a' || 'b'  ( BOOLEAN value ) 0 if a == b else 1
-	
-=cut
 
 ########################
 # logical operators
@@ -2639,7 +2634,8 @@ $dict{ 'PERLFUNC' } = sub {
     }
     else
     {
-        my $before = $`;
+#         my $before = $`;
+        my $before = ${^PREMATCH};
         eval "require  $before";
         $todo = $name . "(" . $arg . ");";
     }
@@ -2992,12 +2988,12 @@ sub parse
     return ( $before, $remainder, $is_string );
 }
 
-sub rpn
+sub rpn($)
 {
     my $item = shift;
     $DEBUG = '';
     my @stack;
-    while ( $item )
+    while ( length $item )
     {
         my $elem;
         my $is_string;

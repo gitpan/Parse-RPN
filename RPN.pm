@@ -3,8 +3,8 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 49 2010-04-23 14:03:11 fabrice $
-# $Revision: 49 $
+# $Id: RPN.pm 50 2010-04-26 14:56:27 fabrice $
+# $Revision: 80 $
 #
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
@@ -15,7 +15,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 49 $
+  $Revision: 50 $
 
 =head1 SYNOPSIS
 
@@ -78,7 +78,7 @@ use Carp qw(cluck croak carp);
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
 #$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 49 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 50 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
 
@@ -1037,6 +1037,61 @@ $dict{ 'NORM2' } = sub {
     }
     $a = sprintf "%.2f", $a;
     my $ret = "$a $EXP[$exp]";
+    my @ret;
+    push @ret, "'" . $ret . "'";
+    return \@ret, 1, 0;
+};
+
+
+=head2 a UNORM
+
+      return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1000)
+      and calculate the real value base 1000 ( e.g  7k = 7000)
+	
+=cut
+
+$dict{ 'UNORM' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $exp;
+    $a = $a ? $a : 0;
+    $a =~ /(\d+)(\D)/;
+    my $num = $1;
+    my $suff = lc($2);
+    my %EXP = (  "k"=> 1, "m"=>2, "g"=>3, "t"=>4, "p"=>5 );
+    my $mult = 0;
+    if (exists ( $EXP{ $suff} ))
+    {
+        $mult = $EXP{ $suff};
+    }
+    my $ret = $num * (1000 ** $mult ) ;
+    my @ret;
+    push @ret, "'" . $ret . "'";
+    return \@ret, 1, 0;
+};
+
+=head2 a UNORM2
+
+      return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1024)
+      and calculate the real value base 1024 ( e.g  7k = 7168)
+	
+=cut
+
+$dict{ 'UNORM2' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $exp;
+    $a = $a ? $a : 0;
+    $a =~ /(\d+)(\D)/;
+    my $num = $1;
+    my $suff = lc($2);
+    my %EXP = (  "k"=> 1, "m"=>2, "g"=>3, "t"=>4, "p"=>5 );
+    my $mult = 0;
+    if (exists ( $EXP{ $suff} ))
+    {
+        $mult = $EXP{ $suff};
+    }
+    my $ret = $num * (1024 ** $mult ) ;
     my @ret;
     push @ret, "'" . $ret . "'";
     return \@ret, 1, 0;

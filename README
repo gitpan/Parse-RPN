@@ -1,6 +1,6 @@
 Parse-RPN (V 2.xx) - Introduction
       Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-      $Revision: 48 $
+      $Revision: 50 $
 
 SYNOPSIS
       use Parse::RPN;
@@ -133,9 +133,6 @@ relational operators
   a b !=
           return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
 
-  a b OR=
-          return the result of 'a' || 'b'  ( BOOLEAN value ) 0 if a == b else 1
-
 LOGICAL operators
   a b OR
           return the 1 one of the 2 argument are not equal to 0
@@ -228,6 +225,14 @@ MISC operators
 
   a NORM2
           return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
+
+  a UNORM
+          return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1000)
+          and calculate the real value base 1000 ( e.g  7k = 7000)
+
+  a UNORM2
+          return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1024)
+          and calculate the real value base 1024 ( e.g  7k = 7168)
 
   a OCT
           return the decimal value for the HEX, BINARY or OCTAL value 'a'

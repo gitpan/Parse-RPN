@@ -1,6 +1,6 @@
 Parse-RPN (V 2.xx) - Introduction
       Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-      $Revision: 50 $
+      $Revision: 51 $
 
 SYNOPSIS
       use Parse::RPN;
@@ -227,10 +227,12 @@ MISC operators
           return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
 
   a UNORM
+          reverse function of NORM
           return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1000)
           and calculate the real value base 1000 ( e.g  7k = 7000)
 
   a UNORM2
+          reverse function of NORM2
           return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1024)
           and calculate the real value base 1024 ( e.g  7k = 7168)
 
@@ -437,8 +439,13 @@ STACK operators
 
   a b c d e n ROLL
             rotate the stack on 'n' element
-            a,b,c,d,e,4,ROLL -> a c d e b
+            a,b,c,d,e,f,4,ROLL -> a b d e f c
             if n = 3 <=> ROT
+            if  -2 < n < 2 nothing is done
+            if n < -1 ROLL in reverse order
+            a,b,c,d,e,f,-4,ROLL -> a b f e d c
+            To reveerse a stack content use this:
+            a,b,c,d,e,f,DEPTH,+-,ROLL => f e d c b a
 
   a PICK
             copy element from depth 'a' to the stack
@@ -449,7 +456,7 @@ STACK operators
 
   a b PUT
             put element 'a' at the level 'b' of the stack
-            if 'b' gretaer than the stack put at first place
+            if 'b' greater than the stack put at first place
             if 'b' < 0 start to the reverse order of the stack
 
   a b DEL
@@ -458,6 +465,12 @@ STACK operators
 
   a FIND
             get the level of stack containing the exact value 'a'
+            if no match, return 0
+
+  a FINDK
+            keep the level of stack containing the exact value 'a'
+            f no match, return an empty stack
+            ( shortcut for a,FIND,KEEP )
 
   a SEARCH
             get the first level of stack containing the REGEX 'a'
@@ -475,10 +488,21 @@ STACK operators
             delete all element on the stack except the level 'a'
             if 'a' is deeper then stack, keep the stack untouched
 
-  a b KEEPN
+  b a KEEPN
             keep 'b' element on the stack from level 'a'
             and delete all other element
-            'a' and 'b' is get in absolute value
+            'a' and 'b' is get in absolute value 
+            a,b,c,d,e,f,g,h,4,3,KEEPN -> c d e f
+
+  b a KEEPR
+            delete all elements on the stack except the level 'a' and keep all element deeper than 'b'
+            if 'a' is deeper then stack, keep the stack untouched
+            a,b,c,d,e,f,g,h,6,3,KEEPR -> a b f
+
+  c b a KEEPRN
+            keep 'b' element on the stack from level 'a' and keep all element deeper than 'c'
+            if 'a' is deeper then stack, keep the stack untouched
+            a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN -> a b c g h i
 
   a b PRESERVE
             keep  element on the stack from level 'a'
@@ -519,7 +543,7 @@ DICTIONARY and VARS operators
             decremente (- 1) the value of the variable on the statck
 
   VARIABLE xxx
-           deckare the variable 'xxx' (reserve memory)
+           declare the variable 'xxx' (reserve memory)
 
   xx var !
             set the value xx to the variable 'var'
@@ -989,7 +1013,7 @@ LICENSE
             Free Software Foundation, Inc., 59 Temple Place, 
             Suite 330, Boston, MA 02111-1307 USA
 
-            Parse::RPN   Copyright (C) 2004 2005 2006 2007 DULAUNOY Fabrice  
+            Parse::RPN   Copyright (C) 2004 2005 2006 2007 2008 2009 2010 DULAUNOY Fabrice  
             Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
             for details See: L<http://www.gnu.org/licenses/gpl.html> 
             This is free software, and you are welcome to redistribute 

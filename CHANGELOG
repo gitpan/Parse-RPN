@@ -1,6 +1,18 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.52
+Date:   Thu Apr 29 18:15:46 2010 +0200
+add KEEPR and KEEPRN
+fix the offset of PUT
+change ROLL to allow reverse ROLL when value is negative
+fix ROLL when value are = 0
+----------------------------
+revision : 2.51
+date : 2010/04/27 08:37:09
+UNORM and UNORM2 allow entry in the form 249.12 G
+some digit, zero or one dot followed by some digit, some space , and a letter as suffix) 
+----------------------------
 revision : 2.50
 date : 2010/04/26 14:57:46
 add UNORM and UNORM2

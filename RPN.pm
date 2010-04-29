@@ -3,9 +3,6 @@
 # RPN package with DICT
 # Gnu GPL2 license
 #
-# $Id: RPN.pm 50 2010-04-26 14:56:27 fabrice $
-# $Revision: 80 $
-#
 # Fabrice Dulaunoy <fabrice@dulaunoy.com>
 ###########################################################
 # ChangeLog:
@@ -15,7 +12,7 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 50 $
+  $Revision: 51 $
 
 =head1 SYNOPSIS
 
@@ -70,18 +67,16 @@ require Exporter;
 require AutoLoader;
 
 # use Data::Dumper;
-use Carp qw(cluck croak carp);
+# use Carp qw(cluck croak carp);
 # use Carp::Clan qw(verbose);
 
 @ISA = qw(Exporter AutoLoader);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-#$VERSION = do { my @rev = ( q$Revision: 43 $ =~ /\d+/g ); sprintf "2.%d" x $#rev, @rev };
-$VERSION = sprintf "2.%02d", '$Revision: 50 $ ' =~ /(\d+)/;
+$VERSION = sprintf "2.%02d", '$Revision: 52 $ ' =~ /(\d+)/;
 
 my $mod = "Tie::IxHash";
-
 
 my %dict;
 my %var;
@@ -539,7 +534,6 @@ $dict{ '!=' } = sub {
     return \@ret, 2, 0;
 };
 
-
 ########################
 # logical operators
 ########################
@@ -933,7 +927,6 @@ $dict{ 'HTTPTIME' } = sub {
     return \@ret, 1, 0;
 };
 
-
 =head2 RAND
 
       return a random value in the range [0,1[
@@ -1042,9 +1035,9 @@ $dict{ 'NORM2' } = sub {
     return \@ret, 1, 0;
 };
 
-
 =head2 a UNORM
 
+      reverse function of NORM
       return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1000)
       and calculate the real value base 1000 ( e.g  7k = 7000)
 	
@@ -1055,16 +1048,16 @@ $dict{ 'UNORM' } = sub {
     my $a     = pop @{ $work1 };
     my $exp;
     $a = $a ? $a : 0;
-    $a =~ /(\d+)(\D)/;
-    my $num = $1;
-    my $suff = lc($2);
-    my %EXP = (  "k"=> 1, "m"=>2, "g"=>3, "t"=>4, "p"=>5 );
+    $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
+    my $num  = $1;
+    my $suff = lc( $3 );
+    my %EXP  = ( "k" => 1, "m" => 2, "g" => 3, "t" => 4, "p" => 5 );
     my $mult = 0;
-    if (exists ( $EXP{ $suff} ))
+    if ( exists( $EXP{ $suff } ) )
     {
-        $mult = $EXP{ $suff};
+        $mult = $EXP{ $suff };
     }
-    my $ret = $num * (1000 ** $mult ) ;
+    my $ret = $num * ( 1000**$mult );
     my @ret;
     push @ret, "'" . $ret . "'";
     return \@ret, 1, 0;
@@ -1072,6 +1065,7 @@ $dict{ 'UNORM' } = sub {
 
 =head2 a UNORM2
 
+      reverse function of NORM2
       return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1024)
       and calculate the real value base 1024 ( e.g  7k = 7168)
 	
@@ -1082,16 +1076,16 @@ $dict{ 'UNORM2' } = sub {
     my $a     = pop @{ $work1 };
     my $exp;
     $a = $a ? $a : 0;
-    $a =~ /(\d+)(\D)/;
-    my $num = $1;
-    my $suff = lc($2);
-    my %EXP = (  "k"=> 1, "m"=>2, "g"=>3, "t"=>4, "p"=>5 );
+    $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
+    my $num  = $1;
+    my $suff = lc( $3 );
+    my %EXP  = ( "k" => 1, "m" => 2, "g" => 3, "t" => 4, "p" => 5 );
     my $mult = 0;
-    if (exists ( $EXP{ $suff} ))
+    if ( exists( $EXP{ $suff } ) )
     {
-        $mult = $EXP{ $suff};
+        $mult = $EXP{ $suff };
     }
-    my $ret = $num * (1024 ** $mult ) ;
+    my $ret = $num * ( 1024**$mult );
     my @ret;
     push @ret, "'" . $ret . "'";
     return \@ret, 1, 0;
@@ -1928,17 +1922,37 @@ $dict{ 'POPN' } = sub {
 =head2	a b c d e n ROLL
 
 	rotate the stack on 'n' element
-	a,b,c,d,e,4,ROLL -> a c d e b
+	a,b,c,d,e,f,4,ROLL -> a b d e f c
 	if n = 3 <=> ROT
+	if  -2 < n < 2 nothing is done
+	if n < -1 ROLL in reverse order
+	a,b,c,d,e,f,-4,ROLL -> a b f e d c
+	To reveerse a stack content use this:
+	a,b,c,d,e,f,DEPTH,+-,ROLL => f e d c b a
 
 =cut
 
 $dict{ 'ROLL' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    my @tmp   = splice @{ $work1 }, -( $a - 1 );
-    my $b     = pop @{ $work1 };
+
+    my @tmp;
+    my $b;
+    if ( $a > 1 )
+    {
+        @tmp = splice @{ $work1 }, -( $a - 1 );
+        $b = pop @{ $work1 };
+    }
+    if ( $a < -1 )
+    {
+        @tmp = reverse( splice @{ $work1 }, ( $a ) );
+        $a *= -1;
+    }
     my @ret;
+    if ( $a < 2 && $a > -2 )
+    {
+        return \@ret, 1, 0;
+    }
     push @ret, @tmp, $b;
     return \@ret, 1 + $a, 0;
 };
@@ -1992,7 +2006,7 @@ $dict{ 'GET' } = sub {
 =head2 a b PUT
 	
 	put element 'a' at the level 'b' of the stack
-	if 'b' gretaer than the stack put at first place
+	if 'b' greater than the stack put at first place
 	if 'b' < 0 start to the reverse order of the stack
 
 =cut
@@ -2010,7 +2024,7 @@ $dict{ 'PUT' } = sub {
     }
     if ( $a )
     {
-        @tmp = splice @ret, -$a;
+        @tmp = splice @ret, -( $a - 1 );
     }
     push( @ret, $b, @tmp );
     return \@ret, $len, 0;
@@ -2039,16 +2053,19 @@ $dict{ 'DEL' } = sub {
 =head2 a FIND
 	
 	get the level of stack containing the exact value 'a'
+	if no match, return 0	
 
 =cut
 
 $dict{ 'FIND' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    my $ret;
-    for ( 1 .. scalar( @{ $work1 } ) )
+    
+    my $nbr =  scalar( @{ $work1 } );
+    my $ret =0;
+    for ( 0 .. $nbr)
     {
-        my $b = @{ $work1 }[ ( scalar( @{ $work1 } ) ) - $_ + 1 ];
+        my $b = @{ $work1 }[ $nbr  - $_  ];
         if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
         {
             if ( $b == $a )
@@ -2067,9 +2084,50 @@ $dict{ 'FIND' } = sub {
         }
     }
     my @ret;
-    push( @ret, $ret - 1 );
+    push( @ret, $ret );
     return \@ret, 1, 0;
 };
+
+
+=head2 a FINDK
+	
+	keep the level of stack containing the exact value 'a'
+	f no match, return an empty stack
+	( shortcut for a,FIND,KEEP )
+	
+=cut
+
+$dict{ 'FINDK' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    
+    my $nbr =  scalar( @{ $work1 } );
+    my $ret ;
+    for ( 0 .. $nbr)
+    {
+        my $b = @{ $work1 }[ $nbr  - $_  ];
+        if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
+        {
+            if ( $b == $a )
+            {
+                $ret = $a;
+                last;
+            }
+        }
+        else
+        {
+            if ( $b eq $a )
+            {
+                $ret = $a;
+                last;
+            }
+        }
+    }
+    my @ret;
+    push( @ret, $ret );
+    return \@ret, $nbr +1, 0;
+};
+    
 
 =head2 a SEARCH
 	
@@ -2202,12 +2260,12 @@ $dict{ 'KEEP' } = sub {
     }
 };
 
-=head2 a b KEEPN
+=head2 b a KEEPN
 	
 	keep 'b' element on the stack from level 'a'
 	and delete all other element
 	'a' and 'b' is get in absolute value 
-
+	a,b,c,d,e,f,g,h,4,3,KEEPN -> c d e f
 =cut
 
 $dict{ 'KEEPN' } = sub {
@@ -2216,9 +2274,63 @@ $dict{ 'KEEPN' } = sub {
     my $start   = abs pop @{ $work1 };
     my $length1 = abs pop @{ $work1 };
     my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 1 : $length1 );
-    my @temp;
-    @temp = splice @{ $work1 }, $len - 1 - $start - $length, $length;
-    return \@temp, $len, 0;
+    my @ret = splice @{ $work1 }, $len - 1 - $start - $length, $length;
+    return \@ret, $len, 0;
+};
+
+=head2 b a KEEPR
+	
+	delete all elements on the stack except the level 'a' and keep all element deeper than 'b'
+	if 'a' is deeper then stack, keep the stack untouched
+	a,b,c,d,e,f,g,h,6,3,KEEPR -> a b f
+=cut
+
+$dict{ 'KEEPR' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @tmp   = splice @{ $work1 }, scalar( @{ $work1 } ) - $b;
+
+    my @ret;
+    if ( $a <= 0 )
+    {
+        return \@ret, 1 + ( scalar @tmp );
+    }
+    if ( $a < ( ( scalar @tmp ) + 1 ) )
+    {
+        push @ret, @tmp[ -( $a ) ];
+        return \@ret, 2 + ( scalar @tmp ), 0;
+    }
+    else
+    {
+        return \@ret, 2, 0;
+    }
+};
+
+=head2 c b a KEEPRN
+	
+	keep 'b' element on the stack from level 'a' and keep all element deeper than 'c'
+	if 'a' is deeper then stack, keep the stack untouched
+	a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN -> a b c g h i
+
+=cut
+
+$dict{ 'KEEPRN' } = sub {
+    my $work1 = shift;
+
+    my $start = abs pop @{ $work1 };
+    my @ret;
+    unless ( $start )
+    {
+        return \@ret, +3, 0;
+    }
+    my $length1 = abs pop @{ $work1 };
+    my $deepth  = abs pop @{ $work1 };
+    my @tmp     = splice @{ $work1 }, scalar( @{ $work1 } ) - $deepth;
+    my $len     = scalar( @tmp );
+    my @t       = reverse @tmp;
+    @ret = reverse splice @t, $start - 1, $length1;
+    return \@ret, $len + 3, 0;
 };
 
 =head2 a b PRESERVE
@@ -2337,9 +2449,9 @@ $dict{ 'STATS' } = sub {
     $var{ _HARM_MEAN_ }  = 0;
     $var{ _VARIANCE_ }   = 0;
     $var{ _STD_DEV_ }    = 0;
-    
-    $var{ _SUM_ }  = $sum;
-    $var{ _MULT_ } = $mul;
+
+    $var{ _SUM_ }        = $sum;
+    $var{ _MULT_ }       = $mul;
     $var{ _ARITH_MEAN_ } = $sum / $nbr if ( $nbr != 0 );
     $var{ _GEOM_MEAN_ }  = $mul**( 1 / $nbr ) if ( $nbr != 0 );
     $var{ _HARM_MEAN_ }  = $nbr / $harm if ( $harm );
@@ -2425,7 +2537,7 @@ $dict{ 'DEC' } = sub {
 
 =head2 VARIABLE xxx
 
-       deckare the variable 'xxx' (reserve memory)
+       declare the variable 'xxx' (reserve memory)
 	
 =cut
 
@@ -3638,7 +3750,7 @@ __END__
 	Free Software Foundation, Inc., 59 Temple Place, 
 	Suite 330, Boston, MA 02111-1307 USA
 
-	Parse::RPN   Copyright (C) 2004 2005 2006 2007 DULAUNOY Fabrice  
+	Parse::RPN   Copyright (C) 2004 2005 2006 2007 2008 2009 2010 DULAUNOY Fabrice  
 	Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
 	for details See: L<http://www.gnu.org/licenses/gpl.html> 
 	This is free software, and you are welcome to redistribute 

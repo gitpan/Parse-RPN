@@ -12,7 +12,6 @@
 =head1 Parse-RPN (V 2.xx) - Introduction
 
   Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-  $Revision: 51 $
 
 =head1 SYNOPSIS
 
@@ -74,7 +73,8 @@ require AutoLoader;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = sprintf "2.%02d", '$Revision: 52 $ ' =~ /(\d+)/;
+# $VERSION = sprintf "2.%02d", '$Revision: 52 $ ' =~ /(\d+)/;
+$VERSION = '2.53' ;
 
 my $mod = "Tie::IxHash";
 
@@ -783,7 +783,7 @@ $dict{ 'LOOKUPP' } = sub {
     return \@ret, 4, 0;
 };
 
-=head2 a VAL,RET,OPE LOOKUP
+=head2 a VAL,RET,OPE LOOKUPOP
 
       loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
 	
@@ -810,7 +810,7 @@ $dict{ 'LOOKUPOP' } = sub {
     return \@ret, 4, 0;
 };
 
-=head2 a VAL,RET,OPE LOOKUPP
+=head2 a VAL,RET,OPE LOOKUPOPP
 
       loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
 	
@@ -1046,7 +1046,6 @@ $dict{ 'NORM2' } = sub {
 $dict{ 'UNORM' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    my $exp;
     $a = $a ? $a : 0;
     $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
     my $num  = $1;
@@ -1074,7 +1073,6 @@ $dict{ 'UNORM' } = sub {
 $dict{ 'UNORM2' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    my $exp;
     $a = $a ? $a : 0;
     $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
     my $num  = $1;
@@ -2551,7 +2549,7 @@ $dict{ 'VARIABLE' } = sub {
 
 =head2 xx var !
 
-        set the value xx to the variable 'var'
+        set and delete the value xx to the variable 'var'
 	
 =cut
 
@@ -2564,6 +2562,20 @@ $dict{ '!' } = sub {
     return \@ret, 2, 0;
 };
 
+=head2 xx var !A
+
+        ppend and delete the value xx to the variable 'var'
+	
+=cut
+
+$dict{ '!A' } = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my $val   = pop @{ $work1 };
+    push @{$var{ $name }},$val;
+    my @ret;
+    return \@ret, 2, 0;
+};
 =head2 x1 x2 x3 ... n var !!
 	
 	put and delete 'n' element(s) from the stack in the variable 'var'
@@ -2606,6 +2618,48 @@ $dict{ '!!C' } = sub {
     return \@temp, 2, 0;
 };
 
+=head2 x1 x2 x3 ... n var !!A
+	
+	append and delete 'n' element(s) from the stack in the variable 'var'
+	'n' is in absolute value 
+
+=cut
+
+$dict{ '!!A' } = sub {
+
+    my $work1     = shift;
+    my $len       = scalar( @{ $work1 } );
+    my $name      = pop @{ $work1 };
+    my $len_to_rm = ( abs pop @{ $work1 } );
+    my @temp;
+    my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
+    $from = $from < 0 ? 0 : $from;
+    my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
+    push @{$var{ $name }} ,@TMP;
+    return \@temp, $len_to_rm + 2, 0;
+};
+
+=head2 x1 x2 x3 ... n var !!CA
+	
+	append  'n' element(s) from the stack in the variable 'var'
+	'n' is in absolute value 
+
+=cut
+
+$dict{ '!!CA' } = sub {
+
+    my $work1     = shift;
+    my $len       = scalar( @{ $work1 } );
+    my $name      = pop @{ $work1 };
+    my $len_to_rm = ( abs pop @{ $work1 } );
+    my @temp;
+    my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
+    $from = $from < 0 ? 0 : $from;
+    my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
+    push @{ $var{ $name }},@TMP;
+    return \@temp, 2, 0;
+};
+
 =head2 x1 x2 x3 ... b a var !!!
 	
 	put and delete ' element(s) from the stack in the variable 'var'
@@ -2638,6 +2692,41 @@ $dict{ '!!!' } = sub {
         @temp = @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $len1 - $end - 1 ) ];
     }
     $var{ $name } = \@TMP;
+    return \@temp, $len, 0;
+};
+
+=head2 x1 x2 x3 ... b a var !!!A
+	
+	append and delete ' element(s) from the stack in the variable 'var'
+	starting at element  'a' to element 'b'
+	'a' and 'b' in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{ '!!!A' } = sub {
+    my $work1 = shift;
+    my $len   = scalar( @{ $work1 } );
+    my $name  = pop @{ $work1 };
+    my $start = ( abs pop @{ $work1 } );
+    my $end   = ( abs pop @{ $work1 } );
+    my $len1  = scalar( @{ $work1 } );
+    my @temp;
+    my @TMP;
+
+    if ( $start <= $end )
+    {
+        @TMP = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+        push @temp, @{ $work1 }[ 0 .. ( $len1 - $end - 1 ) ];
+        push @temp, @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $#$work1 ) ];
+    }
+    else
+    {
+        push @TMP, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
+        push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
+        @temp = @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $len1 - $end - 1 ) ];
+    }
+    push @{ $var{ $name }},@TMP;
     return \@temp, $len, 0;
 };
 
@@ -2674,6 +2763,42 @@ $dict{ '!!!C' } = sub {
     $var{ $name } = \@TMP;
     return \@temp, 3, 0;
 };
+
+=head2 x1 x2 x3 ... b a var !!!C
+	
+	append element(s) on the stack in the variable 'var'
+	starting at element  'a' to element 'b'	
+	'a' and 'b' in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{ '!!!CA' } = sub {
+
+    my $work1     = shift;
+    my $len       = scalar( @{ $work1 } );
+    my $name      = pop @{ $work1 };
+    my $start     = ( abs pop @{ $work1 } );
+    my $end       = ( abs pop @{ $work1 } );
+    my $len1      = scalar( @{ $work1 } );
+    my $len_to_rm = abs( $start - $end );
+    my @temp;
+    my @TMP;
+
+    if ( $start <= $end )
+    {
+        @TMP = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+    }
+    else
+    {
+        push @TMP, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
+        push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
+    }
+    $var{ $name } = \@TMP;
+    return \@temp, 3, 0;
+};
+
+
 
 =head2  var @
 

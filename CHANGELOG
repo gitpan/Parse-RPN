@@ -1,6 +1,10 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.53
+Date:   Thu Sep 30 13:47:01 2010 +0200
+add all append to variable primitives ( !A, !!A, !!!A, !!CA, !!!CA )
+----------------------------
 revision : 2.52
 Date:   Thu Apr 29 18:15:46 2010 +0200
 add KEEPR and KEEPRN

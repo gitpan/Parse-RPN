@@ -1,6 +1,5 @@
 Parse-RPN (V 2.xx) - Introduction
       Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
-      $Revision: 51 $
 
 SYNOPSIS
       use Parse::RPN;
@@ -21,10 +20,10 @@ DESCRIPTION
       The operator are case sensitive.
       The operator are detect as is, if they are alone in the element of the stack. 
       Extra space before or after are allowed
-      (e.g "3,4,ADD" here ADD is an opeartor but it is not the case in "3,4,ADD 1")
+      (e.g "3,4,MOD" here MOD is an operator but it is not the case in "3,4,MOD 1")
       If element is not part of the predefined operator (dictionary), the element is push as a litteral.
       If you would like to put a string which is part of the dictionary, put it between quote or double-quote 
-      (e.g "3,4,'ADD'" here ADD is a literal and the evaluation reurn ADD and a warning because the stack is not empty)
+      (e.g "3,4,'MOD'" here MOD is a literal and the evaluation return MOD)
       If the string contain a coma, you need also to quote or double-quote the string. 
       (be care to close your quoted or double-quoted string)
 
@@ -36,14 +35,11 @@ DESCRIPTION
   
       The idea of this module is comming from Math::RPN of Owen DeLong, owen@delong.com that I used for more then a year
       before some of my customer would like more ...
-      I correct a bug (interversion of > and >=), add the STRING function, pattern search and some STACK functions.
 
       rpn_error() return the last error from the evaluation (illegal division by 0, error from the PERL function execution...)
       each time that rpn() is call the rpn_error() is reinitianised.
 
 MATHEMATIC operators
-    .
-
   a b +
           return the result of 'a' + 'b'
 
@@ -109,9 +105,7 @@ MATHEMATIC operators
   PI
           return the value of PI (3.14159265358979)
 
-relational operators
-    .
-
+RELATIONAL operators
   a b <
           return the result of 'a' < 'b'  ( BOOLEAN value )
 
@@ -176,10 +170,10 @@ MISC operators
           test with the perl "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
           the "operator" must be quoted to prevent evaluation
 
-  a VAL,RET,OPE LOOKUP
+  a VAL,RET,OPE LOOKUPOP
           loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
 
-  a VAL,RET,OPE LOOKUPP
+  a VAL,RET,OPE LOOKUPOPP
           loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
 
   TICK
@@ -260,8 +254,6 @@ MISC operators
           useful when you need to manipulate an SNMP extension with 'exec'
 
 STRING operators
-    .
-
   a b EQ
           return the result of 'a' EQ 'b'  ( BOOLEAN value )
 
@@ -408,8 +400,6 @@ STRING operators
           delete the top element on the statck and return 1 if it is a HEXADECIMAL otherwise return 0
 
 STACK operators
-    .
-
   a b SWAP
             return 'b' 'a'
 
@@ -528,8 +518,6 @@ STACK operators
             the new variable _SUM_, _MULT_, _ARITH_MEAN_, _GEOM_MEAN_, _QUAD_MEAN_ (= _RMS_), _HARM_MEAN_, _STD_DEV_, _SAMPLE_STD_DEV_, _VARIANCE_,
 
 DICTIONARY and VARS operators
-    .
-
   WORDS
             return as one stack element the list of WORD in DICT separated by a |
 
@@ -546,14 +534,25 @@ DICTIONARY and VARS operators
            declare the variable 'xxx' (reserve memory)
 
   xx var !
-            set the value xx to the variable 'var'
+            set and delete the value xx to the variable 'var'
+
+  xx var !A
+            append and delete the value xx to the variable 'var'
 
   x1 x2 x3 ... n var !!
             put and delete 'n' element(s) from the stack in the variable 'var'
             'n' is in absolute value
 
+  x1 x2 x3 ... n var !!A
+            append and delete 'n' element(s) from the stack in the variable 'var'
+            'n' is in absolute value
+
   x1 x2 x3 ... n var !!C
             copy 'n' element(s) from the stack in the variable 'var'
+            'n' is in absolute value
+
+  x1 x2 x3 ... n var !!CA
+            append  'n' element(s) from the stack in the variable 'var'
             'n' is in absolute value
 
   x1 x2 x3 ... b a var !!!
@@ -562,8 +561,20 @@ DICTIONARY and VARS operators
             'a' and 'b' in absolute value 
             if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
+  x1 x2 x3 ... b a var !!!A
+            append and delete ' element(s) from the stack in the variable 'var'
+            starting at element  'a' to element 'b'
+            'a' and 'b' in absolute value 
+            if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
   x1 x2 x3 ... b a var !!!C
             copy element(s) on the stack in the variable 'var'
+            starting at element  'a' to element 'b' 
+            'a' and 'b' in absolute value 
+            if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+  x1 x2 x3 ... b a var !!!C
+            append element(s) on the stack in the variable 'var'
             starting at element  'a' to element 'b' 
             'a' and 'b' in absolute value 
             if 'a' > 'b'  keep the reverse of selection (boustrophedon)
@@ -601,9 +612,49 @@ DICTIONARY and VARS operators
   R@
            copy return stack on normal stack
 
-LOOP and DECISION operators
-    .
+FILE operators ( basic IO )
+  file, mode , FH, OPEN
+           OPEN a file and keep the filehandle in the variable X
+           mode could be 'r', 'r+', 'w', 'w+', 'a', and 'a+'
 
+  FH, STAT
+           STAT the file using the handle stored in the var FH ( FH could also be a file path )
+           return the same content as perl stat. Keep in mind that the indice 0 from the perl array is the 1 fisrt stack level.
+           To get the size of a file:
+           /tmp/rpn,STAT,13,8,KEEPR
+
+  OFFSET,WHENCE FH, SEEK
+           SEEK of OFFSET in the file using the handle stored in the var FH 
+           if WHENCE = 0 seek from the beginning of the file
+           if WHENCE = 1 seek from the current position 
+           if WHENCE = 2 seek from the end of the file ( offset must be < 0 )
+           ( see perldoc -f seek )
+
+  FH, TELL
+           TELL return the position in the file using the handle stored in the var FH
+
+  FH, CLOSE
+           CLOSE the file handle stored in the var FH
+
+  N ,FH, GETC
+           read and put on top of the stack N character from the filedscriptor stored in the variable FH
+           to do a file slurp:
+           /tmp/rpn,r,fh,OPEN,sh,STAT,13,6,KEEPR,fh,GETC,fh,CLOSE
+
+  N ,FH, GETCS
+           read and put on the stack N character from the filedscriptor stored in the variable FH
+           each character is pushed on the stack ( and then the stack is evalueted )
+
+  N ,FH, WRITE
+            put and delete N element from the stack to the filedscriptor stored in the variable FH
+
+  N ,FH, WRITELINE
+            put and delete N element from the stack as a new line for each element to the filedscriptor stored in the variable FH
+
+  READLINE
+           read and put on the stack a line from the filedscriptor stored in the variable FH
+
+LOOP and DECISION operators
   a IF xxx THEN
             test the element on top of stack 
                     if == 1 execute 'xxx' block
@@ -635,8 +686,7 @@ LOOP and DECISION operators
             The iterator variable is the second value on the stack (start argument)
 
 Useful functions for the module (not related to the RPN language)
-    . =head2 rpn_error()
-
+  rpn_error()
             function which return the debug info from the calculation (like a division by 0)
 
   rpn_separator( 'sep' )
@@ -726,7 +776,7 @@ OPERATORS
                 NORM2               ([a])                   Return [a] normalized by 1000 (K,M,G = 1024 * unit)
                 OCT                 (|a|)                   Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
                 OCTSTR2HEX          (|a|)                   Return a HEX string from a OCTETSTRING
-                OCTSTR2HEX          (|a|)                   Return a OCTETSTRING string from a HEX
+                HEX2OCTSTR          (|a|)                   Return a OCTETSTRING string from a HEX
                 DDEC2STR            (|a|)                   Return a string from a dotted DEC string
                 STR2DDEC            (|a|)                   Return a dotted DEC string to a string
 
@@ -810,7 +860,9 @@ OPERATORS
                                                             [a] and [b] is get in absolute value        
                 KEEPN               ([a][b])                keep [b] element(s) on the stack from level [a] 
                                                             (and delete all other elements)
-                                                            [a] and [b] is get in absolute value                                            
+                                                            [a] and [b] is get in absolute value        
+                KEEPR
+                KEEPRN
                 PRESERVE            ([a][b])                keep element(s) on the stack from level [a] to level [b]
                                                             (and delete all other elements)
                                                             [a] and [b] is get in absolute value
@@ -832,18 +884,23 @@ OPERATORS
                 DEC                 ([a])                           () decrement (-1) the value of variable [a]
                 VARIABLE            ([a])                           () create a entry in VAR for the variable [a]
                 !                   ([a][b])                        store the value [a] in the variable [b]
+                !A
                 !!                  ([a][b][c]...[n] [var])         put and delete 'n' element(s) from the stack in the variable 'var'
                                                                     'n' is in absolute value        
+                !!A
                 !!C                 ([a][b][c]...[n] [var])         copy 'n' element(s) from the stack in the variable 'var'
                                                                     'n' is in absolute value        
+                !!CA
                 !!!                 ([a][b][c]...[n1] [n2] [var])   put and delete element(s) from the stack in the variable 'var'
                                                                     starting at element  'a' to element 'b'
                                                                     'a' and 'b' in absolute value 
-                                                                    if 'a' > 'b'  keep the reverse of selection (boustrophedon)     
+                                                                    if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+                !!!A
                 !!!C                        ([a][b][c]...[n] [var]) copy 'element(s) from the stack in the variable 'var'
                                                                     starting at element  'a' to element 'b'
                                                                     'a' and 'b' in absolute value 
-                                                                    if 'a' > 'b'  keep the reverse of selection (boustrophedon)                                                                                 
+                                                                    if 'a' > 'b'  keep the reverse of selection (boustrophedon)                                                             
+                !!!CA
                 @                   ([a])                           ([a]) return the value of the variable [a]
                 : xxx yyy ;                                         create a new word (sub) into the dictionary with the xxx "code" and name yyy
                 : xxx yyy PERLFUNC                                  execute the PERL function yyy with parameter(s) yyy 
@@ -851,6 +908,20 @@ OPERATORS
                                                                     It is possible tu use a specific name space
                 : xxx yyy PERL                                      execute the PERL code xxx ; yyy                                 
 
+             File oprator
+             -------------
+         
+               OPEN
+               STAT
+               SEEK
+               TELL
+               CLOSE
+               GETC
+               GETCS
+               READLINE
+               WRITE
+               WRITELINE
+           
              Return Stack operators
              ----------------------
          

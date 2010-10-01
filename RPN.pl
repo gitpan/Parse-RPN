@@ -6,9 +6,9 @@ use Parse::RPN;
 use Getopt::Std;
 
 my %option;
-getopts( "vhds:r:", \%option );
+getopts( "vhds:r:f:", \%option );
 
-if ( !defined $option{ r } && !defined $option{ v } )
+if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } )
 {
     $option{ h } = 1;
 }
@@ -20,8 +20,9 @@ if ( $option{ h } )
     print "\t -h \t\tthis help (what else ?)\n";
     print "\t -v \t\tprint version and exit\n";
     print "\t -d \t\tprint debuging value\n";
-    print "\t -s sep \t\tuse sep as separator fro the output\n";
+    print "\t -s sep \tuse sep as separator fro the output\n";
     print "\t -r rpn \tuse rpn as string for the RPN test\n";
+    print "\t -f file \tuse this file for the RPN test\n";
     exit;
 }
 
@@ -36,8 +37,25 @@ if ( $option{ v } )
 }
 else
 {
-    $ret = rpn( $option{ r } );
-
+    if ( $option{ f } )
+    {
+        if ( -f $option{ f } )
+        {
+            local $/;
+            open FILE, $option{ f };
+            my $buf = <FILE>;
+            $ret = rpn( $buf );
+            close FILE;
+        }
+        else
+        {
+            print "No source file " . $option{ f } . "\n";
+        }
+    }
+    elsif ( $option{ r } )
+    {
+        $ret = rpn( $option{ r } );
+    }
 }
 print "$ret\n";
 

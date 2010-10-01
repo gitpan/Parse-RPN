@@ -34,10 +34,10 @@
   The operator are case sensitive.
   The operator are detect as is, if they are alone in the element of the stack. 
   Extra space before or after are allowed
-  (e.g "3,4,ADD" here ADD is an opeartor but it is not the case in "3,4,ADD 1")
+  (e.g "3,4,MOD" here MOD is an operator but it is not the case in "3,4,MOD 1")
   If element is not part of the predefined operator (dictionary), the element is push as a litteral.
   If you would like to put a string which is part of the dictionary, put it between quote or double-quote 
-  (e.g "3,4,'ADD'" here ADD is a literal and the evaluation reurn ADD and a warning because the stack is not empty)
+  (e.g "3,4,'MOD'" here MOD is a literal and the evaluation return MOD)
   If the string contain a coma, you need also to quote or double-quote the string. 
   (be care to close your quoted or double-quoted string)
 
@@ -49,7 +49,6 @@
   
   The idea of this module is comming from Math::RPN of Owen DeLong, owen@delong.com that I used for more then a year
   before some of my customer would like more ...
-  I correct a bug (interversion of > and >=), add the STRING function, pattern search and some STACK functions.
 
   rpn_error() return the last error from the evaluation (illegal division by 0, error from the PERL function execution...)
   each time that rpn() is call the rpn_error() is reinitianised.
@@ -59,6 +58,7 @@
 package Parse::RPN;
 use strict;
 use HTTP::Date;
+use Fcntl;
 
 use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 
@@ -66,15 +66,14 @@ require Exporter;
 require AutoLoader;
 
 # use Data::Dumper;
-# use Carp qw(cluck croak carp);
+# # use Carp qw(cluck croak carp);
 # use Carp::Clan qw(verbose);
 
 @ISA = qw(Exporter AutoLoader);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-# $VERSION = sprintf "2.%02d", '$Revision: 52 $ ' =~ /(\d+)/;
-$VERSION = '2.53' ;
+$VERSION = '2.54';
 
 my $mod = "Tie::IxHash";
 
@@ -95,8 +94,8 @@ my $separator = " ";
 
 =head1 MATHEMATIC operators
 	
-.
-	
+=cut
+
 =head2 a b +
 
       return the result of 'a' + 'b' 
@@ -425,9 +424,9 @@ $dict{ 'PI' } = sub {
 # relational operators
 ########################
 
-=head1 relational operators
+=head1 RELATIONAL operators
 
-.
+=cut
 
 =head2 a b <
 
@@ -665,6 +664,7 @@ $dict{ 'FALSE' } = sub {
 
 =head1 MISC operators
 
+=cut
 
 =head2 a b >>
 
@@ -1177,7 +1177,7 @@ $dict{ 'STR2DDEC' } = sub {
 
 =head1 STRING operators
 
-.
+=cut
 
 =head2 a b EQ
 
@@ -1785,7 +1785,7 @@ $dict{ 'ISHEXD' } = sub {
 
 =head1 STACK operators
 
-.
+=cut
 
 =head2	a b SWAP
 
@@ -1951,7 +1951,14 @@ $dict{ 'ROLL' } = sub {
     {
         return \@ret, 1, 0;
     }
-    push @ret, @tmp, $b;
+    if ( defined $b )
+    {
+        push @ret, @tmp, $b;
+    }
+    else
+    {
+        push @ret, @tmp;
+    }
     return \@ret, 1 + $a, 0;
 };
 
@@ -2058,12 +2065,12 @@ $dict{ 'DEL' } = sub {
 $dict{ 'FIND' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    
-    my $nbr =  scalar( @{ $work1 } );
-    my $ret =0;
-    for ( 0 .. $nbr)
+
+    my $nbr = scalar( @{ $work1 } );
+    my $ret = 0;
+    for ( 0 .. $nbr )
     {
-        my $b = @{ $work1 }[ $nbr  - $_  ];
+        my $b = @{ $work1 }[ $nbr - $_ ];
         if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
         {
             if ( $b == $a )
@@ -2086,7 +2093,6 @@ $dict{ 'FIND' } = sub {
     return \@ret, 1, 0;
 };
 
-
 =head2 a FINDK
 	
 	keep the level of stack containing the exact value 'a'
@@ -2098,12 +2104,12 @@ $dict{ 'FIND' } = sub {
 $dict{ 'FINDK' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
-    
-    my $nbr =  scalar( @{ $work1 } );
-    my $ret ;
-    for ( 0 .. $nbr)
+
+    my $nbr = scalar( @{ $work1 } );
+    my $ret;
+    for ( 0 .. $nbr )
     {
-        my $b = @{ $work1 }[ $nbr  - $_  ];
+        my $b = @{ $work1 }[ $nbr - $_ ];
         if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
         {
             if ( $b == $a )
@@ -2123,9 +2129,8 @@ $dict{ 'FINDK' } = sub {
     }
     my @ret;
     push( @ret, $ret );
-    return \@ret, $nbr +1, 0;
+    return \@ret, $nbr + 1, 0;
 };
-    
 
 =head2 a SEARCH
 	
@@ -2272,7 +2277,7 @@ $dict{ 'KEEPN' } = sub {
     my $start   = abs pop @{ $work1 };
     my $length1 = abs pop @{ $work1 };
     my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 1 : $length1 );
-    my @ret = splice @{ $work1 }, $len - 1 - $start - $length, $length;
+    my @ret     = splice @{ $work1 }, $len - 1 - $start - $length, $length;
     return \@ret, $len, 0;
 };
 
@@ -2439,7 +2444,6 @@ $dict{ 'STATS' } = sub {
         $mul *= $b;
         $harm += 1 / $b if ( $b );
         $quad += $b**2;
-
     }
 
     $var{ _ARITH_MEAN_ } = 0;
@@ -2471,7 +2475,7 @@ $dict{ 'STATS' } = sub {
 
 =head1 DICTIONARY and VARS operators
 
-.
+=cut
 
 =head2 WORDS
 
@@ -2480,7 +2484,7 @@ $dict{ 'STATS' } = sub {
 =cut
 
 $dict{ 'WORDS' } = sub {
-    my @tmp = join " | ", keys( %dict );
+    my @tmp = join " | ", sort keys( %dict );
     my @ret;
     push @ret, @tmp;
     return \@ret, 0, 0;
@@ -2493,7 +2497,7 @@ $dict{ 'WORDS' } = sub {
 =cut
 
 $dict{ 'VARS' } = sub {
-    my @tmp = join " | ", keys( %var );
+    my @tmp = join " | ", sort keys( %var );
     my @ret;
     push @ret, @tmp;
     return \@ret, 0, 0;
@@ -2564,7 +2568,7 @@ $dict{ '!' } = sub {
 
 =head2 xx var !A
 
-        ppend and delete the value xx to the variable 'var'
+        append and delete the value xx to the variable 'var'
 	
 =cut
 
@@ -2572,10 +2576,11 @@ $dict{ '!A' } = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my $val   = pop @{ $work1 };
-    push @{$var{ $name }},$val;
+    push @{ $var{ $name } }, $val;
     my @ret;
     return \@ret, 2, 0;
 };
+
 =head2 x1 x2 x3 ... n var !!
 	
 	put and delete 'n' element(s) from the stack in the variable 'var'
@@ -2594,6 +2599,27 @@ $dict{ '!!' } = sub {
     $from = $from < 0 ? 0 : $from;
     my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
     $var{ $name } = \@TMP;
+    return \@temp, $len_to_rm + 2, 0;
+};
+
+=head2 x1 x2 x3 ... n var !!A
+	
+	append and delete 'n' element(s) from the stack in the variable 'var'
+	'n' is in absolute value 
+
+=cut
+
+$dict{ '!!A' } = sub {
+
+    my $work1     = shift;
+    my $len       = scalar( @{ $work1 } );
+    my $name      = pop @{ $work1 };
+    my $len_to_rm = ( abs pop @{ $work1 } );
+    my @temp;
+    my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
+    $from = $from < 0 ? 0 : $from;
+    my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
+    push @{ $var{ $name } }, @TMP;
     return \@temp, $len_to_rm + 2, 0;
 };
 
@@ -2618,27 +2644,6 @@ $dict{ '!!C' } = sub {
     return \@temp, 2, 0;
 };
 
-=head2 x1 x2 x3 ... n var !!A
-	
-	append and delete 'n' element(s) from the stack in the variable 'var'
-	'n' is in absolute value 
-
-=cut
-
-$dict{ '!!A' } = sub {
-
-    my $work1     = shift;
-    my $len       = scalar( @{ $work1 } );
-    my $name      = pop @{ $work1 };
-    my $len_to_rm = ( abs pop @{ $work1 } );
-    my @temp;
-    my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
-    $from = $from < 0 ? 0 : $from;
-    my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
-    push @{$var{ $name }} ,@TMP;
-    return \@temp, $len_to_rm + 2, 0;
-};
-
 =head2 x1 x2 x3 ... n var !!CA
 	
 	append  'n' element(s) from the stack in the variable 'var'
@@ -2656,7 +2661,7 @@ $dict{ '!!CA' } = sub {
     my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
     $from = $from < 0 ? 0 : $from;
     my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
-    push @{ $var{ $name }},@TMP;
+    push @{ $var{ $name } }, @TMP;
     return \@temp, 2, 0;
 };
 
@@ -2726,7 +2731,7 @@ $dict{ '!!!A' } = sub {
         push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
         @temp = @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $len1 - $end - 1 ) ];
     }
-    push @{ $var{ $name }},@TMP;
+    push @{ $var{ $name } }, @TMP;
     return \@temp, $len, 0;
 };
 
@@ -2797,8 +2802,6 @@ $dict{ '!!!CA' } = sub {
     $var{ $name } = \@TMP;
     return \@temp, 3, 0;
 };
-
-
 
 =head2  var @
 
@@ -3003,12 +3006,234 @@ $dict{ 'R@' } = sub {
 };
 
 ########################
+# FILE operator
+########################
+
+=head1 FILE operators ( basic IO )
+
+=cut
+
+=head2 file, mode , FH, OPEN
+
+       OPEN a file and keep the filehandle in the variable X
+       mode could be 'r', 'r+', 'w', 'w+', 'a', and 'a+'
+	
+=cut
+
+$dict{ 'OPEN' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $mode   = pop @{ $work1 };
+    my $file   = pop @{ $work1 };
+    my $fh;
+
+#     my $type   = '<';
+#     $type = '<'   if ( $mode eq 'r' );
+#     $type = '+<'  if ( $mode eq 'r+' );
+#     $type = '>'   if ( $mode eq 'w' );
+#     $type = '+>'  if ( $mode eq 'w+' );
+#     $type = '>>'  if ( $mode eq 'a' );
+#     $type = '+>>' if ( $mode eq 'a+' );
+#     open $fh, $type, $file;
+
+    my $type = O_RDONLY;
+    $type = O_RDONLY                     if ( $mode eq 'r' );
+    $type = O_RDONLY | O_WRONLY          if ( $mode eq 'r+' );
+    $type = O_WRONLY                     if ( $mode eq 'w' );
+    $type = O_TRUNC | O_CREAT | O_RDONLY if ( $mode eq 'w+' );
+    $type = O_APPEND | O_CREAT           if ( $mode eq 'a' );
+    $type = O_TRUNC | O_CREAT | O_APPEND if ( $mode eq 'a+' );
+    sysopen $fh, $file, $type;
+
+    $var{ $fh_var } = $fh;
+    return \@ret, 3, 0;
+};
+
+=head2  FH, STAT
+
+       STAT the file using the handle stored in the var FH ( FH could also be a file path )
+       return the same content as perl stat. Keep in mind that the indice 0 from the perl array is the 1 fisrt stack level.
+       To get the size of a file:
+       /tmp/rpn,STAT,13,8,KEEPR
+	
+=cut
+
+$dict{ 'STAT' } = sub {
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $fh     = $var{ $fh_var };
+    $fh = $fh_var if ( ref( $fh ) ne 'GLOB' );
+    my @ret = reverse stat( $fh );
+    return \@ret, 2, 0;
+};
+
+=head2  OFFSET,WHENCE FH, SEEK
+
+       SEEK of OFFSET in the file using the handle stored in the var FH 
+       if WHENCE = 0 seek from the beginning of the file
+       if WHENCE = 1 seek from the current position 
+       if WHENCE = 2 seek from the end of the file ( offset must be < 0 )
+       ( see perldoc -f seek )
+	
+=cut
+
+$dict{ 'SEEK' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $whence = pop @{ $work1 };
+    my $offset = pop @{ $work1 };
+    my $fh     = $var{ $fh_var };
+    sysseek $fh, $offset, $whence;
+    return \@ret, 3, 0;
+};
+
+=head2   FH, TELL
+
+       TELL return the position in the file using the handle stored in the var FH 
+	
+=cut
+
+$dict{ 'TELL' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $fh     = $var{ $fh_var };
+    my $tmp    = tell( $fh );
+    push @ret, $tmp;
+    return \@ret, 1, 0;
+};
+
+=head2  FH, CLOSE
+
+       CLOSE the file handle stored in the var FH 
+	
+=cut
+
+$dict{ 'CLOSE' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    close $var{ $fh_var };
+    delete $var{ $fh_var };
+    return \@ret, 1, 0;
+};
+
+=head2 N ,FH, GETC
+
+       read and put on top of the stack N character from the filedscriptor stored in the variable FH
+       to do a file slurp:
+       /tmp/rpn,r,fh,OPEN,sh,STAT,13,6,KEEPR,fh,GETC,fh,CLOSE
+	
+=cut
+
+$dict{ 'GETC' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $nbr    = pop @{ $work1 };
+    my $buf;
+    my $fh = $var{ $fh_var };
+    sysread $fh, $buf, $nbr;
+    push @ret, $buf;
+    return \@ret, 2, 0;
+};
+
+=head2 N ,FH, GETCS
+
+       read and put on the stack N character from the filedscriptor stored in the variable FH
+       each character is pushed on the stack ( and then the stack is evalueted )
+	
+=cut
+
+$dict{ 'GETCS' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $nbr    = pop @{ $work1 };
+    for ( 1 .. $nbr )
+    {
+        my $buf = getc( $var{ $fh_var } );
+        push @ret, $buf;
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 N ,FH, WRITE
+
+        put and delete N element from the stack to the filedscriptor stored in the variable FH
+	
+=cut
+
+$dict{ 'WRITE' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $nbr    = pop @{ $work1 };
+    my $buf;
+    for ( 1 .. $nbr )
+    {
+        $buf .= pop @{ $work1 };
+    }
+    my $fh = $var{ $fh_var };
+    syswrite $fh, $buf;
+    return \@ret, 1 + $nbr, 0;
+};
+
+=head2 N ,FH, WRITELINE
+
+        put and delete N element from the stack as a new line for each element to the filedscriptor stored in the variable FH
+	
+=cut
+
+$dict{ 'WRITELINE' } = sub {
+    my @ret;
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $nbr    = pop @{ $work1 };
+    my $buf;
+    for ( 1 .. $nbr )
+    {
+        my $tmp = pop @{ $work1 };
+        chomp $tmp;
+        $buf .= "$tmp\n";
+    }
+    my $fh = $var{ $fh_var };
+    print $fh $buf;
+    return \@ret, 1 + $nbr, 0;
+};
+
+=head2 READLINE
+
+       read and put on the stack a line from the filedscriptor stored in the variable FH
+	
+=cut
+
+$dict{ 'READLINE' } = sub {
+
+    my $work1  = shift;
+    my $fh_var = pop @{ $work1 };
+    my $fh     = $var{ $fh_var };
+    my $buf;
+    my $tmp;
+    while ( $tmp !~ /((\n\r)|\n|\r)/ )
+    {
+        sysread $fh, $tmp, 1;
+        $buf .= $tmp;
+    }
+    my @ret;
+    push @ret, $buf;
+    return \@ret, 1, 0;
+};
+
+########################
 # loop operators
 ########################
 
 =head1 LOOP and DECISION operators
 
-.
+=cut
 
 =head2 a IF xxx THEN
 
@@ -3469,7 +3694,8 @@ sub process
 
 =head1 Useful functions for the module (not related to the RPN language)
 
-.
+=cut
+
 =head2  rpn_error()
 
 	function which return the debug info from the calculation (like a division by 0)
@@ -3580,7 +3806,7 @@ __END__
 	    NORM2		([a])			Return [a] normalized by 1000 (K,M,G = 1024 * unit)
 	    OCT			(|a|)			Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
 	    OCTSTR2HEX		(|a|)                   Return a HEX string from a OCTETSTRING
-	    OCTSTR2HEX		(|a|)                   Return a OCTETSTRING string from a HEX
+	    HEX2OCTSTR		(|a|)                   Return a OCTETSTRING string from a HEX
             DDEC2STR		(|a|)                   Return a string from a dotted DEC string
             STR2DDEC		(|a|)                   Return a dotted DEC string to a string
 
@@ -3664,7 +3890,9 @@ __END__
                						[a] and [b] is get in absolute value	    
 	    KEEPN		([a][b])		keep [b] element(s) on the stack from level [a] 
 	    						(and delete all other elements)
-               						[a] and [b] is get in absolute value	    					
+               						[a] and [b] is get in absolute value	    
+            KEEPR
+            KEEPRN
 	    PRESERVE		([a][b])		keep element(s) on the stack from level [a] to level [b]
 	    						(and delete all other elements)
                						[a] and [b] is get in absolute value
@@ -3686,18 +3914,23 @@ __END__
             DEC			([a])     			() decrement (-1) the value of variable [a]
             VARIABLE            ([a])				() create a entry in VAR for the variable [a]
 	    !			([a][b])			store the value [a] in the variable [b]
+	    !A
 	    !!			([a][b][c]...[n] [var])		put and delete 'n' element(s) from the stack in the variable 'var'
 	    							'n' is in absolute value 	
+	    !!A
 	    !!C			([a][b][c]...[n] [var])		copy 'n' element(s) from the stack in the variable 'var'
 	    							'n' is in absolute value 	
+	    !!CA
 	    !!!			([a][b][c]...[n1] [n2] [var])	put and delete element(s) from the stack in the variable 'var'
 	    							starting at element  'a' to element 'b'
 								'a' and 'b' in absolute value 
-								if 'a' > 'b'  keep the reverse of selection (boustrophedon)	
+								if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+	    !!!A
 	    !!!C			([a][b][c]...[n] [var])	copy 'element(s) from the stack in the variable 'var'
 	    							starting at element  'a' to element 'b'
 								'a' and 'b' in absolute value 
-								if 'a' > 'b'  keep the reverse of selection (boustrophedon)										    
+								if 'a' > 'b'  keep the reverse of selection (boustrophedon)								
+	    !!!CA
 	    @			([a])				([a]) return the value of the variable [a]
             : xxx yyy ;						create a new word (sub) into the dictionary with the xxx "code" and name yyy
 	    : xxx yyy PERLFUNC					execute the PERL function yyy with parameter(s) yyy 
@@ -3705,6 +3938,20 @@ __END__
 								It is possible tu use a specific name space
 	    : xxx yyy PERL					execute the PERL code xxx ; yyy					
 
+	 File oprator
+	 -------------
+	 
+	   OPEN
+	   STAT
+	   SEEK
+	   TELL
+	   CLOSE
+	   GETC
+	   GETCS
+	   READLINE
+	   WRITE
+	   WRITELINE
+	   
  	 Return Stack operators
 	 ----------------------
 	 

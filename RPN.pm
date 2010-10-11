@@ -73,9 +73,7 @@ require AutoLoader;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.54';
-
-my $mod = "Tie::IxHash";
+$VERSION = '2.55';
 
 my %dict;
 my %var;

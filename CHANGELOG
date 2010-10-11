@@ -1,6 +1,10 @@
 version <2 is only a RPN parser
 
+----------------------------
+revision : 2.55
+Date:   Mon Oct 11 14:10:46 2010 +0200
 
+add HTTP::Date in Makefile.pl
 ----------------------------
 revision : 2.54
 Date:   Fri Oct 1 15:33:53 2010 +0200

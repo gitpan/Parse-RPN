@@ -66,14 +66,21 @@ require Exporter;
 require AutoLoader;
 
 # use Data::Dumper;
-# # use Carp qw(cluck croak carp);
-# use Carp::Clan qw(verbose);
+# use Carp qw(cluck croak carp);
+# # use Carp::Clan qw(verbose);
+# # use Carp::Clan;
+# sub cc
+# {
+#     my $info = shift;
+#     my $line = ( caller( 0 ) )[2] || 0;
+#     carp "[$line] $info";
+# }
 
 @ISA = qw(Exporter AutoLoader);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.55';
+$VERSION = '2.57';
 
 my %dict;
 my %var;
@@ -736,14 +743,16 @@ $dict{ 'MAX' } = sub {
 $dict{ 'LOOKUP' } = sub {
     my $work1 = shift;
     my $ope   = pop @{ $work1 };
-    my @RET   = @{ $var{ pop @{ $work1 } } };
-    my @VAL   = @{ $var{ pop @{ $work1 } } };
-    my $item  = pop @{ $work1 };
+
+    my @RET  = @{ $var{ pop @{ $work1 } } };
+    my @VAL  = @{ $var{ pop @{ $work1 } } };
+    my $item = pop @{ $work1 };
     my @ret;
     for my $ind ( 0 .. $#VAL )
     {
         my @tmp;
-        push @tmp, $item, $VAL[$ind], $ope;
+#         push @tmp, $item, $VAL[$ind], $ope;
+        push @tmp, $VAL[$ind], $item, $ope;
         process( \@tmp );
         if ( $tmp[0] )
         {
@@ -797,7 +806,8 @@ $dict{ 'LOOKUPOP' } = sub {
     for my $ind ( 0 .. $#VAL )
     {
         my @tmp;
-        push @tmp, $item, $VAL[$ind], $OPE[$ind];
+#         push @tmp, $item, $VAL[$ind], $OPE[$ind];
+        push @tmp, $VAL[$ind], $item, $OPE[$ind];
         process( \@tmp );
         if ( $tmp[0] )
         {
@@ -1347,7 +1357,7 @@ $dict{ 'REP' } = sub {
 
 =head2 a REV
 
-      return the reverse of 'a' EQ 'b' 
+      return the reverse of 'a'
 	
 =cut
 
@@ -1357,7 +1367,7 @@ $dict{ 'REV' } = sub {
     my $b     = reverse $a;
     my @ret;
     push @ret, ( $b );
-    return \@ret, 1, 0;
+    return \@ret, 0, 0;
 };
 
 =head2 a b c SUBSTR
@@ -1430,6 +1440,47 @@ $dict{ 'LCFIRST' } = sub {
     my @ret;
     push @ret, ( lcfirst $a );
     return \@ret, 1, 0;
+};
+
+=head2 a R1 R2 K V SPLIT2
+
+      split a with the REGEX R1
+      each result are splitted with the REGEX R2
+      the result are stored in the variable k and v
+      ( e.g.
+      # .1.3.6.1.2.1.25.3.3.1.2.768 | 48 # .1.3.6.1.2.1.25.3.3.1.2.769 | 38 # .1.3.6.1.2.1.25.3.3.1.2.771 | 42 # .1.3.6.1.2.1.25.3.3.1.2.770 | 58 #,\s?#\s?,\s\|\s,a,b,SPLIT2
+      return a with .1.3.6.1.2.1.25.3.3.1.2.768,.1.3.6.1.2.1.25.3.3.1.2.769,.1.3.6.1.2.1.25.3.3.1.2.771,.1.3.6.1.2.1.25.3.3.1.2.770
+      and b with 48,38,42,58
+ 
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+      SPLIT return the matched value WITHOUT the empty string of the beginning
+	
+=cut
+
+$dict{ 'SPLIT2' } = sub {
+    my $work1 = shift;
+    my $v2    = pop @{ $work1 };
+    my $v1    = pop @{ $work1 };
+    my $r2    = pop @{ $work1 };
+    my $r1    = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @T1;
+    my @T2;
+
+    foreach my $i ( split /$r1/, $b )
+    {
+        next unless ( $i );
+        my ( $k, $v ) = split /$r2/, $i, 2;
+        if ( $k )
+        {
+            push @T1, $k;
+            push @T2, $v;
+        }
+    }
+    $var{ $v1 } = \@T1;
+    $var{ $v2 } = \@T2;
+    my @ret;
+    return \@ret, 5, 0;
 };
 
 =head2 a b SPLIT
@@ -2152,7 +2203,6 @@ $dict{ 'SEARCH' } = sub {
             return \@ret, 1, 0;
         }
     }
-
     push( @ret, 0 );
     return \@ret, 1, 0;
 };
@@ -2183,6 +2233,58 @@ $dict{ 'SEARCHI' } = sub {
     return \@ret, 1, 0;
 };
 
+# =head2 a SEARCHIA
+#
+# 	get all level of stack containing the REGEX 'a' (cas insensitive)
+# 	return all the level + the number of item matching
+#
+# =cut
+#
+# $dict{ 'SEARCHIA' } = sub {
+#     my $work1 = shift;
+#     my $a     = pop @{ $work1 };
+#     my $ret   ;
+#     my $nbr   = scalar( @{ $work1 } );
+#     my @ret;
+#     for ( my $i = $nbr ; $i ; $i-- )
+#     {
+#         my $b = @{ $work1 }[ $nbr - $i ];
+#         if ( $b =~ /$a/i )
+#         {
+#             $ret++;
+#             push @ret, $i;
+#         }
+#     }
+#     push( @ret, $ret );
+#     return \@ret, 1, 0;
+# };
+#
+# =head2 a SEARCHA
+#
+# 	get all level of stack containing the REGEX 'a' (cas sensitive)
+# 	return all the level + the number of item matching
+#
+# =cut
+#
+# $dict{ 'SEARCHA' } = sub {
+#     my $work1 = shift;
+#     my $a     = pop @{ $work1 };
+#     my $ret   ;
+#     my $nbr   = scalar( @{ $work1 } );
+#     my @ret;
+#     for ( my $i = $nbr ; $i  ; $i-- )
+#     {
+#         my $b = @{ $work1 }[ $nbr - $i ];
+#         if ( $b =~ /$a/ )
+#         {
+#             $ret++;
+#             push @ret, $i;
+#         }
+#     }
+#     push( @ret, $ret );
+#     return \@ret, 1 , 0;
+# };
+
 =head2 a SEARCHK
 	
 	keep all level of stack containing the REGEX 'a' (cas sensitive)
@@ -2195,7 +2297,6 @@ $dict{ 'SEARCHK' } = sub {
     my $ret   = 1;
     my $nbr   = scalar( @{ $work1 } );
     my @ret;
-    my $len;
     for ( my $i = $nbr ; $i ; $i-- )
     {
         my $b = @{ $work1 }[ $nbr - $i ];
@@ -2203,7 +2304,6 @@ $dict{ 'SEARCHK' } = sub {
         {
             $ret = $i;
             push @ret, $b;
-            $len++;
         }
     }
     return \@ret, $nbr + 1, 0;
@@ -2221,7 +2321,6 @@ $dict{ 'SEARCHIK' } = sub {
     my $ret   = 1;
     my $nbr   = scalar( @{ $work1 } );
     my @ret;
-    my $len;
     for ( my $i = $nbr ; $i ; $i-- )
     {
         my $b = @{ $work1 }[ $nbr - $i ];
@@ -2229,7 +2328,6 @@ $dict{ 'SEARCHIK' } = sub {
         {
             $ret = $i;
             push @ret, $b;
-            $len++;
         }
     }
     return \@ret, $nbr + 1, 0;
@@ -2501,6 +2599,32 @@ $dict{ 'VARS' } = sub {
     return \@ret, 0, 0;
 };
 
+=head2 SIZE
+
+        return the size of the variable on the stack
+	
+=cut
+
+$dict{ 'SIZE' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 0;
+    if ( exists $var{ $a } )
+    {
+        if ( ( ref( $var{ $a } ) eq 'ARRAY' ) )
+        {
+            $ret = scalar( @{ $var{ $a } } );
+        }
+        else
+        {
+            $ret = 1;
+        }
+    }
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 1, 0;
+};
+
 =head2 INC
 
         incremente (+ 1) the value of the variable on the statck
@@ -2574,8 +2698,24 @@ $dict{ '!A' } = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my $val   = pop @{ $work1 };
-    push @{ $var{ $name } }, $val;
     my @ret;
+    my @TMP;
+    if ( exists $var{ $name } )
+    {
+        if ( ref $var{ $name } eq 'ARRAY' )
+        {
+            unshift @TMP, $val, @{ $var{ $name } };
+        }
+        else
+        {
+            unshift @TMP, $val, $var{ $name };
+        }
+        $var{ $name } = \@TMP;
+    }
+    else
+    {
+        $var{ $name } = $val;
+    }
     return \@ret, 2, 0;
 };
 
@@ -2617,7 +2757,23 @@ $dict{ '!!A' } = sub {
     my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
     $from = $from < 0 ? 0 : $from;
     my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
-    push @{ $var{ $name } }, @TMP;
+    if ( exists $var{ $name } )
+    {
+
+        if ( ref $var{ $name } eq 'ARRAY' )
+        {
+            unshift @TMP, @{ $var{ $name } };
+        }
+        else
+        {
+            unshift @TMP, $var{ $name };
+        }
+        $var{ $name } = \@TMP;
+    }
+    else
+    {
+        $var{ $name } = \@TMP;
+    }
     return \@temp, $len_to_rm + 2, 0;
 };
 
@@ -2659,7 +2815,23 @@ $dict{ '!!CA' } = sub {
     my $from = ( 1 + ( $#$work1 ) - $len_to_rm );
     $from = $from < 0 ? 0 : $from;
     my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
-    push @{ $var{ $name } }, @TMP;
+    if ( exists $var{ $name } )
+    {
+
+        if ( ref $var{ $name } eq 'ARRAY' )
+        {
+            unshift @TMP, @{ $var{ $name } };
+        }
+        else
+        {
+            unshift @TMP, $var{ $name };
+        }
+        $var{ $name } = \@TMP;
+    }
+    else
+    {
+        $var{ $name } = \@TMP;
+    }
     return \@temp, 2, 0;
 };
 
@@ -2729,7 +2901,22 @@ $dict{ '!!!A' } = sub {
         push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
         @temp = @{ $work1 }[ ( $len1 - $start + 1 ) .. ( $len1 - $end - 1 ) ];
     }
-    push @{ $var{ $name } }, @TMP;
+    if ( exists $var{ $name } )
+    {
+        if ( ref $var{ $name } eq 'ARRAY' )
+        {
+            unshift @TMP, @{ $var{ $name } };
+        }
+        else
+        {
+            unshift @TMP, $var{ $name };
+        }
+        $var{ $name } = \@TMP;
+    }
+    else
+    {
+        $var{ $name } = \@TMP;
+    }
     return \@temp, $len, 0;
 };
 
@@ -2797,7 +2984,22 @@ $dict{ '!!!CA' } = sub {
         push @TMP, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
         push @TMP, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
     }
-    $var{ $name } = \@TMP;
+    if ( exists $var{ $name } )
+    {
+        if ( ref $var{ $name } eq 'ARRAY' )
+        {
+            unshift @TMP, @{ $var{ $name } };
+        }
+        else
+        {
+            unshift @TMP, $var{ $name };
+        }
+        $var{ $name } = \@TMP;
+    }
+    else
+    {
+        $var{ $name } = \@TMP;
+    }
     return \@temp, 3, 0;
 };
 
@@ -3555,9 +3757,13 @@ sub process
         {
             push @work, shift @{ $stack };
         }
-        if ( $op =~ s/^'(.*)'$/$1/g )
+        if ( $op =~ /^'(.*)'$/ )
         {
             $is_string = 1;
+            unless ( $is_do )
+            {
+                $op =~ s/^'(.*)'$/$1/g;
+            }
         }
         if ( $op =~ /^;$/g )
         {
@@ -3830,13 +4036,15 @@ __END__
             PAT			([a][b])		([r1]...) use the pattern [b] on the string [a] and return result 
 	    						if more then one result like $1, $2 ... return all the results 
 	    PATI		([a][b])		([r1]...) use the pattern CASE INSENSITIVE [b] on the string [a] and return result 
-	    						if more then one result like $1, $2 ... return all the results 						
+	    						if more then one result like $1, $2 ... return all the results
 	    TPAT		([a][b])		([r]) use the pattern [b] on the string [a] and return 1 if pattern macth 
 	    						otherwise return 0
 	    TPATI		([a][b])		([r]) use the pattern CASE INSENSITIVE [b] on the string [a] and return 1 if pattern macth 
 	    						otherwise return 0
 	    SPLIT		([a][b])		split ([a]) using the pattern ([b]) and return all elements on stack
-	    SPLITI					split ([a]) using the pattern CASE INSENSITIVE  ([b])) and return all elements on stack					
+	    SPLITI					split ([a]) using the pattern CASE INSENSITIVE  ([b])) and return all elements on stack
+	    SPLIT2		([a][R1][R2][K][V])     split ([a]) using the pattern ([R1]), each result are splitted using the pattern ([R2])
+							the result are stored in the variables [K] and [V]
 	    SPAT		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/>
 	    SPATG		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/g>
 	    SPATI		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i> 
@@ -4022,20 +4230,34 @@ __END__
 	$test = "7,3,/,10,3,/,%d %f,PRINTF";
 	@ret = rpn($test); # @ret = 2 3.333333
 	
-	$test = "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,<,WHILE,####,a,@,****,REPEAT";
+	$test = "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,>,WHILE,####,a,@,****,REPEAT";
 	@ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb
+	or
+	$test = "0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,>,WHILE,####,a,@,****,REPEAT"; # the VARIABLE declaration is optionel
+	@ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb #### 4 **** bbbb
 	
 	$test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
 	@ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
 	
+	$test = 'a,b,c,d,e,f,g,h,i,5,2,V1,!!!,uuu,V1,SIZE'
+	$ret  =rpn($test); # $ret = a b c d i uuu 4
+	
 	$test = "1,2,3,4,5,6,7,8,9,3,KEEP";
-	ret =rpn($test); # @ret = 7
+	$ret =rpn($test); # $ret = 7
 	
 	$test = "1,2,3,4,5,6,7,8,9,30,KEEP";
-	ret =rpn($test); # @ret = 1,2,3,4,5,6,7,8,9
+	$ret =rpn($test); # $ret = 1,2,3,4,5,6,7,8,9
 	
 	$test = "h,g,f,e,d,c,b,a,4,3,DEL";
-	ret =rpn($test); # @ret = h,c,b,a
+	$ret =rpn($test); # $ret = h,c,b,a
+	
+	$test = 'test for a split,\s,SPLIT,DEPTH';
+	$ret =rpn($test); # $ret = test,for,a,split,4
+	
+	$test = '# .1.3.6.1.2.1.25.3.3.1.2.768 | 48 # .1.3.6.1.2.1.25.3.3.1.2.769 | 38 # .1.3.6.1.2.1.25.3.3.1.2.771 | 42 # .1.3.6.1.2.1.25.3.3.1.2.770 | 58 #,\s?#\s?,\s\|\s,a,b,SPLIT2
+	$ret = rpn($test)
+	$ret = rpn(a,@); # $ret = .1.3.6.1.2.1.25.3.3.1.2.768,.1.3.6.1.2.1.25.3.3.1.2.769,.1.3.6.1.2.1.25.3.3.1.2.771,.1.3.6.1.2.1.25.3.3.1.2.770
+	$ret = rpn(b,@); # $ret = 48,38,42,58
 		
 	$test = "h,g,f,e,d,c,b,a,4,3,KEEPN"";
 	ret =rpn($test); # @ret = g,f,e,d

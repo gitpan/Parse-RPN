@@ -1,6 +1,18 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.57
+Date:   Thu Oct 21 15:32:18 2010 +0200
+
+add SPLIT2
+correct LOOKUP and LOOKUPOP ( switch parameter order )
+----------------------------
+revision : 2.56
+Date:   Tue Oct 19 15:01:54 2010 +0200
+
+add SIZE
+correct variable append code
+----------------------------
 revision : 2.55
 Date:   Mon Oct 11 14:10:46 2010 +0200
 

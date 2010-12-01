@@ -65,8 +65,8 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 require Exporter;
 require AutoLoader;
 
-# use Data::Dumper;
-# use Carp qw(cluck croak carp);
+use Data::Dumper;
+use Carp qw(cluck croak carp);
 # # use Carp::Clan qw(verbose);
 # # use Carp::Clan;
 # sub cc
@@ -80,7 +80,7 @@ require AutoLoader;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.57';
+$VERSION = '2.59';
 
 my %dict;
 my %var;
@@ -1294,7 +1294,7 @@ $dict{ 'CMP' } = sub {
 
 =head2 a LEN
 
-      return the length of 'a' EQ 'b' 
+      return the length of 'a' 
 	
 =cut
 
@@ -2233,57 +2233,55 @@ $dict{ 'SEARCHI' } = sub {
     return \@ret, 1, 0;
 };
 
-# =head2 a SEARCHIA
-#
-# 	get all level of stack containing the REGEX 'a' (cas insensitive)
-# 	return all the level + the number of item matching
-#
-# =cut
-#
-# $dict{ 'SEARCHIA' } = sub {
-#     my $work1 = shift;
-#     my $a     = pop @{ $work1 };
-#     my $ret   ;
-#     my $nbr   = scalar( @{ $work1 } );
-#     my @ret;
-#     for ( my $i = $nbr ; $i ; $i-- )
-#     {
-#         my $b = @{ $work1 }[ $nbr - $i ];
-#         if ( $b =~ /$a/i )
-#         {
-#             $ret++;
-#             push @ret, $i;
-#         }
-#     }
-#     push( @ret, $ret );
-#     return \@ret, 1, 0;
-# };
-#
-# =head2 a SEARCHA
-#
-# 	get all level of stack containing the REGEX 'a' (cas sensitive)
-# 	return all the level + the number of item matching
-#
-# =cut
-#
-# $dict{ 'SEARCHA' } = sub {
-#     my $work1 = shift;
-#     my $a     = pop @{ $work1 };
-#     my $ret   ;
-#     my $nbr   = scalar( @{ $work1 } );
-#     my @ret;
-#     for ( my $i = $nbr ; $i  ; $i-- )
-#     {
-#         my $b = @{ $work1 }[ $nbr - $i ];
-#         if ( $b =~ /$a/ )
-#         {
-#             $ret++;
-#             push @ret, $i;
-#         }
-#     }
-#     push( @ret, $ret );
-#     return \@ret, 1 , 0;
-# };
+=head2 a SEARCHIA
+
+	get all level of stack containing the REGEX 'a' (cas insensitive)
+	empty the stack and return the number of item matching
+
+=cut
+
+$dict{ 'SEARCHIA' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret;
+    my $nbr = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/i )
+        {
+            $ret++;
+            push @ret, $i;
+        }
+    }
+    return \@ret, 1 + $nbr, 0;
+};
+
+=head2 a SEARCHA
+
+	get all level of stack containing the REGEX 'a' (cas sensitive)
+	empty the stack and return the number of item matching
+
+=cut
+
+$dict{ 'SEARCHA' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret;
+    my $nbr = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/ )
+        {
+            $ret++;
+            push @ret, $i;
+        }
+    }
+    return \@ret, 1 + $nbr, 0;
+};
 
 =head2 a SEARCHK
 	
@@ -2599,7 +2597,7 @@ $dict{ 'VARS' } = sub {
     return \@ret, 0, 0;
 };
 
-=head2 SIZE
+=head2 v SIZE
 
         return the size of the variable on the stack
 	
@@ -2625,7 +2623,90 @@ $dict{ 'SIZE' } = sub {
     return \@ret, 1, 0;
 };
 
-=head2 INC
+=head2 v POPV
+
+        remove return the first item of the variable on the stack
+        
+=cut
+
+$dict{ 'POPV' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 0;
+    if ( exists $var{ $a } )
+    {
+        if ( ( ref( $var{ $a } ) eq 'ARRAY' ) )
+        {
+            $ret = pop( @{ $var{ $a } } );
+        }
+        else
+        {
+            $ret = $var{ $a };
+            $var{ $a } = '';
+        }
+    }
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 1, 0;
+};
+
+=head2 v SHIFTV
+
+        remove return the latest item of the variable on the stack
+        
+=cut
+
+$dict{ 'SHIFTV' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 0;
+    if ( exists $var{ $a } )
+    {
+        if ( ( ref( $var{ $a } ) eq 'ARRAY' ) )
+        {
+            $ret = shift( @{ $var{ $a } } );
+        }
+        else
+        {
+            $ret = $var{ $a };
+            $var{ $a } = '';
+        }
+    }
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 1, 0;
+};
+
+=head2 v a IND
+
+       return the element of the variable at the indice a  ( ARRAY emulation )
+        
+=cut
+
+$dict{ 'IND' } = sub {
+    my $work1 = shift;
+    my $ind   = pop @{ $work1 };
+    my $name  = pop @{ $work1 };
+    my $ret   = 0;
+
+    if ( exists $var{ $name } )
+    {
+        if ( ( ref( $var{ $name } ) eq 'ARRAY' ) )
+        {
+            my $size = scalar @{ $var{ $name } };
+            $ret = $var{ $name }->[ $size - $ind ];
+        }
+        else
+        {
+            $ret = $var{ $name };
+        }
+    }
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 2, 0;
+};
+
+=head2 v INC
 
         incremente (+ 1) the value of the variable on the statck
 	
@@ -2642,7 +2723,7 @@ $dict{ 'INC' } = sub {
     return \@ret, 1, 0;
 };
 
-=head2 DEC
+=head2 v DEC
 
         decremente (- 1) the value of the variable on the statck
 	
@@ -4291,6 +4372,12 @@ __END__
 
 	$test = '3,1,2,3,4,5,5,V,!!,a,b,ok,d,nok,5,R,!!,"<","<","<","<","<",5,O,!!,V,R,O,LOOKUPOPP'
         @ret =rpn($test); # @ret = d
+          
+        $test =   1,2,3,4,2,5,2,10,7,DEPTH,1,DO,MAX,LOOP'
+        @ret =rpn($test); # @ret = 10        ( = search the MAX in the stack )
+        
+        $test =     'toto,tata,tota,tato,titi,tito,toti,tot,SEARCHA,DEPTH,r,!!,res1,res2,res3,res4,res5,res6,res7,res8,r,SIZE,DUP,s,!,1,DO,r,POPV,PICK,st,!A,LOOP,DEPTH,POPN,st,@'
+        @ret =rpn($test); # @ret = res2 res4 res8
 
 	The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.
 	This include two test functions named 'save' and 'restore'

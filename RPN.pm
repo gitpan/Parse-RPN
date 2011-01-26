@@ -80,7 +80,7 @@ use Carp qw(cluck croak carp);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.59';
+$VERSION = '2.60';
 
 my %dict;
 my %var;
@@ -3297,7 +3297,12 @@ $dict{ 'R@' } = sub {
 =head2 file, mode , FH, OPEN
 
        OPEN a file and keep the filehandle in the variable X
-       mode could be 'r', 'r+', 'w', 'w+', 'a', and 'a+'
+       mode could be: 
+       'r' ( read only ), 'r+' ( read, write ) ,
+       'w' ( read, write, truncate ), 'w+' ( read, write , create or truncate ), 
+       'a'( append ), and 'a+' (append and create ) 
+       
+       (see man 3 fopen ) 
 	
 =cut
 
@@ -3309,22 +3314,13 @@ $dict{ 'OPEN' } = sub {
     my $file   = pop @{ $work1 };
     my $fh;
 
-#     my $type   = '<';
-#     $type = '<'   if ( $mode eq 'r' );
-#     $type = '+<'  if ( $mode eq 'r+' );
-#     $type = '>'   if ( $mode eq 'w' );
-#     $type = '+>'  if ( $mode eq 'w+' );
-#     $type = '>>'  if ( $mode eq 'a' );
-#     $type = '+>>' if ( $mode eq 'a+' );
-#     open $fh, $type, $file;
-
     my $type = O_RDONLY;
-    $type = O_RDONLY                     if ( $mode eq 'r' );
-    $type = O_RDONLY | O_WRONLY          if ( $mode eq 'r+' );
-    $type = O_WRONLY                     if ( $mode eq 'w' );
-    $type = O_TRUNC | O_CREAT | O_RDONLY if ( $mode eq 'w+' );
-    $type = O_APPEND | O_CREAT           if ( $mode eq 'a' );
-    $type = O_TRUNC | O_CREAT | O_APPEND if ( $mode eq 'a+' );
+    $type = O_RDONLY                   if ( $mode eq 'r' );
+    $type = O_RDWR                     if ( $mode eq 'r+' );
+    $type = O_RDWR | O_TRUNC           if ( $mode eq 'w' );
+    $type = O_RDWR | O_CREAT | O_TRUNC if ( $mode eq 'w+' );
+    $type = O_APPEND                   if ( $mode eq 'a' );
+    $type = O_CREAT | O_APPEND         if ( $mode eq 'a+' );
     sysopen $fh, $file, $type;
 
     $var{ $fh_var } = $fh;
@@ -3459,19 +3455,20 @@ $dict{ 'WRITE' } = sub {
     }
     my $fh = $var{ $fh_var };
     syswrite $fh, $buf;
-    return \@ret, 1 + $nbr, 0;
+    return \@ret, 2 + $nbr, 0;
 };
 
-=head2 N ,FH, WRITELINE
+=head2 N,FH,WRITELINE
 
         put and delete N element from the stack as a new line for each element to the filedscriptor stored in the variable FH
+        to flush buffer, use 0,0,FH,SEEK
 	
 =cut
 
 $dict{ 'WRITELINE' } = sub {
     my @ret;
     my $work1  = shift;
-    my $fh_var = pop @{ $work1 };
+    my $fh_var = pop @{ $work1 }; 
     my $nbr    = pop @{ $work1 };
     my $buf;
     for ( 1 .. $nbr )
@@ -3481,11 +3478,11 @@ $dict{ 'WRITELINE' } = sub {
         $buf .= "$tmp\n";
     }
     my $fh = $var{ $fh_var };
-    print $fh $buf;
-    return \@ret, 1 + $nbr, 0;
+    syswrite $fh,  $buf, length $buf;
+    return \@ret, 2 + $nbr, 0;
 };
 
-=head2 READLINE
+=head2 FH,READLINE
 
        read and put on the stack a line from the filedscriptor stored in the variable FH
 	
@@ -3500,7 +3497,7 @@ $dict{ 'READLINE' } = sub {
     my $tmp;
     while ( $tmp !~ /((\n\r)|\n|\r)/ )
     {
-        sysread $fh, $tmp, 1;
+        last if ( !sysread $fh, $tmp, 1 );
         $buf .= $tmp;
     }
     my @ret;

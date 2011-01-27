@@ -1,6 +1,27 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.61
+Date:   Thu Jan 27 18:25:09 2011 +0100
+
+fix IF THEN ELSE ( specifically ELSE )
+----------------------------
+revision : 2.60
+Date:   Wed Jan 26 16:14:04 2011 +0100
+
+fix OPEN ( mode )
+WRITELINE and WRITE (remove value from the stack)
+----------------------------
+revision : 2.59
+Date:   Wed Dec 1 13:26:49 2010 +0100
+
+add POPV, SHIFTV and IND
+----------------------------
+revision : 2.58
+Date:   Wed Dec 1 11:34:50 2010 +0100
+
+add SEARCHA and SEARCHI
+----------------------------
 revision : 2.57
 Date:   Thu Oct 21 15:32:18 2010 +0200
 

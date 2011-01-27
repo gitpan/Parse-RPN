@@ -65,8 +65,8 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 require Exporter;
 require AutoLoader;
 
-use Data::Dumper;
-use Carp qw(cluck croak carp);
+# use Data::Dumper;
+# use Carp qw(cluck croak carp);
 # # use Carp::Clan qw(verbose);
 # # use Carp::Clan;
 # sub cc
@@ -80,7 +80,7 @@ use Carp qw(cluck croak carp);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.60';
+$VERSION = '2.61';
 
 my %dict;
 my %var;
@@ -3300,7 +3300,7 @@ $dict{ 'R@' } = sub {
        mode could be: 
        'r' ( read only ), 'r+' ( read, write ) ,
        'w' ( read, write, truncate ), 'w+' ( read, write , create or truncate ), 
-       'a'( append ), and 'a+' (append and create ) 
+       'a'( append and create ), and 'a+' (append truncate and create ) 
        
        (see man 3 fopen ) 
 	
@@ -3319,7 +3319,7 @@ $dict{ 'OPEN' } = sub {
     $type = O_RDWR                     if ( $mode eq 'r+' );
     $type = O_RDWR | O_TRUNC           if ( $mode eq 'w' );
     $type = O_RDWR | O_CREAT | O_TRUNC if ( $mode eq 'w+' );
-    $type = O_APPEND                   if ( $mode eq 'a' );
+    $type = O_APPEND   | O_CREAT       if ( $mode eq 'a' );
     $type = O_CREAT | O_APPEND         if ( $mode eq 'a+' );
     sysopen $fh, $file, $type;
 
@@ -3345,7 +3345,7 @@ $dict{ 'STAT' } = sub {
     return \@ret, 2, 0;
 };
 
-=head2  OFFSET,WHENCE FH, SEEK
+=head2  OFFSET, WHENCE, FH, SEEK
 
        SEEK of OFFSET in the file using the handle stored in the var FH 
        if WHENCE = 0 seek from the beginning of the file
@@ -3397,7 +3397,7 @@ $dict{ 'CLOSE' } = sub {
     return \@ret, 1, 0;
 };
 
-=head2 N ,FH, GETC
+=head2 N, FH, GETC
 
        read and put on top of the stack N character from the filedscriptor stored in the variable FH
        to do a file slurp:
@@ -3417,7 +3417,7 @@ $dict{ 'GETC' } = sub {
     return \@ret, 2, 0;
 };
 
-=head2 N ,FH, GETCS
+=head2 N, FH, GETCS
 
        read and put on the stack N character from the filedscriptor stored in the variable FH
        each character is pushed on the stack ( and then the stack is evalueted )
@@ -3437,7 +3437,7 @@ $dict{ 'GETCS' } = sub {
     return \@ret, 2, 0;
 };
 
-=head2 N ,FH, WRITE
+=head2 N, FH, WRITE
 
         put and delete N element from the stack to the filedscriptor stored in the variable FH
 	
@@ -3458,7 +3458,7 @@ $dict{ 'WRITE' } = sub {
     return \@ret, 2 + $nbr, 0;
 };
 
-=head2 N,FH,WRITELINE
+=head2 N, FH, WRITELINE
 
         put and delete N element from the stack as a new line for each element to the filedscriptor stored in the variable FH
         to flush buffer, use 0,0,FH,SEEK
@@ -3482,7 +3482,7 @@ $dict{ 'WRITELINE' } = sub {
     return \@ret, 2 + $nbr, 0;
 };
 
-=head2 FH,READLINE
+=head2 FH, READLINE
 
        read and put on the stack a line from the filedscriptor stored in the variable FH
 	
@@ -3579,7 +3579,7 @@ $dict{ 'THENELSE' } = sub {
     my $VAR = $pre[-2];
 #     my $len   =scalar (@BEGIN) + scalar @THEN +2;
 
-    my $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar @THEN + 3;
+    my $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar( @THEN ) + 3;
     if ( $VAR )
     {
         my @TMP = @BEGIN;
@@ -3589,7 +3589,7 @@ $dict{ 'THENELSE' } = sub {
         push @TMP, 'THEN';
         process( \@TMP );
         @ret   = @TMP;
-        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar @THEN + 3;
+        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar( @ELSE ) + 3;
     }
     else
     {
@@ -3597,7 +3597,7 @@ $dict{ 'THENELSE' } = sub {
         push @TMP, @ELSE;
         process( \@TMP );
         @ret   = @TMP;
-        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar @ELSE + scalar @THEN + 2;
+        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar( @ELSE )+ scalar(@THEN) + 2;
     }
     return \@ret, $len_d, 3;
 };

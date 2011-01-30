@@ -66,9 +66,9 @@ require Exporter;
 require AutoLoader;
 
 # use Data::Dumper;
-# use Carp qw(cluck croak carp);
-# # use Carp::Clan qw(verbose);
-# # use Carp::Clan;
+# # use Carp qw(cluck croak carp);
+# # # use Carp::Clan qw(verbose);
+# use Carp::Clan;
 # sub cc
 # {
 #     my $info = shift;
@@ -80,7 +80,7 @@ require AutoLoader;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.61';
+$VERSION = '2.62';
 
 my %dict;
 my %var;
@@ -3297,13 +3297,12 @@ $dict{ 'R@' } = sub {
 =head2 file, mode , FH, OPEN
 
        OPEN a file and keep the filehandle in the variable X
-       mode could be: 
-       'r' ( read only ), 'r+' ( read, write ) ,
-       'w' ( read, write, truncate ), 'w+' ( read, write , create or truncate ), 
-       'a'( append and create ), and 'a+' (append truncate and create ) 
-       
-       (see man 3 fopen ) 
-	
+       mode could be all combination of : 
+       'r' ( read  ), 
+       'w' ( write ), 
+       'c' ( create ),
+       't' ( truncate ), 
+       'a'( append = seek to end )
 =cut
 
 $dict{ 'OPEN' } = sub {
@@ -3315,14 +3314,14 @@ $dict{ 'OPEN' } = sub {
     my $fh;
 
     my $type = O_RDONLY;
-    $type = O_RDONLY                   if ( $mode eq 'r' );
-    $type = O_RDWR                     if ( $mode eq 'r+' );
-    $type = O_RDWR | O_TRUNC           if ( $mode eq 'w' );
-    $type = O_RDWR | O_CREAT | O_TRUNC if ( $mode eq 'w+' );
-    $type = O_APPEND   | O_CREAT       if ( $mode eq 'a' );
-    $type = O_CREAT | O_APPEND         if ( $mode eq 'a+' );
-    sysopen $fh, $file, $type;
+    $type |= O_RDONLY if ( $mode =~ /r/ );
+    $type |= O_RDWR if ( $mode =~ /w/ );
+    $type |= O_CREAT if ( $mode =~ /c/ );
+    $type |= O_TRUNC if ( $mode =~ /t/ );
 
+        
+    sysopen $fh, $file, $type;
+    seek $fh , 0 , 2    if ( $mode  =~ /a/ );
     $var{ $fh_var } = $fh;
     return \@ret, 3, 0;
 };
@@ -3468,7 +3467,7 @@ $dict{ 'WRITE' } = sub {
 $dict{ 'WRITELINE' } = sub {
     my @ret;
     my $work1  = shift;
-    my $fh_var = pop @{ $work1 }; 
+    my $fh_var = pop @{ $work1 };
     my $nbr    = pop @{ $work1 };
     my $buf;
     for ( 1 .. $nbr )
@@ -3478,7 +3477,7 @@ $dict{ 'WRITELINE' } = sub {
         $buf .= "$tmp\n";
     }
     my $fh = $var{ $fh_var };
-    syswrite $fh,  $buf, length $buf;
+    syswrite $fh, $buf, length $buf;
     return \@ret, 2 + $nbr, 0;
 };
 
@@ -3570,14 +3569,14 @@ $dict{ 'THENELSE' } = sub {
     my $b_ref   = pop @{ $return1 };
     my $a_ref   = pop @{ $return1 };
     my @pre     = @{ $work1 };
-    my @BEGIN   = splice @pre, 0, $a_ref - 1;
+
+    my @BEGIN = splice @pre, 0, $a_ref - 1;
     @pre = @{ $work1 };
     my @THEN = splice @pre, $c_ref + 1, $b_ref - 1;
     my @ELSE = splice @pre, scalar( @BEGIN ) + 2;
     pop @ELSE;
 
     my $VAR = $pre[-2];
-#     my $len   =scalar (@BEGIN) + scalar @THEN +2;
 
     my $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar( @THEN ) + 3;
     if ( $VAR )
@@ -3589,7 +3588,12 @@ $dict{ 'THENELSE' } = sub {
         push @TMP, 'THEN';
         process( \@TMP );
         @ret   = @TMP;
-        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar( @ELSE ) + 3;
+        $len_d = scalar( @THEN ) + scalar( @BEGIN ) + scalar( @ELSE ) + 5;
+
+        if ( scalar( @pre ) == 2 )
+        {
+            $len_d++;
+        }
     }
     else
     {
@@ -3597,7 +3601,7 @@ $dict{ 'THENELSE' } = sub {
         push @TMP, @ELSE;
         process( \@TMP );
         @ret   = @TMP;
-        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar( @ELSE )+ scalar(@THEN) + 2;
+        $len_d = scalar( @pre ) + scalar( @BEGIN ) + scalar( @ELSE ) + scalar( @THEN ) + 2;
     }
     return \@ret, $len_d, 3;
 };

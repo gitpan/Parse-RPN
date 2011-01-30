@@ -1,6 +1,11 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.62
+Date:   Thu Jan 27 19:04:22 2011 +0100
+
+typo error
+----------------------------
 revision : 2.61
 Date:   Thu Jan 27 18:25:09 2011 +0100
 

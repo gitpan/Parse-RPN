@@ -1,6 +1,11 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.63
+Date: Thu Apr 14 12:08:06 2011 +0200
+
+add KEEPV and KEEPVV
+----------------------------
 revision : 2.62
 Date:   Thu Jan 27 19:04:22 2011 +0100
 

@@ -66,9 +66,9 @@ require Exporter;
 require AutoLoader;
 
 # use Data::Dumper;
-# # use Carp qw(cluck croak carp);
-# # # use Carp::Clan qw(verbose);
-# use Carp::Clan;
+# use Carp qw(cluck croak carp);
+# # # # use Carp::Clan qw(verbose);
+# # use Carp::Clan;
 # sub cc
 # {
 #     my $info = shift;
@@ -80,7 +80,7 @@ require AutoLoader;
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.62';
+$VERSION = '2.63';
 
 my %dict;
 my %var;
@@ -2357,6 +2357,76 @@ $dict{ 'KEEP' } = sub {
     }
 };
 
+=head2 a KEEPV
+		
+	delete all element on the stack except the levels with indice in the var A
+	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,A,KEEPV
+	result: i d g
+		
+=cut
+
+$dict{ 'KEEPV' } = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my @ret;
+
+    if ( exists $var{ $name } )
+    {
+        if ( ref $var{ $name } eq 'ARRAY' )
+        {
+            foreach my $ind ( @{ $var{ $name } } )
+            {
+                push @ret, @{ $work1 }[ -$ind ] if ( defined @{ $work1 }[ -$ind ] );
+            }
+        }
+        else
+        {
+            push @ret, @{ $work1 }[ -$var{ $name } ] if ( defined @{ $work1 }[ -$var{ $name } ] );
+        }
+    }
+    return \@ret, scalar( @{ $work1 } ) + 1, 0;
+};
+
+=head2 a KEEPVV
+	
+	keep element from array B with indice from ARRAY A  
+	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,8,B,!!,B,A,KEEPVV
+	result: i d g
+	
+=cut
+
+$dict{ 'KEEPVV' } = sub {
+    my $work1 = shift;
+    my $name1 = pop @{ $work1 };
+    my $name2 = pop @{ $work1 };
+    my @ret;
+    my @tmp;
+
+    if ( exists $var{ $name1 } && exists $var{ $name2 } )
+    {
+        if ( ref $var{ $name2 } eq 'ARRAY' )
+        {
+            @tmp = @{ $var{ $name2 } };
+        }
+        else
+        {
+            @tmp = $var{ $name2 };
+        }
+        if ( ref $var{ $name1 } eq 'ARRAY' )
+        {
+            foreach my $ind ( @{ $var{ $name1 } } )
+            {
+                push @ret, $tmp[ -$ind ] if ( defined $tmp[ -$ind ] );
+            }
+        }
+        else
+        {
+            push @ret, $tmp[ -$var{ $name1 } ] if ( defined $tmp[ -$var{ $name1 } ] );
+        }
+    }
+    return \@ret, 2, 0;
+};
+
 =head2 b a KEEPN
 	
 	keep 'b' element on the stack from level 'a'
@@ -2756,7 +2826,7 @@ $dict{ 'VARIABLE' } = sub {
 
 =head2 xx var !
 
-        set and delete the value xx to the variable 'var'
+        set and delete from the stack the value xx to the variable 'var'
 	
 =cut
 
@@ -2771,7 +2841,7 @@ $dict{ '!' } = sub {
 
 =head2 xx var !A
 
-        append and delete the value xx to the variable 'var'
+        append to the variable and delete from the stack the value xx to the variable 'var'
 	
 =cut
 
@@ -2802,7 +2872,7 @@ $dict{ '!A' } = sub {
 
 =head2 x1 x2 x3 ... n var !!
 	
-	put and delete 'n' element(s) from the stack in the variable 'var'
+	put and delete from the stack 'n' element(s) from the stack in the variable 'var'
 	'n' is in absolute value 
 
 =cut
@@ -3315,13 +3385,12 @@ $dict{ 'OPEN' } = sub {
 
     my $type = O_RDONLY;
     $type |= O_RDONLY if ( $mode =~ /r/ );
-    $type |= O_RDWR if ( $mode =~ /w/ );
-    $type |= O_CREAT if ( $mode =~ /c/ );
-    $type |= O_TRUNC if ( $mode =~ /t/ );
+    $type |= O_RDWR   if ( $mode =~ /w/ );
+    $type |= O_CREAT  if ( $mode =~ /c/ );
+    $type |= O_TRUNC  if ( $mode =~ /t/ );
 
-        
     sysopen $fh, $file, $type;
-    seek $fh , 0 , 2    if ( $mode  =~ /a/ );
+    seek $fh, 0, 2 if ( $mode =~ /a/ );
     $var{ $fh_var } = $fh;
     return \@ret, 3, 0;
 };

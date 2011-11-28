@@ -6,3 +6,4 @@ test.pl                    Basic test script
 RPN.pl                     A little sample script which allow to play with the module from the command line
 META.yml                   Module meta-data (added by MakeMaker)
 CHANGELOG
+META.json                                Module JSON meta-data (added by MakeMaker)

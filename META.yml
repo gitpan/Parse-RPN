@@ -1,21 +1,22 @@
---- #YAML:1.0
-name:               Parse-RPN
-version:            2.63
-abstract:           Parse::RPN Is a minimalist RPN parser/processor (a little like FORTH)
-author:  []
-license:            unknown
-distribution_type:  module
-configure_requires:
-    ExtUtils::MakeMaker:  0
+---
+abstract: 'Parse::RPN Is a minimalist RPN parser/processor (a little like FORTH)'
+author:
+  - unknown
 build_requires:
-    ExtUtils::MakeMaker:  0
-requires:
-    HTTP::Date:  ~
-no_index:
-    directory:
-        - t
-        - inc
-generated_by:       ExtUtils::MakeMaker version 6.56
+  ExtUtils::MakeMaker: 0
+configure_requires:
+  ExtUtils::MakeMaker: 0
+dynamic_config: 1
+generated_by: 'ExtUtils::MakeMaker version 6.62, CPAN::Meta::Converter version 2.112621'
+license: unknown
 meta-spec:
-    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
-    version:  1.4
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Parse-RPN
+no_index:
+  directory:
+    - t
+    - inc
+requires:
+  HTTP::Date: 0
+version: 2.64

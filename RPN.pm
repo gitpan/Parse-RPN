@@ -65,22 +65,22 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 require Exporter;
 require AutoLoader;
 
-# use Data::Dumper;
-# use Carp qw(cluck croak carp);
-# # # # use Carp::Clan qw(verbose);
-# # use Carp::Clan;
-# sub cc
-# {
-#     my $info = shift;
-#     my $line = ( caller( 0 ) )[2] || 0;
-#     carp "[$line] $info";
-# }
+use Data::Dumper;
+use Carp qw(cluck croak carp);
+# # # use Carp::Clan qw(verbose);
+# use Carp::Clan;
+sub cc
+{
+    my $info = shift;
+    my $line = ( caller( 0 ) )[2] || 0;
+    carp "[$line] $info";
+}
 
 @ISA = qw(Exporter AutoLoader);
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.63';
+$VERSION = '2.64';
 
 my %dict;
 my %var;
@@ -1179,6 +1179,81 @@ $dict{ 'STR2DDEC' } = sub {
     return \@ret, 1, 0;
 };
 
+
+=head2 string a OIDSEARCHALLVAL
+
+      return all OID leaf from a snmpwalk macthing the REGEX a 
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
+      example:
+      '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVAL'
+      return:
+      688 2392
+	
+=cut
+
+$dict{ 'OIDSEARCHALLVAL' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    foreach my $i ( split /\s?\#/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/ )
+        {
+            my $match = $1;
+            my ( $oid, undef ) = split /\s\|\s/, $i;
+            $oid =~ /\.(\d+)$/;
+            push @ret, $1;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string x x x a OIDSEARCHALLVAL
+
+      return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
+      a is the number of leaf to pick from the stack 
+      x are all the leaf
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" # 
+      example: 
+      '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAF'
+      return:
+      running invalid
+ 
+=cut
+
+$dict{ 'OIDSEARCHLEAF' } = sub {
+    my $work1 = shift;
+
+    my $nbr = pop @{ $work1 };
+    my @all = splice @{ $work1 }, 1, $nbr;
+
+    my $string = pop @{ $work1 };
+    my @ret;
+    foreach my $i ( split /\s?\#/, $string )
+    {
+        next unless ( $i );
+        foreach my $regex ( @all )
+        {
+            if ( $i =~ /\.$regex\s?\|\s/ )
+            {
+                my ( undef, $val ) = split /\s\|\s/, $i;
+                push @ret, $val;
+            }
+        }
+    }
+    return \@ret, 3 + $nbr, 0;
+};
+
 ########################
 # string operators
 ########################
@@ -1447,7 +1522,7 @@ $dict{ 'LCFIRST' } = sub {
       split a with the REGEX R1
       each result are splitted with the REGEX R2
       the result are stored in the variable k and v
-      ( e.g.
+      
       # .1.3.6.1.2.1.25.3.3.1.2.768 | 48 # .1.3.6.1.2.1.25.3.3.1.2.769 | 38 # .1.3.6.1.2.1.25.3.3.1.2.771 | 42 # .1.3.6.1.2.1.25.3.3.1.2.770 | 58 #,\s?#\s?,\s\|\s,a,b,SPLIT2
       return a with .1.3.6.1.2.1.25.3.3.1.2.768,.1.3.6.1.2.1.25.3.3.1.2.769,.1.3.6.1.2.1.25.3.3.1.2.771,.1.3.6.1.2.1.25.3.3.1.2.770
       and b with 48,38,42,58
@@ -1702,7 +1777,10 @@ $dict{ 'PRINTF' } = sub {
 =head2 a b PACK
 
       pack the value 'a' with the format 'b'
-      2004,06,08,a4 a2 a2,PACK -> 20040608
+
+      2004,06,08,a4 a2 a2,PACK 
+      result: 20040608
+
       see pack in perl
 	
 =cut
@@ -1724,7 +1802,10 @@ $dict{ 'PACK' } = sub {
 =head2 a b UNPACK
 
       unpack the value 'a' with the format 'b'
-      20040608,a4 a2 a2,PACK -> 2004,06,08
+
+      20040608,a4 a2 a2,PACK
+      result: 2004,06,08
+
       see unpack in perl
 	
 =cut
@@ -2236,7 +2317,7 @@ $dict{ 'SEARCHI' } = sub {
 =head2 a SEARCHIA
 
 	get all level of stack containing the REGEX 'a' (cas insensitive)
-	empty the stack and return the number of item matching
+	empty the stack and return all the index of item matching
 
 =cut
 
@@ -2261,7 +2342,10 @@ $dict{ 'SEARCHIA' } = sub {
 =head2 a SEARCHA
 
 	get all level of stack containing the REGEX 'a' (cas sensitive)
-	empty the stack and return the number of item matching
+	empty the stack and return all the index of item matching
+
+	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHA
+	result: 8 7 4 2
 
 =cut
 
@@ -2286,6 +2370,9 @@ $dict{ 'SEARCHA' } = sub {
 =head2 a SEARCHK
 	
 	keep all level of stack containing the REGEX 'a' (cas sensitive)
+
+	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHK
+	result: toto toti tota tutot
 
 =cut
 
@@ -2360,6 +2447,7 @@ $dict{ 'KEEP' } = sub {
 =head2 a KEEPV
 		
 	delete all element on the stack except the levels with indice in the var A
+
 	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,A,KEEPV
 	result: i d g
 		
@@ -2390,6 +2478,7 @@ $dict{ 'KEEPV' } = sub {
 =head2 a KEEPVV
 	
 	keep element from array B with indice from ARRAY A  
+
 	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,8,B,!!,B,A,KEEPVV
 	result: i d g
 	
@@ -2432,7 +2521,10 @@ $dict{ 'KEEPVV' } = sub {
 	keep 'b' element on the stack from level 'a'
 	and delete all other element
 	'a' and 'b' is get in absolute value 
-	a,b,c,d,e,f,g,h,4,3,KEEPN -> c d e f
+
+	a,b,c,d,e,f,g,h,4,3,KEEPN
+        result: c d e f
+
 =cut
 
 $dict{ 'KEEPN' } = sub {
@@ -2449,7 +2541,10 @@ $dict{ 'KEEPN' } = sub {
 	
 	delete all elements on the stack except the level 'a' and keep all element deeper than 'b'
 	if 'a' is deeper then stack, keep the stack untouched
-	a,b,c,d,e,f,g,h,6,3,KEEPR -> a b f
+
+	a,b,c,d,e,f,g,h,6,3,KEEPR
+        result: a b f
+
 =cut
 
 $dict{ 'KEEPR' } = sub {
@@ -2478,7 +2573,9 @@ $dict{ 'KEEPR' } = sub {
 	
 	keep 'b' element on the stack from level 'a' and keep all element deeper than 'c'
 	if 'a' is deeper then stack, keep the stack untouched
-	a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN -> a b c g h i
+
+	a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN
+        result: a b c g h i
 
 =cut
 

@@ -8,6 +8,7 @@ use Getopt::Std;
 my %option;
 getopts( "vhds:r:f:", \%option );
 
+
 if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } )
 {
     $option{ h } = 1;

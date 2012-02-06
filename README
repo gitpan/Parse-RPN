@@ -131,6 +131,21 @@ RREELLAATTIIOONNAALL ooppeerraattoorrss
    aa bb !!==
              return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
 
+   aa bb
+             return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
+
+   aa bb ==
+             return the result of 'a' N<= 'b'  ( BOOLEAN value ) if a is ISNUM
+
+   aa bb NN>>
+             return the result of 'a' N> 'b'  ( BOOLEAN value ) if a is ISNUM
+
+   aa bb NN>>==
+             return the result of 'a' N>= 'b'  ( BOOLEAN value ) if a is ISNUM
+
+   aa bb NN====
+             return the result of 'a' N== 'b'  ( BOOLEAN value ) 1 if a == b and a ISNUM else 0
+
 LLOOGGIICCAALL ooppeerraattoorrss
    aa bb OORR
              return the 1 one of the 2 argument are not equal to 0
@@ -268,7 +283,18 @@ MMIISSCC ooppeerraattoorrss
              return:
              688 2392
 
-   ssttrriinngg xx xx xx aa OOIIDDSSEEAARRCCHHAALLLLVVAALL
+   ssttrriinngg aa OOIIDDSSEEAARRCCHHAALLLLVVAALL
+             return all OID leaf from a snmpwalk macthing the REGEX a ( case insensitive )
+             string are the OID walk list
+             the OID walk result use this format:
+             each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | '
+             '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
+             example:
+             '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVALI'
+             return:
+             688 2392
+
+   ssttrriinngg xx xx xx aa OOIIDDSSEEAARRCCHHLLEEAAFF
              return all VAL leaf from a snmpwalk when the OID leaf match each REGEX
              a is the number of leaf to pick from the stack
              x are all the leaf
@@ -278,6 +304,19 @@ MMIISSCC ooppeerraattoorrss
              '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
              example:
              '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAF'
+             return:
+             running invalid
+
+   ssttrriinngg xx xx xx aa OOIIDDSSEEAARRCCHHLLEEAAFFII
+             return all VAL leaf from a snmpwalk when the OID leaf match each REGEX
+             a ( case insensitive ) is the number of leaf to pick from the stack
+             x are all the leaf
+             string are the OID walk list
+             the OID walk result use this format:
+             each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | '
+             '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
+             example:
+             '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAFI'
              return:
              running invalid
 
@@ -1208,6 +1247,20 @@ LLIICCEENNSSEE
                This is free software, and you are welcome to redistribute
                it under certain conditions;
 
+PPOODD EERRRROORRSS
+       Hey! TThhee aabboovvee ddooccuummeenntt hhaadd ssoommee ccooddiinngg eerrrroorrss,, wwhhiicchh aarree eexxppllaaiinneedd
+       bbeellooww::
+
+       Around line 543:
+           Unterminated N<...> sequence
+
+           Deleting unknown formatting code N<>
+
+       Around line 558:
+           Unterminated N<...> sequence
+
+           Deleting unknown formatting code N<>
 
 
-perl v5.14.2                    ho2m0e1:1:-G1I1T-:2:8Parse-RPN::blib::lib::Parse::RPN(3)
+
+perl v5.14.2                    ho2m0e1:2:-G0I2T-:0:6Parse-RPN::blib::lib::Parse::RPN(3)

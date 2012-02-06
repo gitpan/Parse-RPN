@@ -1,6 +1,18 @@
 version <2 is only a RPN parser
 
 ----------------------------
+Date:   Mon Feb 6 13:37:00 2012 +0100
+
+add case insensitive OIDSEARCHALLVALI and OIDSEARCHLEAFI ( the latest one is not very useful )
+----------------------------
+Date:   Thu Jan 19 13:46:21 2012 +0100
+
+add relational operator staring with N to test th efirst element as numeric
+----------------------------
+Date:   Mon Nov 28 14:39:56 2011 +0100
+
+add OIDSEARCHALLVAL and OIDSEARCHALLVAL
+----------------------------
 revision : 2.63
 Date: Thu Apr 14 12:08:06 2011 +0200
 

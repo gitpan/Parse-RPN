@@ -80,7 +80,7 @@ sub cc
 
 @EXPORT = qw( rpn  rpn_error rpn_separator);
 
-$VERSION = '2.64';
+$VERSION = '2.66';
 
 my %dict;
 my %var;
@@ -508,6 +508,7 @@ $dict{ '==' } = sub {
     return \@ret, 2, 0;
 };
 
+
 =head2 a b <=>
 
       return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
@@ -538,6 +539,82 @@ $dict{ '!=' } = sub {
     return \@ret, 2, 0;
 };
 
+
+=head2 a b N<
+
+      return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{ 'N<' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a > $b ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N<=
+
+      return the result of 'a' N<= 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{ 'N<=' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a >= $b ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N>
+
+      return the result of 'a' N> 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{ 'N>' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a < $b ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N>=
+
+      return the result of 'a' N>= 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{ 'N>=' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a <= $b )? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+
+=head2 a b N==
+
+      return the result of 'a' N== 'b'  ( BOOLEAN value ) 1 if a == b and a ISNUM else 0
+	
+=cut
+
+$dict{ 'N==' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, (( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $b == $a ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
 ########################
 # logical operators
 ########################
@@ -1215,7 +1292,44 @@ $dict{ 'OIDSEARCHALLVAL' } = sub {
     return \@ret, 2, 0;
 };
 
-=head2 string x x x a OIDSEARCHALLVAL
+
+=head2 string a OIDSEARCHALLVAL
+
+      return all OID leaf from a snmpwalk macthing the REGEX a ( case insensitive ) 
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
+      example:
+      '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVALI'
+      return:
+      688 2392
+	
+=cut
+
+$dict{ 'OIDSEARCHALLVALI' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    foreach my $i ( split /\s?\#/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/i )
+        {
+            my $match = $1;
+            my ( $oid, undef ) = split /\s\|\s/, $i;
+            $oid =~ /\.(\d+)$/;
+            push @ret, $1;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+
+=head2 string x x x a OIDSEARCHLEAF
 
       return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
       a is the number of leaf to pick from the stack 
@@ -1253,6 +1367,47 @@ $dict{ 'OIDSEARCHLEAF' } = sub {
     }
     return \@ret, 3 + $nbr, 0;
 };
+
+
+=head2 string x x x a OIDSEARCHLEAFI
+
+      return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
+      a ( case insensitive ) is the number of leaf to pick from the stack 
+      x are all the leaf
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" # 
+      example: 
+      '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAFI'
+      return:
+      running invalid
+ 
+=cut
+
+$dict{ 'OIDSEARCHLEAFI' } = sub {
+    my $work1 = shift;
+
+    my $nbr = pop @{ $work1 };
+    my @all = splice @{ $work1 }, 1, $nbr;
+
+    my $string = pop @{ $work1 };
+    my @ret;
+    foreach my $i ( split /\s?\#/, $string )
+    {
+        next unless ( $i );
+        foreach my $regex ( @all )
+        {
+            if ( $i =~ /\.$regex\s?\|\s/ )
+            {
+                my ( undef, $val ) = split /\s\|\s/, $i;
+                push @ret, $val;
+            }
+        }
+    }
+    return \@ret, 3 + $nbr, 0;
+};
+
 
 ########################
 # string operators

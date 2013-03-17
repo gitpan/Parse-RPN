@@ -78,9 +78,9 @@ sub cc
 
 @ISA = qw(Exporter AutoLoader);
 
-@EXPORT = qw( rpn  rpn_error rpn_separator);
+@EXPORT = qw(rpn rpn_error rpn_separator);
 
-$VERSION = '2.66';
+$VERSION = '2.67';
 
 my %dict;
 my %var;
@@ -538,6 +538,41 @@ $dict{ '!=' } = sub {
     push @ret, ( $b != $a ? 1 : 0 );
     return \@ret, 2, 0;
 };
+
+
+=head2 a b v ><
+
+      return the 1 ( BOOLEAN value ) if c gretear than a but lower than b. Otherwise return 0
+	
+=cut
+
+$dict{ '><' } = sub {
+    my $work1 = shift;
+    my $v     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ($v > $a && $v < $b ) ? 1 : 0 );
+    return \@ret, 3, 0;
+};
+
+
+=head2 a b v >=<
+
+      return the 1 ( BOOLEAN value ) if c gretear or equal to a but lower or equal to b. Otherwise return 0
+	
+=cut
+
+$dict{ '>=<' } = sub {
+    my $work1 = shift;
+    my $v     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ($v >= $a && $v <= $b ) ? 1 : 0 );
+    return \@ret, 3, 0;
+};
+
 
 
 =head2 a b N<

@@ -80,7 +80,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator);
 
-$VERSION = '2.67';
+$VERSION = '2.68';
 
 my %dict;
 my %var;
@@ -698,6 +698,23 @@ $dict{ 'XOR' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a xor $b ) ? 1 : 0;
+    return \@ret, 2, 0;
+};
+
+=head2 a b NXOR
+
+      return the 0 if the  2 argument are equal. Any non numeric elements is seen as a 0.
+	
+=cut
+
+$dict{ 'NXOR' } = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    $a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0 ;
+    $b = $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $b : 0 ;
     my @ret;
     push @ret, ( $a xor $b ) ? 1 : 0;
     return \@ret, 2, 0;

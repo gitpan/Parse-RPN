@@ -1,6 +1,14 @@
 version <2 is only a RPN parser
 
 ----------------------------
+Date:   Tue Apr 9 12:47:45 2013 +0200
+
+add NXOR
+----------------------------
+Date:   Sun Mar 17 17:37:09 2013 +0100
+
+add >< and >=< operator
+----------------------------
 Date:   Mon Feb 6 13:37:00 2012 +0100
 
 add case insensitive OIDSEARCHALLVALI and OIDSEARCHLEAFI ( the latest one is not very useful )

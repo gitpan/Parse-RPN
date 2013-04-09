@@ -131,6 +131,12 @@ RREELLAATTIIOONNAALL ooppeerraattoorrss
    aa bb !!==
              return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
 
+   aa bb vv >><<
+             return the 1 ( BOOLEAN value ) if c gretear than a but lower than b. Otherwise return 0
+
+   aa bb vv >>==<<
+             return the 1 ( BOOLEAN value ) if c gretear or equal to a but lower or equal to b. Otherwise return 0
+
    aa bb
              return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
 
@@ -155,6 +161,9 @@ LLOOGGIICCAALL ooppeerraattoorrss
 
    aa bb XXOORR
              return the 0 if the  2 argument are equal
+
+   aa bb NNXXOORR
+             return the 0 if the  2 argument are equal. Any non numeric elements is seen as a 0.
 
    aa NNOOTT
              return the 0 if the argument is not eqauk to 0
@@ -1251,16 +1260,16 @@ PPOODD EERRRROORRSS
        Hey! TThhee aabboovvee ddooccuummeenntt hhaadd ssoommee ccooddiinngg eerrrroorrss,, wwhhiicchh aarree eexxppllaaiinneedd
        bbeellooww::
 
-       Around line 543:
+       Around line 578:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
-       Around line 558:
+       Around line 593:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
 
 
-perl v5.14.2                    ho2m0e1:2:-G0I2T-:0:6Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.14.2                    ho2m0e1:3:-G0I4T-:0:9Parse-RPN::blib::lib::Parse::RPN(3)

@@ -80,7 +80,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator);
 
-$VERSION = '2.68';
+$VERSION = '2.69';
 
 my %dict;
 my %var;
@@ -508,7 +508,6 @@ $dict{ '==' } = sub {
     return \@ret, 2, 0;
 };
 
-
 =head2 a b <=>
 
       return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
@@ -539,7 +538,6 @@ $dict{ '!=' } = sub {
     return \@ret, 2, 0;
 };
 
-
 =head2 a b v ><
 
       return the 1 ( BOOLEAN value ) if c gretear than a but lower than b. Otherwise return 0
@@ -552,10 +550,9 @@ $dict{ '><' } = sub {
     my $b     = pop @{ $work1 };
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ( ($v > $a && $v < $b ) ? 1 : 0 );
+    push @ret, ( ( $v > $a && $v < $b ) ? 1 : 0 );
     return \@ret, 3, 0;
 };
-
 
 =head2 a b v >=<
 
@@ -569,11 +566,9 @@ $dict{ '>=<' } = sub {
     my $b     = pop @{ $work1 };
     my $a     = pop @{ $work1 };
     my @ret;
-    push @ret, ( ($v >= $a && $v <= $b ) ? 1 : 0 );
+    push @ret, ( ( $v >= $a && $v <= $b ) ? 1 : 0 );
     return \@ret, 3, 0;
 };
-
-
 
 =head2 a b N<
 
@@ -631,10 +626,9 @@ $dict{ 'N>=' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a <= $b )? 1 : 0 );
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a <= $b ) ? 1 : 0 );
     return \@ret, 2, 0;
 };
-
 
 =head2 a b N==
 
@@ -647,7 +641,7 @@ $dict{ 'N==' } = sub {
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, (( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $b == $a ) ? 1 : 0 );
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $b == $a ) ? 1 : 0 );
     return \@ret, 2, 0;
 };
 ########################
@@ -713,8 +707,8 @@ $dict{ 'NXOR' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
-    $a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0 ;
-    $b = $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $b : 0 ;
+    $a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0;
+    $b = $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $b : 0;
     my @ret;
     push @ret, ( $a xor $b ) ? 1 : 0;
     return \@ret, 2, 0;
@@ -1187,8 +1181,15 @@ $dict{ 'UNORM' } = sub {
     $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
     my $num  = $1;
     my $suff = lc( $3 );
-    my %EXP  = ( "k" => 1, "m" => 2, "g" => 3, "t" => 4, "p" => 5 );
+    my %EXP  = (
+        "k" => 1,
+        "m" => 2,
+        "g" => 3,
+        "t" => 4,
+        "p" => 5
+    );
     my $mult = 0;
+
     if ( exists( $EXP{ $suff } ) )
     {
         $mult = $EXP{ $suff };
@@ -1214,8 +1215,15 @@ $dict{ 'UNORM2' } = sub {
     $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
     my $num  = $1;
     my $suff = lc( $3 );
-    my %EXP  = ( "k" => 1, "m" => 2, "g" => 3, "t" => 4, "p" => 5 );
+    my %EXP  = (
+        "k" => 1,
+        "m" => 2,
+        "g" => 3,
+        "t" => 4,
+        "p" => 5
+    );
     my $mult = 0;
+
     if ( exists( $EXP{ $suff } ) )
     {
         $mult = $EXP{ $suff };
@@ -1308,13 +1316,80 @@ $dict{ 'STR2DDEC' } = sub {
     return \@ret, 1, 0;
 };
 
+=head2 string a SLSEARCHALLKEYS
+
+      return all VALUES from a structurated where the STRUCTURATED LIST keys match the REGEX a
+      string are the STRUCTURATED LIST list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #' 
+      example:
+      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #,1.3.6.1.2.1.25.3.3.1.2.,SLSEARCHALLKEYS'
+      return:
+      1 5 6 2
+
+=cut
+
+$dict{ 'SLSEARCHALLKEYS' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    foreach my $i ( split /\s?\#/, $string )
+    {
+        next unless ( $i );
+        my $match = $1;
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $key =~ /$regex/ )
+        {
+            push @ret, $val;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLSEARCHALLKEYSI
+
+      return all VALUES from a structurated where the STRUCTURATED LIST key match the REGEX a
+      string are the STRUCTURATED LIST list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #'
+      example:
+      '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #,toto,SLSEARCHALLKEYSI'
+      return:
+      oops yeah
+
+=cut
+
+$dict{ 'SLSEARCHALLKEYSI' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    foreach my $i ( split /\s?\#/, $string )
+    {
+        next unless ( $i );
+        my $match = $1;
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $key =~ /$regex/i )
+        {
+            push @ret, $val;
+        }
+    }
+    return \@ret, 2, 0;
+};
 
 =head2 string a OIDSEARCHALLVAL
 
       return all OID leaf from a snmpwalk macthing the REGEX a 
       string are the OID walk list
       the OID walk result use this format:
-      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
       '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
       example:
       '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVAL'
@@ -1344,13 +1419,12 @@ $dict{ 'OIDSEARCHALLVAL' } = sub {
     return \@ret, 2, 0;
 };
 
-
-=head2 string a OIDSEARCHALLVAL
+=head2 string a OIDSEARCHALLVALI
 
       return all OID leaf from a snmpwalk macthing the REGEX a ( case insensitive ) 
       string are the OID walk list
       the OID walk result use this format:
-      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
       '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
       example:
       '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVALI'
@@ -1380,7 +1454,6 @@ $dict{ 'OIDSEARCHALLVALI' } = sub {
     return \@ret, 2, 0;
 };
 
-
 =head2 string x x x a OIDSEARCHLEAF
 
       return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
@@ -1388,7 +1461,7 @@ $dict{ 'OIDSEARCHALLVALI' } = sub {
       x are all the leaf
       string are the OID walk list
       the OID walk result use this format:
-      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
       '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" # 
       example: 
       '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAF'
@@ -1419,7 +1492,6 @@ $dict{ 'OIDSEARCHLEAF' } = sub {
     }
     return \@ret, 3 + $nbr, 0;
 };
-
 
 =head2 string x x x a OIDSEARCHLEAFI
 
@@ -1459,7 +1531,6 @@ $dict{ 'OIDSEARCHLEAFI' } = sub {
     }
     return \@ret, 3 + $nbr, 0;
 };
-
 
 ########################
 # string operators

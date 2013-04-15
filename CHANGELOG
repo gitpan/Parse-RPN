@@ -1,6 +1,11 @@
 version <2 is only a RPN parser
 
 ----------------------------
+Date:   Mon Apr 15 14:00:00 2013 +0200
+
+Add SLSEARCHALLKEYS and SLSEARCHALLKEYSI
+Some typo in doc
+----------------------------
 Date:   Tue Apr 9 12:47:45 2013 +0200
 
 add NXOR

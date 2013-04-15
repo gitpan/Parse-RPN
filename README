@@ -281,6 +281,28 @@ MMIISSCC ooppeerraattoorrss
              return a dotted DEC string to a string
              useful when you need to manipulate an SNMP extension with 'exec'
 
+   ssttrriinngg aa SSLLSSEEAARRCCHHAALLLLKKEEYYSS
+             return all VALUES from a structurated where the OID match the REGEX a
+             string are the STRUCTURATED LIST walk list
+             the STRUCTUIRATED LIST use this format:
+             each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | '
+             '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #'
+             example:
+             '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #,1.3.6.1.2.1.25.3.3.1.2.,SLSEARCHALLKEYS'
+             return:
+             1 5 6 2
+
+   ssttrriinngg aa SSLLSSEEAARRCCHHAALLLLKKEEYYSSII
+             return all VALUES from a structurated where the STRUCTURATED LIST match the REGEX a
+             string are the STRUCTURATED LIST walk list
+             the STRUCTURATED LIST use this format:
+             each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | '
+             '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #'
+             example:
+             '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #,toto,SLSEARCHALLKEYSI'
+             return:
+             oops yeah
+
    ssttrriinngg aa OOIIDDSSEEAARRCCHHAALLLLVVAALL
              return all OID leaf from a snmpwalk macthing the REGEX a
              string are the OID walk list
@@ -292,7 +314,7 @@ MMIISSCC ooppeerraattoorrss
              return:
              688 2392
 
-   ssttrriinngg aa OOIIDDSSEEAARRCCHHAALLLLVVAALL
+   ssttrriinngg aa OOIIDDSSEEAARRCCHHAALLLLVVAALLII
              return all OID leaf from a snmpwalk macthing the REGEX a ( case insensitive )
              string are the OID walk list
              the OID walk result use this format:
@@ -1272,4 +1294,4 @@ PPOODD EERRRROORRSS
 
 
 
-perl v5.14.2                    ho2m0e1:3:-G0I4T-:0:9Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.14.2                    ho2m0e1:3:-G0I4T-:1:5Parse-RPN::blib::lib::Parse::RPN(3)

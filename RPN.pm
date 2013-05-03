@@ -80,7 +80,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator);
 
-$VERSION = '2.69';
+$VERSION = '2.70';
 
 my %dict;
 my %var;
@@ -1316,10 +1316,148 @@ $dict{ 'STR2DDEC' } = sub {
     return \@ret, 1, 0;
 };
 
+=head2 string a SLGREP
+
+      return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a.
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
+      example:
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,Keys,SLGREP'
+      return:
+      #  Keys3 | val3 #
+
+=cut
+
+$dict{ 'SLGREP' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    my $res;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/ )
+        {
+            $res .= $i.' #';
+        }
+    }
+    $res = '# '.$res if ( $res );
+    push @ret, $res; 
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLGREPI
+
+      return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a (case insensitive).
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
+      example:
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,Keys,SLGREPI'
+      return:
+      #  keys1 | val1 # Keys3 | val3 #
+
+=cut
+
+$dict{ 'SLGREPI' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    my $res;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/i )
+        {
+            $res .= $i.' #';
+        }
+    }
+    $res = '# '.$res if ( $res );
+    push @ret, $res; 
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLSEARCHALL
+
+      return all KEYS from a structurated where the STRUCTURATED LIST val match the REGEX a.
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+     
+      example:
+      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 5 # 1.3.6.1.2.1.25.3.3.1.2.780 | 25 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #,2,SLSEARCHALL'
+      return:
+      1.3.6.1.2.1.25.3.3.1.2.780  1.3.6.1.2.1.25.3.3.1.2.782
+
+=cut
+
+$dict{ 'SLSEARCHALL' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $val =~ /$regex/ )
+        {
+            push @ret, $key;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLSEARCHALLI
+
+      return all KEYS from a structurated where the STRUCTURATED LIST val match the REGEX a (case insensitive).
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      '# key1 | val1 # key2 | val2 # key12 | VAL12 #,val1,SLSEARCHALLI'
+      example:
+      '# key1 | val1 # key2 | val2 # key12 | VAL12 #,val1,SLSEARCHALLI'
+      return:
+      key1  key12
+
+=cut
+
+$dict{ 'SLSEARCHALLI' } = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $val =~ /$regex/i )
+        {
+            push @ret, $key;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+
+
 =head2 string a SLSEARCHALLKEYS
 
       return all VALUES from a structurated where the STRUCTURATED LIST keys match the REGEX a
-      string are the STRUCTURATED LIST list
+      string are the STRUCTURATED list
       the STRUCTURATED LIST use this format:
       each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
       '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #' 
@@ -1337,7 +1475,7 @@ $dict{ 'SLSEARCHALLKEYS' } = sub {
     my $string = pop @{ $work1 };
 
     my @ret;
-    foreach my $i ( split /\s?\#/, $string )
+    foreach my $i ( split /\s?\#\s?/, $string )
     {
         next unless ( $i );
         my $match = $1;
@@ -1352,8 +1490,8 @@ $dict{ 'SLSEARCHALLKEYS' } = sub {
 
 =head2 string a SLSEARCHALLKEYSI
 
-      return all VALUES from a structurated where the STRUCTURATED LIST key match the REGEX a
-      string are the STRUCTURATED LIST list
+      return all VALUES from a structurated where the STRUCTURATED LIST key match the REGEX a.
+      string are the STRUCTURATED list.
       the STRUCTURATED LIST use this format:
       each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
       '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #'
@@ -1371,7 +1509,7 @@ $dict{ 'SLSEARCHALLKEYSI' } = sub {
     my $string = pop @{ $work1 };
 
     my @ret;
-    foreach my $i ( split /\s?\#/, $string )
+    foreach my $i ( split /\s?\#\s?/, $string )
     {
         next unless ( $i );
         my $match = $1;
@@ -1405,7 +1543,7 @@ $dict{ 'OIDSEARCHALLVAL' } = sub {
     my $string = pop @{ $work1 };
 
     my @ret;
-    foreach my $i ( split /\s?\#/, $string )
+    foreach my $i ( split /\s?\#\s?/, $string )
     {
         next unless ( $i );
         if ( $i =~ /$regex/ )
@@ -1440,7 +1578,7 @@ $dict{ 'OIDSEARCHALLVALI' } = sub {
     my $string = pop @{ $work1 };
 
     my @ret;
-    foreach my $i ( split /\s?\#/, $string )
+    foreach my $i ( split /\s?\#\s?/, $string )
     {
         next unless ( $i );
         if ( $i =~ /$regex/i )
@@ -1478,7 +1616,7 @@ $dict{ 'OIDSEARCHLEAF' } = sub {
 
     my $string = pop @{ $work1 };
     my @ret;
-    foreach my $i ( split /\s?\#/, $string )
+    foreach my $i ( split /\s?\#\s?/, $string )
     {
         next unless ( $i );
         foreach my $regex ( @all )
@@ -1517,7 +1655,7 @@ $dict{ 'OIDSEARCHLEAFI' } = sub {
 
     my $string = pop @{ $work1 };
     my @ret;
-    foreach my $i ( split /\s?\#/, $string )
+    foreach my $i ( split /\s?\#\s?/, $string )
     {
         next unless ( $i );
         foreach my $regex ( @all )

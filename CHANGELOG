@@ -1,27 +1,38 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.70
+Date:   Fri May 3 12:09:43 2013 +0200
+
+Add SLGREP, SLGREPI , SLSEARCHALL and SLSEARCHALLI
+----------------------------
+revision : 2.69
 Date:   Mon Apr 15 14:00:00 2013 +0200
 
 Add SLSEARCHALLKEYS and SLSEARCHALLKEYSI
 Some typo in doc
 ----------------------------
+revision : 2.68
 Date:   Tue Apr 9 12:47:45 2013 +0200
 
 add NXOR
 ----------------------------
+revision : 2.67
 Date:   Sun Mar 17 17:37:09 2013 +0100
 
 add >< and >=< operator
 ----------------------------
+revision : 2.66
 Date:   Mon Feb 6 13:37:00 2012 +0100
 
 add case insensitive OIDSEARCHALLVALI and OIDSEARCHLEAFI ( the latest one is not very useful )
 ----------------------------
+revision : 2.65
 Date:   Thu Jan 19 13:46:21 2012 +0100
 
 add relational operator staring with N to test th efirst element as numeric
 ----------------------------
+revision : 2.64
 Date:   Mon Nov 28 14:39:56 2011 +0100
 
 add OIDSEARCHALLVAL and OIDSEARCHALLVAL

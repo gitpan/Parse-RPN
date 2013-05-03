@@ -6,10 +6,10 @@ use Parse::RPN;
 use Getopt::Std;
 
 my %option;
-getopts( "vhds:r:f:", \%option );
+getopts( "vhds:r:f:S", \%option );
 
 
-if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } )
+if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } &&  !defined $option{ S } )
 {
     $option{ h } = 1;
 }
@@ -24,6 +24,7 @@ if ( $option{ h } )
     print "\t -s sep \tuse sep as separator fro the output\n";
     print "\t -r rpn \tuse rpn as string for the RPN test\n";
     print "\t -f file \tuse this file for the RPN test\n";
+    print "\t -S \t\tshell mode\n";
     exit;
 }
 
@@ -56,6 +57,17 @@ else
     elsif ( $option{ r } )
     {
         $ret = rpn( $option{ r } );
+    }
+    elsif  ( $option{ S } )
+    {
+    while ( my $in = <> )
+    {
+    print $in;
+    chomp $in;
+    $ret = rpn($in);
+    print "$ret";
+    }
+    
     }
 }
 print "$ret\n";

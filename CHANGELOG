@@ -1,6 +1,18 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.72
+Date:   Tue May 7 09:09:08 2013 +0200
+
+Add PERLUNARY
+Clean PERLFUNC
+----------------------------
+revision : 2.71
+Date:   Mon May 6 11:18:06 2013 +0200
+
+Replace rpn_separator by rpn_sseparator_out
+Add rpn_separator_in
+----------------------------
 revision : 2.70
 Date:   Fri May 3 12:09:43 2013 +0200
 

@@ -389,7 +389,7 @@ MMIISSCC ooppeerraattoorrss
              string are the OID walk list
              the OID walk result use this format:
              each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | '
-             '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
+             '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #'
              example:
              '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAFI'
              return:
@@ -804,6 +804,14 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
                e.g. ':,5,filename,save,PERLFUNC'
                call the function save("filename", 5);
 
+   xxxxxx nnaammee11 PPEERRLLUUNNAARRYY
+               execute the PERL function name1 with the only one parameter xxx
+               the default name space is "main::"
+               It is possible tu use a specific name space
+               the paramter are "stringified"
+               e.g. 'file,name,CAT,substit,PERLUNARY'
+               call the function substit("filename");
+
    aa >>RR
                put 'a' on the return stack
 
@@ -899,9 +907,12 @@ UUsseeffuull ffuunnccttiioonnss ffoorr tthhee mmoodduul
    _r_p_n___e_r_r_o_r_(_)
                function which return the debug info from the calculation (like a division by 0)
 
-   rrppnn__sseeppaarraattoorr(( ''sseepp'' ))
+   rrppnn__sseeppaarraattoorr__oouutt(( ''sseepp'' ))
                function to set a specific separator for the returned stack (default = space)
                This is useful when the result of rpn() is use inside another rpn() call
+
+   rrppnn__sseeppaarraattoorr__iinn(( ''sseepp'' ))
+               function to set a specific separator for the input data (default = ')
 
 OOPPEERRAATTOORRSS
             The operators get value from the stack and push the result on top
@@ -1338,4 +1349,4 @@ PPOODD EERRRROORRSS
 
 
 
-perl v5.14.2                    ho2m0e1:3:-G0I5T-:0:3Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.14.2                    ho2m0e1:3:-G0I5T-:0:7Parse-RPN::blib::lib::Parse::RPN(3)

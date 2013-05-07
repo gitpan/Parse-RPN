@@ -78,9 +78,9 @@ sub cc
 
 @ISA = qw(Exporter AutoLoader);
 
-@EXPORT = qw(rpn rpn_error rpn_separator);
+@EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.70';
+$VERSION = '2.72';
 
 my %dict;
 my %var;
@@ -91,8 +91,8 @@ my @return;
 
 my $DEBUG;
 
-my $separator = " ";
-
+my $separator_out = ' ';
+my $separator_in  = ',';
 ########################
 # mathematic operators
 ########################
@@ -1343,11 +1343,11 @@ $dict{ 'SLGREP' } = sub {
         next unless ( $i );
         if ( $i =~ /$regex/ )
         {
-            $res .= $i.' #';
+            $res .= $i . ' #';
         }
     }
-    $res = '# '.$res if ( $res );
-    push @ret, $res; 
+    $res = '# ' . $res if ( $res );
+    push @ret, $res;
     return \@ret, 2, 0;
 };
 
@@ -1378,11 +1378,11 @@ $dict{ 'SLGREPI' } = sub {
         next unless ( $i );
         if ( $i =~ /$regex/i )
         {
-            $res .= $i.' #';
+            $res .= $i . ' #';
         }
     }
-    $res = '# '.$res if ( $res );
-    push @ret, $res; 
+    $res = '# ' . $res if ( $res );
+    push @ret, $res;
     return \@ret, 2, 0;
 };
 
@@ -1451,8 +1451,6 @@ $dict{ 'SLSEARCHALLI' } = sub {
     }
     return \@ret, 2, 0;
 };
-
-
 
 =head2 string a SLSEARCHALLKEYS
 
@@ -1639,7 +1637,7 @@ $dict{ 'OIDSEARCHLEAF' } = sub {
       string are the OID walk list
       the OID walk result use this format:
       each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
-      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" # 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #' 
       example: 
       '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAFI'
       return:
@@ -3784,19 +3782,19 @@ $dict{ 'PERLFUNC' } = sub {
     }
     my $len_after = scalar( @BLOCK );
     my $delta     = $len_before - $len_after;
-    my $rev_name  = reverse $name;
-    my $arg       = join ",", reverse @BLOCK;
+#    my $rev_name  = reverse $name;
+    my $arg = join ',', reverse @BLOCK;
     my $todo;
     if ( $name !~ /::[^:]*$/ )
     {
-        $todo = "main::" . $name . "(" . $arg . ");";
+        $todo = "main::" . $name . '(' . $arg . ');';
     }
     else
     {
 #         my $before = $`;
         my $before = ${^PREMATCH};
         eval "require  $before";
-        $todo = $name . "(" . $arg . ");";
+        $todo = $name . '(' . $arg . ');';
     }
     my @ret = eval( $todo );
     if ( $@ )
@@ -3806,6 +3804,43 @@ $dict{ 'PERLFUNC' } = sub {
         @ret   = ();
     }
     return \@ret, scalar( @BLOCK ) + $delta + 1, 2;
+};
+
+=head2  xxx name1 PERLUNARY
+
+        execute the PERL function name1 with the only one parameter xxx
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	the paramter are "stringified"
+	e.g. 'file,name,CAT,substit,PERLUNARY'
+	call the function substit("filename");
+	
+=cut
+
+$dict{ 'PERLUNARY' } = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my $arg   = pop @{ $work1 };
+    my $todo;
+    if ( $name !~ /::[^:]*$/ )
+    {
+        $todo = "main::" . $name . '("' . $arg . '");';
+    }
+    else
+    {
+        my $before = ${^PREMATCH};
+        eval "require  $before";
+        $todo = $name . '("' . $arg . '");';
+    }
+    my @ret = eval( $todo );
+    if ( $@ )
+    {
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
+    }
+    return \@ret, 2, 0;
+
 };
 
 =head2 a >R
@@ -4348,7 +4383,7 @@ $dict{ '+LOOP' } = sub {
 sub parse
 {
     my $remainder = shift;
-    $remainder =~ s/^,//;
+    $remainder =~ s/^$separator_in//;
     my $before;
     my $is_string = 0;
     $remainder =~ s/^\s+//;
@@ -4364,7 +4399,7 @@ sub parse
     }
     else
     {
-        ( $before, $remainder ) = split /,/, $remainder, 2;
+        ( $before, $remainder ) = split /$separator_in/, $remainder, 2;
     }
     return ( $before, $remainder, $is_string );
 }
@@ -4389,7 +4424,7 @@ sub rpn($)
         }
     }
     process( \@stack );
-    my $ret = join $separator, @stack;
+    my $ret = join $separator_out, @stack;
     return $ret;
 }
 
@@ -4575,17 +4610,30 @@ sub rpn_error
     return $DEBUG;
 }
 
-=head2  rpn_separator( 'sep' )
+=head2  rpn_separator_out( 'sep' )
 
 	function to set a specific separator for the returned stack (default = space)
 	This is useful when the result of rpn() is use inside another rpn() call 
 	
 =cut
 
-sub rpn_separator
+sub rpn_separator_out
 {
-    $separator = shift;
+    $separator_out = shift;
 }
+
+=head2  rpn_separator_in( 'sep' )
+
+	function to set a specific separator for the input data (default = ')
+	
+	
+=cut
+
+sub rpn_separator_in
+{
+    $separator_in = shift;
+}
+
 1;
 
 __END__

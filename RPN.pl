@@ -6,10 +6,15 @@ use Parse::RPN;
 use Getopt::Std;
 
 my %option;
-getopts( "vhds:r:f:S", \%option );
-
-
-if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } &&  !defined $option{ S } )
+getopts( "vhdi:o:r:f:Sp", \%option );
+my $sep_in = ',';
+my %S      = (
+    bytesin  => 100,
+    bytesout => 222,
+    name     => 'eth0',
+    mac      => 0xccaabbff,
+);
+if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } && !defined $option{ S } )
 {
     $option{ h } = 1;
 }
@@ -18,19 +23,26 @@ if ( $option{ h } )
 {
     print "Usage: $0 [options ...]\n\n";
     print "Where options include:\n";
-    print "\t -h \t\tthis help (what else ?)\n";
-    print "\t -v \t\tprint version and exit\n";
-    print "\t -d \t\tprint debuging value\n";
-    print "\t -s sep \tuse sep as separator fro the output\n";
-    print "\t -r rpn \tuse rpn as string for the RPN test\n";
-    print "\t -f file \tuse this file for the RPN test\n";
-    print "\t -S \t\tshell mode\n";
+    print "\t -h \t\t this help (what else ?)\n";
+    print "\t -v \t\t print version and exit\n";
+    print "\t -d \t\t print debuging value\n";
+    print "\t -o sep \t use sep as separator for the output\n";
+    print "\t -i sep \t use sep as separator for the input\n";
+    print "\t -r rpn \t use rpn as string for the RPN test\n";
+    print "\t -f file \t use this file for the RPN test\n";
+    print "\t -S \t\t shell mode\n";
+    print "\t -p \t\t process partial RPN\n";
     exit;
 }
 
-if ( $option{ s } )
+if ( $option{ o } )
 {
-    rpn_separator( $option{ s } );
+    rpn_separator_out( $option{ o } );
+}
+if ( $option{ i } )
+{
+    rpn_separator_in( $option{ i } );
+    $sep_in = $option{ i };
 }
 
 if ( $option{ v } )
@@ -56,18 +68,38 @@ else
     }
     elsif ( $option{ r } )
     {
-        $ret = rpn( $option{ r } );
+        my $data = $option{ r };
+        if ( $option{ p } )
+        {
+            $data = partial_rpn( $data );
+            print "$ret\n";
+        }
+        $ret = rpn( $data );
     }
-    elsif  ( $option{ S } )
+    elsif ( $option{ S } )
     {
-    while ( my $in = <> )
-    {
-    print $in;
-    chomp $in;
-    $ret = rpn($in);
-    print "$ret";
-    }
-    
+        print "Shell mode\n";
+        print "IN separator=" . $option{ i } . "\n"  if ( exists $option{ i } );
+        print "OUT separator=" . $option{ o } . "\n" if ( exists $option{ o } );
+        while ( my $ret = <> )
+        {
+            chomp $ret;
+            print "=" x 50 . "\n";
+            print "\n";
+            if ( $option{ p } )
+            {
+                $ret = partial_rpn( $ret );
+
+                print "$ret\n";
+                print "\n";
+                print "-" x 50 . "\n";
+            }
+            $ret = rpn( $ret );
+
+            print "$ret\n\n";
+            print "#" x 50 . "\n";
+        }
+
     }
 }
 print "$ret\n";
@@ -102,4 +134,29 @@ sub restore
     close FILE;
     print "restore file=$file\tdata=$data\n";
     return $data;
+}
+
+sub partial_rpn
+{
+    my $data = shift;
+    if ( $data =~ /(^|(.*)$sep_in)(\d+)($sep_in)RPN($sep_in(.*)|$)/ )
+    {
+        my $before = $2;
+        my $size   = $3;
+        my $after  = $5;
+        $before =~ s/((($sep_in)[^$sep_in]*){$size})$//;
+        my $tmp = $1;
+        my $r   = rpn( $tmp );
+        $data = $before . $sep_in . $r . $sep_in . $after;
+        $data =~ s/$sep_in+/$sep_in/g;
+    }
+    return $data;
+}
+
+sub substit
+{
+    my $var = shift;
+#print "in substit with <$var>\n";
+    return $S{ $var };
+
 }

@@ -800,16 +800,40 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
                execute the PERL function name1 with the parameter xxx
                the default name space is "main::"
                It is possible tu use a specific name space
-               the paramter are "stringified"
+               the parameter are "stringified"
                e.g. ':,5,filename,save,PERLFUNC'
                call the function save("filename", 5);
 
-   xxxxxx nnaammee11 PPEERRLLUUNNAARRYY
+   xxxxxx nnbbrr nnaammee11 PPEERRLLVVAARR
+               retrun the perl variable ( or ref )
+               If the var returned is an array, return each element of the array on the stack
+               If the var returned is a hash , return a STRUCTURATED LIST
+               the default name space is "main::"
+               It is possible tu use a specific name space
+               the parameter are "stringified"
+               e.g.1 '{$data},PERLVAR'
+               call the value of $data;
+               e.g.2 '{%S}->{extra},PERLVAR'
+               call the value of $S->{extra};
+
+   xxxxxx nnbbrr nnaammee11 PPEERRLLFFUUNNCCXX
+               execute the PERL function name1 with nbr parameters from the stack xxx
+               the default name space is "main::"
+               It is possible tu use a specific name space
+               the parameter are "stringified"
+               !!! because this function don't know the namescape of the caller
+               !!! the paramter for the function must be scalar
+               !!! and not a perl variable or a ref to a perl compenent
+               !!! see PERLVAR
+               e.g. 'file,name,2,substit,PERLFUNCX'
+               call the function substit("name", "file");
+
+   xxxxxx nnaammee11 PPEERRLLFFUUNNCC11
                execute the PERL function name1 with the only one parameter xxx
                the default name space is "main::"
                It is possible tu use a specific name space
-               the paramter are "stringified"
-               e.g. 'file,name,CAT,substit,PERLUNARY'
+               the parameter are "stringified"
+               e.g. 'file,name,CAT,substit,PERLFUNC1'
                call the function substit("filename");
 
    aa >>RR
@@ -1337,16 +1361,16 @@ PPOODD EERRRROORRSS
        Hey! TThhee aabboovvee ddooccuummeenntt hhaadd ssoommee ccooddiinngg eerrrroorrss,, wwhhiicchh aarree eexxppllaaiinneedd
        bbeellooww::
 
-       Around line 573:
+       Around line 574:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
-       Around line 588:
+       Around line 589:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
 
 
-perl v5.14.2                    ho2m0e1:3:-G0I5T-:0:7Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.14.2                    ho2m0e1:3:-G0I5T-:1:0Parse-RPN::blib::lib::Parse::RPN(3)

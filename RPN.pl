@@ -13,6 +13,8 @@ my %S      = (
     bytesout => 222,
     name     => 'eth0',
     mac      => 0xccaabbff,
+    extra => { a => 'azerty' , b => 'test' , c => 'qwerty'},
+    extra1 => ['azerty1' , 'test1' ]
 );
 if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } && !defined $option{ S } )
 {
@@ -158,5 +160,16 @@ sub substit
     my $var = shift;
 #print "in substit with <$var>\n";
     return $S{ $var };
+
+}
+
+sub substit2
+{
+    my $var = shift;
+    my $ref = shift;
+    
+    print "in substit with <$var> <$ref>\n";
+
+    return "$ref -> $var ";
 
 }

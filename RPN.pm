@@ -66,7 +66,8 @@ require Exporter;
 require AutoLoader;
 
 use Data::Dumper;
-use Carp qw(cluck croak carp);
+use Carp qw(carp);
+# use Carp qw(cluck croak carp);
 # # # use Carp::Clan qw(verbose);
 # use Carp::Clan;
 sub cc
@@ -80,7 +81,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.72';
+$VERSION = '2.73';
 
 my %dict;
 my %var;
@@ -3752,7 +3753,7 @@ $dict{ 'PERL' } = sub {
         execute the PERL function name1 with the parameter xxx
 	the default name space is "main::"
 	It is possible tu use a specific name space
-	the paramter are "stringified"
+	the parameter are "stringified"
 	e.g. ':,5,filename,save,PERLFUNC'
 	call the function save("filename", 5);
 	
@@ -3782,8 +3783,7 @@ $dict{ 'PERLFUNC' } = sub {
     }
     my $len_after = scalar( @BLOCK );
     my $delta     = $len_before - $len_after;
-#    my $rev_name  = reverse $name;
-    my $arg = join ',', reverse @BLOCK;
+    my $arg       = join ',', reverse @BLOCK;
     my $todo;
     if ( $name !~ /::[^:]*$/ )
     {
@@ -3791,7 +3791,6 @@ $dict{ 'PERLFUNC' } = sub {
     }
     else
     {
-#         my $before = $`;
         my $before = ${^PREMATCH};
         eval "require  $before";
         $todo = $name . '(' . $arg . ');';
@@ -3806,18 +3805,146 @@ $dict{ 'PERLFUNC' } = sub {
     return \@ret, scalar( @BLOCK ) + $delta + 1, 2;
 };
 
-=head2  xxx name1 PERLUNARY
+=head2  xxx nbr name1 PERLVAR
+
+        retrun the perl variable ( or ref )
+        If the var returned is an array, return each element of the array on the stack
+        If the var returned is a hash , return a STRUCTURATED LIST
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	the parameter are "stringified"
+	e.g.1 '{$data},PERLVAR'
+	call the value of $data;
+	e.g.2 '{%S}->{extra},PERLVAR'
+	call the value of $S->{extra};
+	
+=cut
+
+$dict{ 'PERLVAR' } = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my $name1 = pop @{ $work1 };
+    my @ret;
+    use PadWalker qw(peek_my);
+    my $ref_var = peek_my( 3 );
+
+    my @all = split /->/, $name;
+    my $res = __deref__( $ref_var, \@all );
+    if ( ref $res eq 'ARRAY' )
+    {
+        @ret = @{ $res };
+    }
+    elsif ( ref $res eq 'HASH' )
+    {
+        my $tmp = '# ' . join ' ', map { $_ . ' | ' . $res->{ $_ } . ' #' } keys %$res;
+        push @ret, $tmp;
+    }
+    elsif ( ref $res eq 'SCALAR' )
+    {
+
+        push @ret, '"' . $$res . '"', '';
+    }
+    else
+    {
+        push @ret, $res;
+    }
+    return \@ret, 1, 0;
+
+};
+
+sub __deref__
+{
+    my $var_ref   = shift;
+    my $array_ref = shift;
+    my $ret;
+    my $ref = shift @{ $array_ref };
+    if ( $ref =~ s/\{|\}//g )
+    {
+        $ret = $var_ref->{ $ref };
+    }
+    elsif ( $ref =~ s/\[|\]//g )
+    {
+        $ret = $var_ref->[$ref];
+    }
+    if ( scalar @{ $array_ref } )
+    {
+        $ret = __deref__( $ret, $array_ref );
+    }
+    return $ret;
+
+}
+
+=head2  xxx nbr name1 PERLFUNCX
+
+        execute the PERL function name1 with nbr parameters from the stack xxx
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	the parameter are "stringified"
+	!!! because this function don't know the namescape of the caller 
+	!!! the paramter for the function must be scalar 
+	!!! and not a perl variable or a ref to a perl compenent 
+	!!! see PERLVAR
+	e.g. 'file,name,2,substit,PERLFUNCX'
+	call the function substit("name", "file");
+	
+=cut
+
+$dict{ 'PERLFUNCX' } = sub {
+    my $work1   = shift;
+    my $name    = pop @{ $work1 };
+    my $nbr_arg = pop @{ $work1 };
+    my $arg;
+    my $todo;
+    my $ref_var = peek_my( 3 );
+    for ( 1 .. $nbr_arg )
+    {
+        my $new = pop @{ $work1 };
+        if ( $new =~ /^[\\$%@]/ )
+        {
+            $arg = $arg . ',' . $new;
+        }
+        else
+        {
+            $arg = $arg . ',"' . $new . '"';
+        }
+    }
+    if ( $arg )
+    {
+        $arg =~ s/^,//;
+    }
+    if ( $name !~ /::[^:]*$/ )
+    {
+        $todo = "main::" . $name . '(' . $arg . ');';
+    }
+    else
+    {
+        my $before = ${^PREMATCH};
+        eval "require  $before";
+        $todo = $name . '(' . $arg . ');';
+    }
+
+    my @ret = eval( $todo );
+    if ( $@ )
+    {
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
+    }
+    return \@ret, $nbr_arg + 2, 0;
+};
+
+=head2  xxx name1 PERLFUNC1
 
         execute the PERL function name1 with the only one parameter xxx
 	the default name space is "main::"
 	It is possible tu use a specific name space
-	the paramter are "stringified"
-	e.g. 'file,name,CAT,substit,PERLUNARY'
+	the parameter are "stringified"
+	e.g. 'file,name,CAT,substit,PERLFUNC1'
 	call the function substit("filename");
 	
 =cut
 
-$dict{ 'PERLUNARY' } = sub {
+$dict{ 'PERLFUNC1' } = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my $arg   = pop @{ $work1 };

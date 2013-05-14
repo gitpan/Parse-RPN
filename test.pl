@@ -8,6 +8,7 @@
 use Test;
 
 BEGIN { plan tests => 1 };
+$DEBUG = shift;
 use Parse::RPN;
 ok( 1 );    # If we made it this far, we're ok.
 
@@ -42,7 +43,7 @@ push @tests, \@line;
 }
 {
 local @line;
-push @line,  "'Hello,world',',',PAT,',',EQ,IF,'Contain a coma',ELSE,'Without a coma',THEN";
+push @line,  "'Hello,world',',',PAT,',',EQ,IF,'Without a coma',ELSE,'Contain a coma',THEN";
 push @line,  'Contain a coma';
 push @tests, \@line;
 }
@@ -54,7 +55,7 @@ push @tests, \@line;
 }
 {
 local @line;
-push @line,  "'Hello world',',',PAT,',',EQ,IF,'Contain a coma',ELSE,'Without a coma',THEN";
+push @line,  "'Hello world',',',PAT,',',EQ,IF,'Without a coma',ELSE,'Contain a coma',THEN";
 push @line,  'Without a coma';
 push @tests, \@line;
 }
@@ -73,18 +74,18 @@ push @tests, \@line;
 {
 local @line;
 push @line,  "test,DUP,second,third,ROT,4,ROLL,3,PICK,3,GET,DEPTH,PUT";
-push @line,  'test second third test third';
+push @line,  'second test third test third';
 push @tests, \@line;
 }
 {
 local @line;
 push @line,  "test,DUP,second,third,ROT,4,ROLL,4,ROLL,DEPTH,DUP,1,+,PUT,4,POPN";
-push @line,  '4';
+push @line,  'third';
 push @tests, \@line;
 }
 {
 local @line;
-push @line, "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,3,<,WHILE,####,a,@,****,REPEAT";
+push @line, "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,3,>,WHILE,####,a,@,****,REPEAT";
 push @line,  '## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb';
 push @tests, \@line;
 }	
@@ -101,7 +102,10 @@ foreach ( @tests )
 {
 $nbr++;
     ( $test, $result ) = @{ $_ };
+    print "*** $test\n" if ( $DEBUG );
     $ret = rpn( $test );
+    print "+++ $ret\n" if ( $DEBUG );
+    print "--- $result\n" if ( $DEBUG );
     if ( $ret eq $result )
     {
         state( 0,$nbr );

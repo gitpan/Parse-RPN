@@ -1,6 +1,12 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.74
+Date:   Tue May 14 11:22:08 2013 +0200
+
+use recursion to create SL list from PERLVAR
+Allow PERLVAR to be inside LOOP or IF
+----------------------------
 revision : 2.73
 Date:   Fri May 10 17:49:54 2013 +0200
 

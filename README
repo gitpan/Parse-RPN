@@ -805,7 +805,7 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
                call the function save("filename", 5);
 
    xxxxxx nnbbrr nnaammee11 PPEERRLLVVAARR
-               retrun the perl variable ( or ref )
+               Return the perl variable.
                If the var returned is an array, return each element of the array on the stack
                If the var returned is a hash , return a STRUCTURATED LIST
                the default name space is "main::"
@@ -1373,4 +1373,4 @@ PPOODD EERRRROORRSS
 
 
 
-perl v5.14.2                    ho2m0e1:3:-G0I5T-:1:0Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.14.2                    ho2m0e1:3:-G0I5T-:1:4Parse-RPN::blib::lib::Parse::RPN(3)

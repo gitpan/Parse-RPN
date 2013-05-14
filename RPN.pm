@@ -81,7 +81,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.73';
+$VERSION = '2.74';
 
 my %dict;
 my %var;
@@ -2025,7 +2025,7 @@ $dict{ 'PAT' } = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
-    my @r     = ( $b =~ m/$a/g );
+    my @r     = ( $b =~ m/\Q$a\E/g );
     my @ret;
     push @ret, @r;
     return \@ret, 2, 0;
@@ -3807,7 +3807,7 @@ $dict{ 'PERLFUNC' } = sub {
 
 =head2  xxx nbr name1 PERLVAR
 
-        retrun the perl variable ( or ref )
+        Return the perl variable.
         If the var returned is an array, return each element of the array on the stack
         If the var returned is a hash , return a STRUCTURATED LIST
 	the default name space is "main::"
@@ -3824,33 +3824,80 @@ $dict{ 'PERLVAR' } = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my $name1 = pop @{ $work1 };
+    $name =~ /^\{([^}]*)\}/;
+    my $base_name = $1;
     my @ret;
     use PadWalker qw(peek_my);
-    my $ref_var = peek_my( 3 );
-
-    my @all = split /->/, $name;
-    my $res = __deref__( $ref_var, \@all );
-    if ( ref $res eq 'ARRAY' )
+    my $level = 0 ;
+    my $ref_var;
+    while ( ! exists  $ref_var->{$base_name} )
     {
-        @ret = @{ $res };
+        $ref_var= peek_my( $level++ );
     }
-    elsif ( ref $res eq 'HASH' )
-    {
-        my $tmp = '# ' . join ' ', map { $_ . ' | ' . $res->{ $_ } . ' #' } keys %$res;
+
+    my @all     = split /->/, $name;
+    my $res     = __deref__( $ref_var, \@all );
+#    if ( ref $res eq 'ARRAY' )
+#    {
+#        @ret = @{ $res };
+#    }
+#    elsif ( ref $res eq 'HASH' )
+#    {
+#       # my $tmp = '# ' . join ' ', map { $_ . ' | ' . $res->{ $_ } . ' #' } keys %$res;
+#	my ($tmp ,undef )= __to_sl__($res,0);
+#        push @ret, $tmp;
+#    }
+#    elsif ( ref $res eq 'SCALAR' )
+#    {
+#        push @ret, '"' . $$res . '"', '';
+#    }
+#    else
+#    {
+#        push @ret, $res;
+#    }
+    my ($tmp ,undef )= __to_sl__($res,0);
+    $tmp =~ s/#\s+$/\#/;
+    $tmp =~ s/^\s+#/\#/;
         push @ret, $tmp;
-    }
-    elsif ( ref $res eq 'SCALAR' )
-    {
-
-        push @ret, '"' . $$res . '"', '';
-    }
-    else
-    {
-        push @ret, $res;
-    }
     return \@ret, 1, 0;
 
 };
+
+sub __to_sl__
+{
+    my $ref = shift;
+    my $dep = shift;
+
+    my $res;
+    if ( ref $ref eq 'HASH' )
+    {
+        $dep++;
+        $res .= '#' x $dep . ' ';
+        foreach my $key ( keys %$ref )
+        {
+            $res .= $key . ' ' . '|' x $dep . ' ';
+            my ( $r, $dep ) = __to_sl__( $ref->{ $key }, $dep );
+            $res .= $r . ' ' . '#' x $dep . ' ';
+        }
+    }
+    elsif ( ref $ref eq 'ARRAY' )
+    { 
+        $dep++;
+        foreach my $val ( @$ref )
+        {
+            my ( $r, $dep ) = __to_sl__( $val, $dep );
+            $res .= ' ' . '#' x $dep . ' ' . $r;
+        }
+        $res .= ' ' . '#' x $dep . ' ';
+    }
+    else
+    {
+        $res = $ref;
+    }
+   
+    $res =~ s/\s+##\s+##/ ## #/g;
+    return $res, $dep;
+}
 
 sub __deref__
 {
@@ -3858,6 +3905,10 @@ sub __deref__
     my $array_ref = shift;
     my $ret;
     my $ref = shift @{ $array_ref };
+    if ( ref $var_ref eq 'REF' )
+    {
+        $var_ref = $$var_ref;
+    }
     if ( $ref =~ s/\{|\}//g )
     {
         $ret = $var_ref->{ $ref };
@@ -3866,10 +3917,15 @@ sub __deref__
     {
         $ret = $var_ref->[$ref];
     }
+    if ( ref $ret eq 'REF' )
+    {
+        $ret = $$ret;
+    }
     if ( scalar @{ $array_ref } )
     {
         $ret = __deref__( $ret, $array_ref );
     }
+    
     return $ret;
 
 }

@@ -8,6 +8,7 @@ WriteMakefile(
      VERSION_FROM => 'RPN.pm', # finds $VERSION
      ABSTRACT       => 'Parse::RPN Is a minimalist RPN parser/processor (a little like FORTH)',
              dist => { COMPRESS=>"gzip -f", SUFFIX=>"gz" },
-     PREREQ_PM => { HTTP::Date=>q[0] },
-     PREREQ_FATAL => 1,
+     PREREQ_PM => { HTTP::Date=> 0,
+                    PadWalker => 0 },
+     PREREQ_FATAL =>  1,	    
 );

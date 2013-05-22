@@ -67,9 +67,7 @@ require AutoLoader;
 
 use Data::Dumper;
 use Carp qw(carp);
-# use Carp qw(cluck croak carp);
-# # # use Carp::Clan qw(verbose);
-# use Carp::Clan;
+
 sub cc
 {
     my $info = shift;
@@ -81,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.74';
+$VERSION = '2.75';
 
 my %dict;
 my %var;
@@ -4801,8 +4799,10 @@ sub rpn_error
 =cut
 
 sub rpn_separator_out
-{
-    $separator_out = shift;
+{ 
+    my $sep = shift;
+    $separator_out = $sep if ( $sep ) ;
+    return $separator_out;
 }
 
 =head2  rpn_separator_in( 'sep' )
@@ -4814,7 +4814,9 @@ sub rpn_separator_out
 
 sub rpn_separator_in
 {
-    $separator_in = shift;
+    my $sep = shift;
+    $separator_in = $sep if ( $sep );
+    return $separator_in ;
 }
 
 1;

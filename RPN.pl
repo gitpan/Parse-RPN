@@ -7,6 +7,9 @@ use Getopt::Std;
 
 my %option;
 getopts( "vhdi:o:r:f:Sp", \%option );
+
+my $DEBUG = $option{ d };
+
 my $sep_in = ',';
 my %S      = (
     bytesin  => 100,
@@ -87,33 +90,91 @@ else
     }
     elsif ( $option{ S } )
     {
-        print "Shell mode\n";
-        print "IN separator=" . $option{ i } . "\n"  if ( exists $option{ i } );
-        print "OUT separator=" . $option{ o } . "\n" if ( exists $option{ o } );
-        while ( my $ret = <> )
+        if ( eval { require Term::ReadLine; 1; } ne 1 )
         {
-            chomp $ret;
-            print "=" x 50 . "\n";
-            print "\n";
-            if ( $option{ p } )
+# if module can't load
+            print "!!! No module Term::ReadLine fall back to perl readline diamond operator\n\n";
+
+            print "Shell mode\n";
+            print "IN separator=" . $option{ i } . "\n"  if ( exists $option{ i } );
+            print "OUT separator=" . $option{ o } . "\n" if ( exists $option{ o } );
+            local $/ = "\n";
+            while ( my $ret = <> )
             {
-                $ret = partial_rpn( $ret );
-
-                print "$ret\n";
+                chomp $ret;
+                print "=" x 50 . "\n";
                 print "\n";
-                print "-" x 50 . "\n";
+                if ( $option{ p } )
+                {
+                    $ret = partial_rpn( $ret );
+
+                    print "$ret\n";
+                    print "\n";
+                    print "-" x 50 . "\n";
+                }
+                $ret = rpn( $ret );
+
+                print "$ret\n\n";
+                print "#" x 50 . "\n";
             }
-            $ret = rpn( $ret );
-
-            print "$ret\n\n";
-            print "#" x 50 . "\n";
         }
+        else
+        {
+            Term::ReadKey->import();
 
+            my $term = new Term::ReadLine 'ProgramName';
+            my $line;
+            while ( defined( $line = $term->readline( 'RPN to evaluate>' ) ) )
+            {
+                if ( $line =~ /^\\c\s+(\w)(\s*)(.*)$/ )
+                {
+                    my $cmd = $1;
+                    my $arg = $3;
+
+# print "execute command <$cmd> <$arg> \n";
+                    if ( $cmd =~ /q/i )
+                    {
+                        exit;
+                    }
+                    elsif ( $cmd =~ /o/i )
+                    {
+                        rpn_separator_out( $arg );
+                    }
+                    elsif ( $cmd =~ /i/i )
+                    {
+                        rpn_separator_in( $arg );
+                    }
+                    elsif ( $cmd =~ /d/i )
+                    {
+                        $DEBUG ^= 1;
+                    }
+                    elsif ( $cmd =~ /h/i )
+                    {
+                        print "IN sep=[" . rpn_separator_in() . "]\n";
+                        print "OUT sep=[" . rpn_separator_out() . "]\n";
+                        print "DEBUG =[$DEBUG]\n";
+                    }
+                    else
+                    {
+                        print "possible commands:\n\n";
+                        print "\\c o X \t set output separator to X\n";
+                        print "\\c i X \t set input separator to X\n";
+                        print "\\c h X \t display current separators\n";
+                        print "\\c d \t toggle debug mode\n";
+                        print "\\c q \t quit the program\n";
+                        print "\\c X \t any other argument display this help\n";
+                    }
+                }
+                my $res = rpn( $line );
+                print $res, "\n" unless $@;
+            }
+
+        }
     }
 }
 print "$ret\n";
 
-if ( $option{ d } )
+if ( $DEBUG )
 {
     print rpn_error() . "\n";
 }

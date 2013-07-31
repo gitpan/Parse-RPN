@@ -79,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.75';
+$VERSION = '2.76';
 
 my %dict;
 my %var;
@@ -1315,6 +1315,34 @@ $dict{ 'STR2DDEC' } = sub {
     return \@ret, 1, 0;
 };
 
+=head2 string a SLITEM
+
+      return the STRUCTURATED item at position 'a' from a STRUCTURATED list.
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
+      example:
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,2,SLITEM'
+      return:
+      # key2 | val2 #
+
+=cut
+
+$dict{ 'SLITEM' } = sub {
+    my $work1 = shift;
+
+    my $item  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+
+    my $res =  ( split /\s?\#\s?/, $string )[$item+1];
+    $res = '# ' . $res .' #' if ( $res );
+    push @ret, $res;
+    return \@ret, 2, 0;
+};
+
 =head2 string a SLGREP
 
       return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a.
@@ -1342,7 +1370,7 @@ $dict{ 'SLGREP' } = sub {
         next unless ( $i );
         if ( $i =~ /$regex/ )
         {
-            $res .= $i . ' #';
+            $res .= $i . ' # ';
         }
     }
     $res = '# ' . $res if ( $res );
@@ -1387,7 +1415,7 @@ $dict{ 'SLGREPI' } = sub {
 
 =head2 string a SLSEARCHALL
 
-      return all KEYS from a structurated where the STRUCTURATED LIST val match the REGEX a.
+      return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a.
       string are the STRUCTURATED list
       the STRUCTURATED LIST use this format:
       each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
@@ -1420,7 +1448,7 @@ $dict{ 'SLSEARCHALL' } = sub {
 
 =head2 string a SLSEARCHALLI
 
-      return all KEYS from a structurated where the STRUCTURATED LIST val match the REGEX a (case insensitive).
+      return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a (case insensitive).
       string are the STRUCTURATED list
       the STRUCTURATED LIST use this format:
       each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
@@ -1453,7 +1481,7 @@ $dict{ 'SLSEARCHALLI' } = sub {
 
 =head2 string a SLSEARCHALLKEYS
 
-      return all VALUES from a structurated where the STRUCTURATED LIST keys match the REGEX a
+      return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST keys match the REGEX a
       string are the STRUCTURATED list
       the STRUCTURATED LIST use this format:
       each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
@@ -1487,7 +1515,7 @@ $dict{ 'SLSEARCHALLKEYS' } = sub {
 
 =head2 string a SLSEARCHALLKEYSI
 
-      return all VALUES from a structurated where the STRUCTURATED LIST key match the REGEX a.
+      return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST key match the REGEX a.
       string are the STRUCTURATED list.
       the STRUCTURATED LIST use this format:
       each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '

@@ -281,6 +281,17 @@ MMIISSCC ooppeerraattoorrss
              return a dotted DEC string to a string
              useful when you need to manipulate an SNMP extension with 'exec'
 
+   ssttrriinngg aa SSLLIITTEEMM
+             return the STRUCTURATED item at position 'a' from a STRUCTURATED list.
+             string are the STRUCTURATED list
+             the STRUCTURATED LIST use this format:
+             each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+             'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
+             example:
+             'keys1 | val1 # key2 | val2 # Keys3 | val3 #,2,SLITEM'
+             return:
+             # key2 | val2 #
+
    ssttrriinngg aa SSLLGGRREEPP
              return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a.
              string are the STRUCTURATED list
@@ -304,7 +315,7 @@ MMIISSCC ooppeerraattoorrss
              #  keys1 | val1 # Keys3 | val3 #
 
    ssttrriinngg aa SSLLSSEEAARRCCHHAALLLL
-             return all KEYS from a structurated where the STRUCTURATED LIST val match the REGEX a.
+             return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a.
              string are the STRUCTURATED list
              the STRUCTURATED LIST use this format:
              each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
@@ -315,7 +326,7 @@ MMIISSCC ooppeerraattoorrss
              1.3.6.1.2.1.25.3.3.1.2.780  1.3.6.1.2.1.25.3.3.1.2.782
 
    ssttrriinngg aa SSLLSSEEAARRCCHHAALLLLII
-             return all KEYS from a structurated where the STRUCTURATED LIST val match the REGEX a (case insensitive).
+             return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a (case insensitive).
              string are the STRUCTURATED list
              the STRUCTURATED LIST use this format:
              each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
@@ -326,7 +337,7 @@ MMIISSCC ooppeerraattoorrss
              key1  key12
 
    ssttrriinngg aa SSLLSSEEAARRCCHHAALLLLKKEEYYSS
-             return all VALUES from a structurated where the STRUCTURATED LIST keys match the REGEX a
+             return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST keys match the REGEX a
              string are the STRUCTURATED list
              the STRUCTURATED LIST use this format:
              each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
@@ -337,7 +348,7 @@ MMIISSCC ooppeerraattoorrss
              1 5 6 2
 
    ssttrriinngg aa SSLLSSEEAARRCCHHAALLLLKKEEYYSSII
-             return all VALUES from a structurated where the STRUCTURATED LIST key match the REGEX a.
+             return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST key match the REGEX a.
              string are the STRUCTURATED list.
              the STRUCTURATED LIST use this format:
              each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
@@ -1361,16 +1372,16 @@ PPOODD EERRRROORRSS
        Hey! TThhee aabboovvee ddooccuummeenntt hhaadd ssoommee ccooddiinngg eerrrroorrss,, wwhhiicchh aarree eexxppllaaiinneedd
        bbeellooww::
 
-       Around line 574:
+       Around line 572:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
-       Around line 589:
+       Around line 587:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
 
 
-perl v5.14.2                    ho2m0e1:3:-G0I5T-:1:4Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.14.2                    ho2m0e1:3:-G0I7T-:1:8Parse-RPN::blib::lib::Parse::RPN(3)

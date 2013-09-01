@@ -109,6 +109,28 @@ MMAATTHHEEMMAATTIICC ooppeerraattoorrss
    PPII
              return the value of PI (3.14159265358979)
 
+   aa bb MMIINN
+             return the smallest value of the 2 arguments
+
+   aa bb MMAAXX
+             return the greatest value of the 2 arguments
+
+   aa MMIINNXX
+             return the smallest value from the a elements from the stack
+
+   aa bb MMAAXXXX
+             return the greatest value from the a elements from the stack
+
+   aa SSUUMM
+               sum the a elements from the top of the stack
+               remove these a elements
+               and return the result value on the stack
+
+   aa SSTTAATTSS
+               STATS the a element on top of the stack
+               remove these a element
+               the new variable _SUM_, _MULT_, _ARITH_MEAN_, _GEOM_MEAN_, _QUAD_MEAN_ (= _RMS_), _HARM_MEAN_, _STD_DEV_, _SAMPLE_STD_DEV_, _VARIANCE_,
+
 RREELLAATTIIOONNAALL ooppeerraattoorrss
    aa bb <<
              return the result of 'a' < 'b'  ( BOOLEAN value )
@@ -132,10 +154,12 @@ RREELLAATTIIOONNAALL ooppeerraattoorrss
              return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
 
    aa bb vv >><<
-             return the 1 ( BOOLEAN value ) if c gretear than a but lower than b. Otherwise return 0
+             return the 1 ( BOOLEAN value ) if v greater than a but lower than b. Otherwise return 0
+             ( aka between boundaries excluded )
 
    aa bb vv >>==<<
-             return the 1 ( BOOLEAN value ) if c gretear or equal to a but lower or equal to b. Otherwise return 0
+             return 1 ( BOOLEAN value ) if v greater or equal to a but lower or equal to b. Otherwise return 0
+             ( aka between boundaries included )
 
    aa bb
              return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
@@ -151,6 +175,9 @@ RREELLAATTIIOONNAALL ooppeerraattoorrss
 
    aa bb NN====
              return the result of 'a' N== 'b'  ( BOOLEAN value ) 1 if a == b and a ISNUM else 0
+
+   aa bb NN!!==
+            return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b and a ISNUM else 1
 
 LLOOGGIICCAALL ooppeerraattoorrss
    aa bb OORR
@@ -175,7 +202,6 @@ LLOOGGIICCAALL ooppeerraattoorrss
    aa FFAALLSSEE
              return the 0 if the top of stack is !=0
 
-MMIISSCC ooppeerraattoorrss
    aa bb >>>>
              bitwise shift to the right
              shift the bits in a to the left of b level
@@ -184,12 +210,7 @@ MMIISSCC ooppeerraattoorrss
              bitwise shift to the left
              shift the bits in a to the left of b level
 
-   aa bb MMIINN
-             return the result smallest of the 2 arguments
-
-   aa bb MMAAXX
-             return the result greatest of the 2 arguments
-
+MMIISSCC ooppeerraattoorrss
    aa VVAALL,,RREETT,, ""ooppeerraattoorr"" LLOOOOKKUUPP
              test with the "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
              the "operator" must be quoted to prevent evaluation
@@ -281,6 +302,18 @@ MMIISSCC ooppeerraattoorrss
              return a dotted DEC string to a string
              useful when you need to manipulate an SNMP extension with 'exec'
 
+SSttrruuccttuurraatteedd ssttrriinngg ((SSLLxxxxxx)) ooppeerraattoorrss
+   ssttrriinngg aa bb SSLLSSLLIICCEE
+             return the STRUCTURATED list slice  from 'a' to 'b' extracted from STRUCTURATED list.
+             string are the STRUCTURATED list
+             the STRUCTURATED LIST use this format:
+             each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+             'keys1 | val1 # key2 | val2 # Keys3 | val3 # Keys4 | val4 #'
+             example:
+             'keys1 | val1 # key2 | val2 # Keys3 | val3 # Keys4 | val4 #,1,2,SLSLICE'
+             return:
+             # key2 | val2 # Keys3 | val3 #
+
    ssttrriinngg aa SSLLIITTEEMM
              return the STRUCTURATED item at position 'a' from a STRUCTURATED list.
              string are the STRUCTURATED list
@@ -288,7 +321,7 @@ MMIISSCC ooppeerraattoorrss
              each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
              'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
              example:
-             'keys1 | val1 # key2 | val2 # Keys3 | val3 #,2,SLITEM'
+             'keys1 | val1 # key2 | val2 # Keys3 | val3 #,1,SLITEM'
              return:
              # key2 | val2 #
 
@@ -431,6 +464,9 @@ SSTTRRIINNGG ooppeerraattoorrss
    aa LLEENN
              return the length of 'a'
 
+   aa CCHHOOMMPP
+             remove any terminaison line charecter ( CR CR/LF) from 'a'
+
    aa bb CCAATT
              return the concatenation 'a' and 'b'
 
@@ -541,7 +577,7 @@ SSTTRRIINNGG ooppeerraattoorrss
    aa bb UUNNPPAACCKK
              unpack the value 'a' with the format 'b'
 
-             20040608,a4 a2 a2,PACK
+             20040608,a4 a2 a2,UNPACK
              result: 2004,06,08
 
              see unpack in perl
@@ -710,16 +746,6 @@ SSTTAACCKK ooppeerraattoorrss
                'a' and 'b' is get in absolute value
                if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
-   aa SSUUMM
-               sum the a element on top of the stack
-               remove these a element
-               and return the result value on the stack
-
-   aa SSTTAATTSS
-               STATS the a element on top of the stack
-               remove these a element
-               the new variable _SUM_, _MULT_, _ARITH_MEAN_, _GEOM_MEAN_, _QUAD_MEAN_ (= _RMS_), _HARM_MEAN_, _STD_DEV_, _SAMPLE_STD_DEV_, _VARIANCE_,
-
 DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrss
    WWOORRDDSS
                return as one stack element the list of WORD in DICT separated by a |
@@ -747,6 +773,9 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
 
    VVAARRIIAABBLLEE xxxxxx
               declare the variable 'xxx' (reserve memory)
+
+   vv UUNNSSEETT
+              delete the variable v
 
    xxxx vvaarr !!
                set and delete from the stack the value xx to the variable 'var'
@@ -788,7 +817,7 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
                'a' and 'b' in absolute value
                if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
-   xx11 xx22 xx33 ...... bb aa vvaarr !!!!!!CC
+   xx11 xx22 xx33 ...... bb aa vvaarr !!!!!!CCAA
                append element(s) on the stack in the variable 'var'
                starting at element  'a' to element 'b'
                'a' and 'b' in absolute value
@@ -797,8 +826,11 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
    vvaarr @@
                return the value of the variable 'var'
 
-   ::xxxxxx  nnaammee11 ;;
+   :: xxxxxx  nnaammee11 ;;
                create a new entry in the dictionary whith name name1 and store the progam xxx
+
+   nnaammee11 FFOORRGGOOTT
+               delete/erase a create word (name1 )
 
    :: xxxxxx yyyyyy nnaammee11 PPEERRLL
                execute the PERL code
@@ -815,17 +847,17 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
                e.g. ':,5,filename,save,PERLFUNC'
                call the function save("filename", 5);
 
-   xxxxxx nnbbrr nnaammee11 PPEERRLLVVAARR
-               Return the perl variable.
-               If the var returned is an array, return each element of the array on the stack
-               If the var returned is a hash , return a STRUCTURATED LIST
+   nnaammee11 PPEERRLLFFUUNNCC00
+               execute the PERL function name1 with no parameters
                the default name space is "main::"
                It is possible tu use a specific name space
                the parameter are "stringified"
-               e.g.1 '{$data},PERLVAR'
-               call the value of $data;
-               e.g.2 '{%S}->{extra},PERLVAR'
-               call the value of $S->{extra};
+               !!! because this function don't know the namescape of the caller
+               !!! the parameter for the function must be scalar
+               !!! and not a perl variable or a ref to a perl compenent
+               !!! see PERLVAR
+               e.g. 'Test2,PERLFUNC0'
+               call the function Test2();
 
    xxxxxx nnbbrr nnaammee11 PPEERRLLFFUUNNCCXX
                execute the PERL function name1 with nbr parameters from the stack xxx
@@ -833,7 +865,7 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
                It is possible tu use a specific name space
                the parameter are "stringified"
                !!! because this function don't know the namescape of the caller
-               !!! the paramter for the function must be scalar
+               !!! the parameter for the function must be scalar
                !!! and not a perl variable or a ref to a perl compenent
                !!! see PERLVAR
                e.g. 'file,name,2,substit,PERLFUNCX'
@@ -846,6 +878,18 @@ DDIICCTTIIOONNAARRYY aanndd VVAARRSS ooppeerraattoorrs
                the parameter are "stringified"
                e.g. 'file,name,CAT,substit,PERLFUNC1'
                call the function substit("filename");
+
+   xxxxxx nnbbrr nnaammee11 PPEERRLLVVAARR
+               Return the perl variable.
+               If the var returned is an array, return each element of the array on the stack
+               If the var returned is a hash , return a STRUCTURATED LIST
+               the default name space is "main::"
+               It is possible tu use a specific name space
+               the parameter are "stringified"
+               e.g.1 '{$data},PERLVAR'
+               call the value of $data;
+               e.g.2 '{%S}->{extra},PERLVAR'
+               call the value of $S->{extra};
 
    aa >>RR
                put 'a' on the return stack
@@ -868,6 +912,9 @@ FFIILLEE ooppeerraattoorrss (( bbaassiicc IIOO ))
               'c' ( create ),
               't' ( truncate ),
               'a'( append = seek to end )
+
+   ffiillee,, UUNNLLIINNKK
+              UNLINK ( delete ) a file
 
    FFHH,, SSTTAATT
               STAT the file using the handle stored in the var FH ( FH could also be a file path )
@@ -1372,16 +1419,16 @@ PPOODD EERRRROORRSS
        Hey! TThhee aabboovvee ddooccuummeenntt hhaadd ssoommee ccooddiinngg eerrrroorrss,, wwhhiicchh aarree eexxppllaaiinneedd
        bbeellooww::
 
-       Around line 572:
+       Around line 720:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
-       Around line 587:
+       Around line 735:
            Unterminated N<...> sequence
 
            Deleting unknown formatting code N<>
 
 
 
-perl v5.14.2                    ho2m0e1:3:-G0I7T-:1:8Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.14.2                    ho2m0e1:3:-G0I9T-:0:1Parse-RPN::blib::lib::Parse::RPN(3)

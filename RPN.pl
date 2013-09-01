@@ -2,11 +2,10 @@
 
 use Data::Dumper;
 
-use Parse::RPN;
 use Getopt::Std;
 
 my %option;
-getopts( "vhdi:o:r:f:Sp", \%option );
+getopts( "vhdi:o:r:f:SI:p", \%option );
 
 my $DEBUG = $option{ d };
 
@@ -23,6 +22,26 @@ my %S      = (
     },
     extra1 => [ 'azerty1', 'test1' ]
 );
+
+my @T = qw( test1 test2 Test3 TEST4 ); 
+
+sub Test {
+   my $a  = shift;
+   my $b = shift;
+   my $c = $a/$b;
+   
+   return $c;
+}
+
+sub Test1 {
+   my $a  = shift;
+   return scalar reverse $a;
+}
+
+sub Test2 {
+   
+   return "default_value";
+}
 
 my $s = \%S;
 
@@ -43,9 +62,23 @@ if ( $option{ h } )
     print "\t -r rpn \t use rpn as string for the RPN test\n";
     print "\t -f file \t use this file for the RPN test\n";
     print "\t -S \t\t shell mode\n";
+    print "\t -I path \t path to RPN.pm to use\n";
     print "\t -p \t\t process partial RPN\n";
     exit;
 }
+
+if ( $option{ I } )
+{    
+    require $option{ I }."/RPN.pm" ;
+  
+    
+}else
+{
+    require Parse::RPN;
+}
+
+import Parse::RPN;
+#use Module::Reload;
 
 if ( $option{ o } )
 {
@@ -126,6 +159,7 @@ else
             my $line;
             while ( defined( $line = $term->readline( 'RPN to evaluate>' ) ) )
             {
+	        reload() ;
                 if ( $line =~ /^\\c\s+(\w)(\s*)(.*)$/ )
                 {
                     my $cmd = $1;
@@ -148,6 +182,10 @@ else
                     {
                         $DEBUG ^= 1;
                     }
+		    elsif ( $cmd =~ /r/i )
+                    {  
+                        reload(1) ;
+                    }
                     elsif ( $cmd =~ /h/i )
                     {
                         print "IN sep=[" . rpn_separator_in() . "]\n";
@@ -159,14 +197,18 @@ else
                         print "possible commands:\n\n";
                         print "\\c o X \t set output separator to X\n";
                         print "\\c i X \t set input separator to X\n";
-                        print "\\c h X \t display current separators\n";
+                        print "\\c h \t display current separators\n";
                         print "\\c d \t toggle debug mode\n";
+			print "\\c r \t force reload of module RPN.pm\n";
                         print "\\c q \t quit the program\n";
                         print "\\c X \t any other argument display this help\n";
                     }
                 }
-                my $res = rpn( $line );
-                print $res, "\n" unless $@;
+		else
+		{
+                    my $res = rpn( $line );
+                    print $res, "\n" unless $@;
+		}
             }
 
         }
@@ -241,3 +283,29 @@ sub substit2
     return "$ref -> $var ";
 
 }
+
+sub reload {
+    my $force=shift;
+    my $c=0;
+    while (my($key,$file) = each %INC) {
+        next unless ( $key =~ /RPN\.pm/ );
+        local $^W = 0;
+        my $mtime = (stat $file)[9];
+        $Stat{$file} = $^T
+            unless defined $Stat{$file};
+        if ($force || $mtime > $Stat{$file}) {
+            delete $INC{$key};
+            eval { 
+                local $SIG{__WARN__} = \&warn;
+                require $key;
+            };
+            if ($@) {
+                warn "Reload: error during reload of '$key': $@\n"
+            }
+            ++$c;
+        }
+        $Stat{$file} = $mtime;
+    }
+    $c;
+}
+

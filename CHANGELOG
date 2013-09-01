@@ -1,6 +1,35 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.77
+
+Parse::RPN
+	MOD >> << : Swap arguments
+	REMAIN and REV: remove processed argument
+	PI : better value for COS
+	MINX MAXX SLSLICE N!= UNSET FORGOT UNLINK CHOMP : new words
+	MIN MAX SUM STATS : in section arithmetic
+	>< >=< UNPACK !!!CA ; : typo on pod
+	TRUE and FALSE : check if argument numeric and prevent warning
+	All SLxxx and OIDSEARCHxxx words : correct code to allow structurated string without leading #
+	EQ : correct return value for DICT
+	Better test ( by type of operator )
+	FIND FINDK fix initial index ( no more warning )
+	VARIABLE only set variable if variable name defined
+	; ( word creation ) create private dict and prevent overwriting of native dict
+	fix warning if IF (variable not numeric if uninitialized)
+	LOOP add _T_ variable
+	+LOOP fix error in code + simplification for _T_
+        PERL push STDOUT on stack
+	TELL fix for unbuffered IO
+	WRITELINE in correct order
+	remove spurious warning in HGTIME
+	fix SLGREP and SLGREPI ending space in SL result
+RPN.pl
+	add argument -I to put a full path to RPM.pm. 
+	In shell mode auto reload of RPN.pm.
+	Add command \c r to force a reload of RPN.pm ( reset all provate dict and vars )
+----------------------------
 revision : 2.76
 Date:   Thu Jul 18 11:27:05 2013 +0200
 

@@ -65,7 +65,6 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 require Exporter;
 require AutoLoader;
 
-use Data::Dumper;
 use Carp qw(carp);
 
 sub cc
@@ -79,9 +78,10 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.76';
+$VERSION = '2.77';
 
 my %dict;
+my %pub_dict;
 my %var;
 
 my @loop;
@@ -106,7 +106,7 @@ my $separator_in  = ',';
 	
 =cut
 
-$dict{ '+' } = sub {
+$dict{'+'} = sub {
 
     my $work1 = shift;
     my $a     = pop @{ $work1 };
@@ -122,7 +122,7 @@ $dict{ '+' } = sub {
 	
 =cut
 
-$dict{ '-' } = sub {
+$dict{'-'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
@@ -137,7 +137,7 @@ $dict{ '-' } = sub {
 	
 =cut
 
-$dict{ '*' } = sub {
+$dict{'*'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
@@ -153,7 +153,7 @@ $dict{ '*' } = sub {
 	
 =cut
 
-$dict{ '/' } = sub {
+$dict{'/'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
@@ -179,7 +179,7 @@ $dict{ '/' } = sub {
 	
 =cut
 
-$dict{ '**' } = sub {
+$dict{'**'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
@@ -194,7 +194,7 @@ $dict{ '**' } = sub {
 	
 =cut
 
-$dict{ '1+' } = sub {
+$dict{'1+'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -208,7 +208,7 @@ $dict{ '1+' } = sub {
 	
 =cut
 
-$dict{ '1-' } = sub {
+$dict{'1-'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -222,7 +222,7 @@ $dict{ '1-' } = sub {
 	
 =cut
 
-$dict{ '2-' } = sub {
+$dict{'2-'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -236,7 +236,7 @@ $dict{ '2-' } = sub {
 	
 =cut
 
-$dict{ '2+' } = sub {
+$dict{'2+'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -250,12 +250,12 @@ $dict{ '2+' } = sub {
 	
 =cut
 
-$dict{ 'MOD' } = sub {
+$dict{MOD} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
     my @ret;
-    push @ret, $a % $b;
+    push @ret, $b % $a;
     return \@ret, 2, 0;
 };
 
@@ -265,7 +265,7 @@ $dict{ 'MOD' } = sub {
 	
 =cut
 
-$dict{ 'ABS' } = sub {
+$dict{ABS} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -280,7 +280,7 @@ $dict{ 'ABS' } = sub {
 	
 =cut
 
-$dict{ 'INT' } = sub {
+$dict{INT} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -294,7 +294,7 @@ $dict{ 'INT' } = sub {
 	
 =cut
 
-$dict{ '+-' } = sub {
+$dict{'+-'} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -308,12 +308,12 @@ $dict{ '+-' } = sub {
 	
 =cut
 
-$dict{ 'REMAIN' } = sub {
+$dict{REMAIN} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
     push @ret, $a - int( $a );
-    return \@ret, 1, 0;
+    return \@ret, 2, 0;
 };
 
 =head2 a SIN
@@ -322,7 +322,7 @@ $dict{ 'REMAIN' } = sub {
 	
 =cut
 
-$dict{ 'SIN' } = sub {
+$dict{SIN} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -336,7 +336,7 @@ $dict{ 'SIN' } = sub {
 	
 =cut
 
-$dict{ 'COS' } = sub {
+$dict{COS} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -350,7 +350,7 @@ $dict{ 'COS' } = sub {
 	
 =cut
 
-$dict{ 'TAN' } = sub {
+$dict{TAN} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -364,7 +364,7 @@ $dict{ 'TAN' } = sub {
 	
 =cut
 
-$dict{ 'CTAN' } = sub {
+$dict{CTAN} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -379,7 +379,7 @@ $dict{ 'CTAN' } = sub {
 	
 =cut
 
-$dict{ 'LN' } = sub {
+$dict{LN} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -404,7 +404,7 @@ $dict{ 'LN' } = sub {
 	
 =cut
 
-$dict{ 'EXP' } = sub {
+$dict{EXP} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
@@ -418,420 +418,19 @@ $dict{ 'EXP' } = sub {
 	
 =cut
 
-$dict{ 'PI' } = sub {
+$dict{PI} = sub {
     my @ret;
-    push @ret, "3.14159265358979";
+    push @ret, "3.1415926535898";
     return \@ret, 0, 0;
-};
-
-########################
-# relational operators
-########################
-
-=head1 RELATIONAL operators
-
-=cut
-
-=head2 a b <
-
-      return the result of 'a' < 'b'  ( BOOLEAN value ) 
-	
-=cut
-
-$dict{ '<' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a > $b ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b <=
-
-      return the result of 'a' <= 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ '<=' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a >= $b ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b >
-
-      return the result of 'a' > 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ '>' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a < $b ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b >=
-
-      return the result of 'a' >= 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ '>=' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a <= $b ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b ==
-
-      return the result of 'a' == 'b'  ( BOOLEAN value ) 1 if a == b else 0
-	
-=cut
-
-$dict{ '==' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b == $a ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b <=>
-
-      return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
-	
-=cut
-
-$dict{ '<=>' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b <=> $a );
-    return \@ret, 2, 0;
-};
-
-=head2 a b !=
-
-      return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
-	
-=cut
-
-$dict{ '!=' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b != $a ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b v ><
-
-      return the 1 ( BOOLEAN value ) if c gretear than a but lower than b. Otherwise return 0
-	
-=cut
-
-$dict{ '><' } = sub {
-    my $work1 = shift;
-    my $v     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ( $v > $a && $v < $b ) ? 1 : 0 );
-    return \@ret, 3, 0;
-};
-
-=head2 a b v >=<
-
-      return the 1 ( BOOLEAN value ) if c gretear or equal to a but lower or equal to b. Otherwise return 0
-	
-=cut
-
-$dict{ '>=<' } = sub {
-    my $work1 = shift;
-    my $v     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ( $v >= $a && $v <= $b ) ? 1 : 0 );
-    return \@ret, 3, 0;
-};
-
-=head2 a b N<
-
-      return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
-	
-=cut
-
-$dict{ 'N<' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a > $b ) ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b N<=
-
-      return the result of 'a' N<= 'b'  ( BOOLEAN value ) if a is ISNUM
-	
-=cut
-
-$dict{ 'N<=' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a >= $b ) ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b N>
-
-      return the result of 'a' N> 'b'  ( BOOLEAN value ) if a is ISNUM
-	
-=cut
-
-$dict{ 'N>' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a < $b ) ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b N>=
-
-      return the result of 'a' N>= 'b'  ( BOOLEAN value ) if a is ISNUM
-	
-=cut
-
-$dict{ 'N>=' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a <= $b ) ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b N==
-
-      return the result of 'a' N== 'b'  ( BOOLEAN value ) 1 if a == b and a ISNUM else 0
-	
-=cut
-
-$dict{ 'N==' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $b == $a ) ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-########################
-# logical operators
-########################
-
-=head1 LOGICAL operators
-
-=cut
-
-=head2 a b OR
-
-      return the 1 one of the 2 argument are not equal to 0
-	
-=cut
-
-$dict{ 'OR' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a || $b );
-    return \@ret, 2, 0;
-};
-
-=head2 a b AND
-
-      return the 0 one of the 2 argument are equal to 0
-	
-=cut
-
-$dict{ 'AND' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a && $b );
-    return \@ret, 2, 0;
-};
-
-=head2 a b XOR
-
-      return the 0 if the  2 argument are equal
-	
-=cut
-
-$dict{ 'XOR' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a xor $b ) ? 1 : 0;
-    return \@ret, 2, 0;
-};
-
-=head2 a b NXOR
-
-      return the 0 if the  2 argument are equal. Any non numeric elements is seen as a 0.
-	
-=cut
-
-$dict{ 'NXOR' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    $a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0;
-    $b = $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $b : 0;
-    my @ret;
-    push @ret, ( $a xor $b ) ? 1 : 0;
-    return \@ret, 2, 0;
-};
-
-=head2 a NOT
-
-      return the 0 if the argument is not eqauk to 0
-      return the 1 if the argument is  eqauk to 0
-	
-=cut
-
-$dict{ 'NOT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-
-    my @ret;
-    push @ret, ( not $a ) ? 1 : 0;
-    return \@ret, 1, 0;
-};
-
-=head2 a TRUE
-
-      return the 1 if the top of stack is !=0 and if stack not empty
-	
-=cut
-
-$dict{ 'TRUE' } = sub {
-    my $work1 = shift;
-    my $a;
-    my $b = 0;
-    if ( scalar @{ $work1 } )
-    {
-        $b = 1;
-        $a = pop @{ $work1 };
-        if ( $a > 0 )
-        {
-            $b = 1;
-        }
-        else
-        {
-            $b = 0;
-        }
-    }
-    my @ret;
-    push @ret, $b;
-    return \@ret, 1, 0;
-};
-
-=head2 a FALSE
-
-      return the 0 if the top of stack is !=0
-	
-=cut
-
-$dict{ 'FALSE' } = sub {
-    my $work1 = shift;
-    my $a;
-    my $b = 1;
-    if ( scalar @{ $work1 } )
-    {
-        $b = 0;
-        $a = pop @{ $work1 };
-        if ( $a > 0 )
-        {
-            $b = 0;
-        }
-        else
-        {
-            $b = 1;
-        }
-    }
-    my @ret;
-    push @ret, $b;
-    return \@ret, 1, 0;
-};
-
-########################
-# misc operators
-########################
-
-=head1 MISC operators
-
-=cut
-
-=head2 a b >>
-
-      bitwise shift to the right
-      shift the bits in a to the left of b level
-	
-=cut
-
-$dict{ '>>' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a >> $b );
-    return \@ret, 2, 0;
-};
-
-=head2 a b <<
-
-      bitwise shift to the left
-      shift the bits in a to the left of b level
-	
-=cut
-
-$dict{ '<<' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a << $b );
-    return \@ret, 2, 0;
 };
 
 =head2 a b MIN
 
-      return the result smallest of the 2 arguments
+      return the smallest value of the 2 arguments
 	
 =cut
 
-$dict{ 'MIN' } = sub {
+$dict{MIN} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
@@ -842,11 +441,11 @@ $dict{ 'MIN' } = sub {
 
 =head2 a b MAX
 
-      return the result greatest of the 2 arguments
+      return the greatest value of the 2 arguments
 	
 =cut
 
-$dict{ 'MAX' } = sub {
+$dict{MAX} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $b     = pop @{ $work1 };
@@ -855,2255 +454,56 @@ $dict{ 'MAX' } = sub {
     return \@ret, 2, 0;
 };
 
-=head2 a VAL,RET, "operator" LOOKUP
+=head2 a MINX
 
-      test with the "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
-      the "operator" must be quoted to prevent evaluation
+      return the smallest value from the a elements from the stack
 	
 =cut
 
-$dict{ 'LOOKUP' } = sub {
+$dict{MINX} = sub {
     my $work1 = shift;
-    my $ope   = pop @{ $work1 };
-
-    my @RET  = @{ $var{ pop @{ $work1 } } };
-    my @VAL  = @{ $var{ pop @{ $work1 } } };
-    my $item = pop @{ $work1 };
-    my @ret;
-    for my $ind ( 0 .. $#VAL )
-    {
-        my @tmp;
-#         push @tmp, $item, $VAL[$ind], $ope;
-        push @tmp, $VAL[$ind], $item, $ope;
-        process( \@tmp );
-        if ( $tmp[0] )
-        {
-            push @ret, $RET[$ind];
-            last;
-        }
-    }
-    return \@ret, 4, 0;
-};
-
-=head2 a VAL,RET, "operator" LOOKUPP
-
-      test with the perl "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
-      the "operator" must be quoted to prevent evaluation
-	
-=cut
-
-$dict{ 'LOOKUPP' } = sub {
-    my $work1 = shift;
-    my $ope   = pop @{ $work1 };
-    my @RET   = @{ $var{ pop @{ $work1 } } };
-    my @VAL   = @{ $var{ pop @{ $work1 } } };
-    my $item  = pop @{ $work1 };
-    my @ret;
-    for my $ind ( 0 .. $#VAL )
-    {
-        my $test  = $item . $ope . $VAL[$ind];
-        my $state = eval $test;
-        if ( $state )
-        {
-            push @ret, $RET[$ind];
-            last;
-        }
-    }
-    return \@ret, 4, 0;
-};
-
-=head2 a VAL,RET,OPE LOOKUPOP
-
-      loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
-	
-=cut
-
-$dict{ 'LOOKUPOP' } = sub {
-    my $work1 = shift;
-    my @OPE   = @{ $var{ pop @{ $work1 } } };
-    my @RET   = @{ $var{ pop @{ $work1 } } };
-    my @VAL   = @{ $var{ pop @{ $work1 } } };
-    my $item  = pop @{ $work1 };
-    my @ret;
-    for my $ind ( 0 .. $#VAL )
-    {
-        my @tmp;
-#         push @tmp, $item, $VAL[$ind], $OPE[$ind];
-        push @tmp, $VAL[$ind], $item, $OPE[$ind];
-        process( \@tmp );
-        if ( $tmp[0] )
-        {
-            push @ret, $RET[$ind];
-            last;
-        }
-    }
-    return \@ret, 4, 0;
-};
-
-=head2 a VAL,RET,OPE LOOKUPOPP
-
-      loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
-	
-=cut
-
-$dict{ 'LOOKUPOPP' } = sub {
-    my $work1 = shift;
-    my @OPE   = @{ $var{ pop @{ $work1 } } };
-    my @RET   = @{ $var{ pop @{ $work1 } } };
-    my @VAL   = @{ $var{ pop @{ $work1 } } };
-    my $item  = pop @{ $work1 };
-    my @ret;
-    for my $ind ( 0 .. $#VAL )
-    {
-        my $test  = $item . $OPE[$ind] . $VAL[$ind];
-        my $state = eval $test;
-        if ( $state )
-        {
-            push @ret, $RET[$ind];
-            last;
-        }
-    }
-    return \@ret, 4, 0;
-};
-
-=head2 TICK
-
-      return the current time in ticks
-	
-=cut
-
-$dict{ 'TICK' } = sub {
-    my @ret;
-    push @ret, ( time() );
-    return \@ret, 0, 0;
-};
-
-=head2 a LTIME
-
-      return the localtime coresponding to the ticks value 'a'
-      the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
-      'year' is the elapsed year since 1900
-      'month' start to 0
-      The format is the same as localtime() in perl
-	
-=cut
-
-$dict{ 'LTIME' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( localtime( $a ) );
-    return \@ret, 1, 0;
-};
-
-=head2 a GTIME
-
-      return the gmtime coresponding to the ticks value 'a'
-      the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
-      'year' is the elapsed year since 1900
-      'month' start to 0
-      The format is the same as gmtime() in perl
-	
-=cut
-
-$dict{ 'GTIME' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( gmtime( $a ) );
-    return \@ret, 1, 0;
-};
-
-=head2 a HLTIME
-
-      return the localtime coresponding to the ticks value 'a' in a human readable format
-	
-=cut
-
-$dict{ 'HLTIME' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, scalar( localtime( $a ) );
-    return \@ret, 1, 0;
-};
-
-=head2 a HGTIME
-
-      return the gmtime coresponding to the ticks value 'a' in a human readable format
-	
-=cut
-
-$dict{ 'HGTIME' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    warn $a;
-    push @ret, scalar( gmtime( $a ) );
-    return \@ret, 1, 0;
-};
-
-=head2 a HTTPTIME
-
-      return the ticks coresponding to the time value in a format accepted by HTTP::Date
-	
-=cut
-
-$dict{ 'HTTPTIME' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, str2time( $a );
-    return \@ret, 1, 0;
-};
-
-=head2 RAND
-
-      return a random value in the range [0,1[
-	
-=cut
-
-$dict{ 'RAND' } = sub {
-    my @ret;
-    push @ret, rand();
-    return \@ret, 0, 0;
-};
-
-=head2 a LRAND
-
-      return a random value in the range [0,'a'[
-	
-=cut
-
-$dict{ 'LRAND' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, rand( $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a SPACE
-
-      return the number 'a' formated with space each 3 digits
-	
-=cut
-
-$dict{ 'SPACE' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $text  = reverse $a;
-    $text =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1 /g;
-    $text = reverse $text;
-    my @ret;
-    push @ret, $text;
-    return \@ret, 1, 0;
-};
-
-=head2 a DOT
-
-      return the number 'a' formated with . (dot) each 3 digits
-	
-=cut
-
-$dict{ 'DOT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $text  = reverse $a;
-    $text =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1./g;
-    $text = reverse $text;
-    my @ret;
-    push @ret, $text;
-    return \@ret, 1, 0;
-};
-
-=head2 a NORM
-
-      return the number 'a' normalize by slice of 1000 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1000)
-	
-=cut
-
-$dict{ 'NORM' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $exp;
-    $a = $a ? $a : 0;
-    my @EXP = ( " ", "K", "M", "G", "T", "P" );
-    while ( $a > 1000 )
-    {
-        $a = $a / 1000;
-        $exp++;
-    }
-    $a = sprintf "%.2f", $a;
-    my $ret = "$a $EXP[$exp]";
-    my @ret;
-    push @ret, "'" . $ret . "'";
-    return \@ret, 1, 0;
-};
-
-=head2 a NORM2
-
-      return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
-	
-=cut
-
-$dict{ 'NORM2' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $exp;
-    $a = $a ? $a : 0;
-    my @EXP = ( " ", "K", "M", "G", "T", "P" );
-    while ( $a > 1024 )
-    {
-        $a = $a / 1024;
-        $exp++;
-    }
-    $a = sprintf "%.2f", $a;
-    my $ret = "$a $EXP[$exp]";
-    my @ret;
-    push @ret, "'" . $ret . "'";
-    return \@ret, 1, 0;
-};
-
-=head2 a UNORM
-
-      reverse function of NORM
-      return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1000)
-      and calculate the real value base 1000 ( e.g  7k = 7000)
-	
-=cut
-
-$dict{ 'UNORM' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    $a = $a ? $a : 0;
-    $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
-    my $num  = $1;
-    my $suff = lc( $3 );
-    my %EXP  = (
-        "k" => 1,
-        "m" => 2,
-        "g" => 3,
-        "t" => 4,
-        "p" => 5
-    );
-    my $mult = 0;
-
-    if ( exists( $EXP{ $suff } ) )
-    {
-        $mult = $EXP{ $suff };
-    }
-    my $ret = $num * ( 1000**$mult );
-    my @ret;
-    push @ret, "'" . $ret . "'";
-    return \@ret, 1, 0;
-};
-
-=head2 a UNORM2
-
-      reverse function of NORM2
-      return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1024)
-      and calculate the real value base 1024 ( e.g  7k = 7168)
-	
-=cut
-
-$dict{ 'UNORM2' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    $a = $a ? $a : 0;
-    $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
-    my $num  = $1;
-    my $suff = lc( $3 );
-    my %EXP  = (
-        "k" => 1,
-        "m" => 2,
-        "g" => 3,
-        "t" => 4,
-        "p" => 5
-    );
-    my $mult = 0;
-
-    if ( exists( $EXP{ $suff } ) )
-    {
-        $mult = $EXP{ $suff };
-    }
-    my $ret = $num * ( 1024**$mult );
-    my @ret;
-    push @ret, "'" . $ret . "'";
-    return \@ret, 1, 0;
-};
-
-=head2 a OCT
-
-      return the decimal value for the HEX, BINARY or OCTAL value 'a'
-      OCTAL is like  '0nn' where n is in the range of 0-7
-      BINARY is like '0bnnn...'   where n is in the range of 0-1
-      HEX is like '0xnnn' where n is in the range of 0-9A-F
-      if no specific format convert as an hexadecimal by default
-	
-=cut
-
-$dict{ 'OCT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    if ( $a !~ /^0(x|b|([0-7][0-7]))/ )
-    {
-        $a = "0x" . $a;
-    }
-    push @ret, oct( $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a OCTSTR2HEX
-
-      return a HEX string from a OCTETSTRING.
-      useful when receiving an SNMP ASN.1 OCTETSTRING like mac address
-	
-=cut
-
-$dict{ 'OCTSTR2HEX' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, unpack( "H*", pack( "a*", $a ) );
-    return \@ret, 1, 0;
-};
-
-=head2 a HEX2OCTSTR
-
-      return a OCTETSTRING string from a HEX
-      useful when you need to check if an SNMP ASN.1 OCTETSTRING if matching the hex value provided
-	
-=cut
-
-$dict{ 'HEX2OCTSTR' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, unpack( "a*", pack( "H*", $a ) );
-    return \@ret, 1, 0;
-};
-
-=head2 a DDEC2STR
-
-      return a string from a dotted DEC string
-      useful when you need to manipulate an SNMP extension with 'exec' 
-	
-=cut
-
-$dict{ 'DDEC2STR' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, join "", map { sprintf( "%c", $_ ) } ( split /\./, $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a STR2DDEC
-
-      return a dotted DEC string to a string
-      useful when you need to manipulate an SNMP extension with 'exec' 
-	
-=cut
-
-$dict{ 'STR2DDEC' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, join '.', map { unpack( "c", $_ ) } ( split //, $a );
-    return \@ret, 1, 0;
-};
-
-=head2 string a SLITEM
-
-      return the STRUCTURATED item at position 'a' from a STRUCTURATED list.
-      string are the STRUCTURATED list
-      the STRUCTURATED LIST use this format:
-      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
-      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
-      example:
-      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,2,SLITEM'
-      return:
-      # key2 | val2 #
-
-=cut
-
-$dict{ 'SLITEM' } = sub {
-    my $work1 = shift;
-
-    my $item  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-
-    my $res =  ( split /\s?\#\s?/, $string )[$item+1];
-    $res = '# ' . $res .' #' if ( $res );
-    push @ret, $res;
-    return \@ret, 2, 0;
-};
-
-=head2 string a SLGREP
-
-      return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a.
-      string are the STRUCTURATED list
-      the STRUCTURATED LIST use this format:
-      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
-      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
-      example:
-      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,Keys,SLGREP'
-      return:
-      #  Keys3 | val3 #
-
-=cut
-
-$dict{ 'SLGREP' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    my $res;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        if ( $i =~ /$regex/ )
-        {
-            $res .= $i . ' # ';
-        }
-    }
-    $res = '# ' . $res if ( $res );
-    push @ret, $res;
-    return \@ret, 2, 0;
-};
-
-=head2 string a SLGREPI
-
-      return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a (case insensitive).
-      string are the STRUCTURATED list
-      the STRUCTURATED LIST use this format:
-      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
-      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
-      example:
-      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,Keys,SLGREPI'
-      return:
-      #  keys1 | val1 # Keys3 | val3 #
-
-=cut
-
-$dict{ 'SLGREPI' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    my $res;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        if ( $i =~ /$regex/i )
-        {
-            $res .= $i . ' #';
-        }
-    }
-    $res = '# ' . $res if ( $res );
-    push @ret, $res;
-    return \@ret, 2, 0;
-};
-
-=head2 string a SLSEARCHALL
-
-      return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a.
-      string are the STRUCTURATED list
-      the STRUCTURATED LIST use this format:
-      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
-     
-      example:
-      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 5 # 1.3.6.1.2.1.25.3.3.1.2.780 | 25 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #,2,SLSEARCHALL'
-      return:
-      1.3.6.1.2.1.25.3.3.1.2.780  1.3.6.1.2.1.25.3.3.1.2.782
-
-=cut
-
-$dict{ 'SLSEARCHALL' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        my ( $key, $val ) = split /\s\|\s/, $i;
-        if ( $val =~ /$regex/ )
-        {
-            push @ret, $key;
-        }
-    }
-    return \@ret, 2, 0;
-};
-
-=head2 string a SLSEARCHALLI
-
-      return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a (case insensitive).
-      string are the STRUCTURATED list
-      the STRUCTURATED LIST use this format:
-      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
-      '# key1 | val1 # key2 | val2 # key12 | VAL12 #,val1,SLSEARCHALLI'
-      example:
-      '# key1 | val1 # key2 | val2 # key12 | VAL12 #,val1,SLSEARCHALLI'
-      return:
-      key1  key12
-
-=cut
-
-$dict{ 'SLSEARCHALLI' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        my ( $key, $val ) = split /\s\|\s/, $i;
-        if ( $val =~ /$regex/i )
-        {
-            push @ret, $key;
-        }
-    }
-    return \@ret, 2, 0;
-};
-
-=head2 string a SLSEARCHALLKEYS
-
-      return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST keys match the REGEX a
-      string are the STRUCTURATED list
-      the STRUCTURATED LIST use this format:
-      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
-      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #' 
-      example:
-      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #,1.3.6.1.2.1.25.3.3.1.2.,SLSEARCHALLKEYS'
-      return:
-      1 5 6 2
-
-=cut
-
-$dict{ 'SLSEARCHALLKEYS' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        my $match = $1;
-        my ( $key, $val ) = split /\s\|\s/, $i;
-        if ( $key =~ /$regex/ )
-        {
-            push @ret, $val;
-        }
-    }
-    return \@ret, 2, 0;
-};
-
-=head2 string a SLSEARCHALLKEYSI
-
-      return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST key match the REGEX a.
-      string are the STRUCTURATED list.
-      the STRUCTURATED LIST use this format:
-      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
-      '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #'
-      example:
-      '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #,toto,SLSEARCHALLKEYSI'
-      return:
-      oops yeah
-
-=cut
-
-$dict{ 'SLSEARCHALLKEYSI' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        my $match = $1;
-        my ( $key, $val ) = split /\s\|\s/, $i;
-        if ( $key =~ /$regex/i )
-        {
-            push @ret, $val;
-        }
-    }
-    return \@ret, 2, 0;
-};
-
-=head2 string a OIDSEARCHALLVAL
-
-      return all OID leaf from a snmpwalk macthing the REGEX a 
-      string are the OID walk list
-      the OID walk result use this format:
-      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
-      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
-      example:
-      '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVAL'
-      return:
-      688 2392
-	
-=cut
-
-$dict{ 'OIDSEARCHALLVAL' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        if ( $i =~ /$regex/ )
-        {
-            my $match = $1;
-            my ( $oid, undef ) = split /\s\|\s/, $i;
-            $oid =~ /\.(\d+)$/;
-            push @ret, $1;
-        }
-    }
-    return \@ret, 2, 0;
-};
-
-=head2 string a OIDSEARCHALLVALI
-
-      return all OID leaf from a snmpwalk macthing the REGEX a ( case insensitive ) 
-      string are the OID walk list
-      the OID walk result use this format:
-      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
-      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
-      example:
-      '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVALI'
-      return:
-      688 2392
-	
-=cut
-
-$dict{ 'OIDSEARCHALLVALI' } = sub {
-    my $work1 = shift;
-
-    my $regex  = pop @{ $work1 };
-    my $string = pop @{ $work1 };
-
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        if ( $i =~ /$regex/i )
-        {
-            my $match = $1;
-            my ( $oid, undef ) = split /\s\|\s/, $i;
-            $oid =~ /\.(\d+)$/;
-            push @ret, $1;
-        }
-    }
-    return \@ret, 2, 0;
-};
-
-=head2 string x x x a OIDSEARCHLEAF
-
-      return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
-      a is the number of leaf to pick from the stack 
-      x are all the leaf
-      string are the OID walk list
-      the OID walk result use this format:
-      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
-      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" # 
-      example: 
-      '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAF'
-      return:
-      running invalid
- 
-=cut
-
-$dict{ 'OIDSEARCHLEAF' } = sub {
-    my $work1 = shift;
-
-    my $nbr = pop @{ $work1 };
-    my @all = splice @{ $work1 }, 1, $nbr;
-
-    my $string = pop @{ $work1 };
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        foreach my $regex ( @all )
-        {
-            if ( $i =~ /\.$regex\s?\|\s/ )
-            {
-                my ( undef, $val ) = split /\s\|\s/, $i;
-                push @ret, $val;
-            }
-        }
-    }
-    return \@ret, 3 + $nbr, 0;
-};
-
-=head2 string x x x a OIDSEARCHLEAFI
-
-      return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
-      a ( case insensitive ) is the number of leaf to pick from the stack 
-      x are all the leaf
-      string are the OID walk list
-      the OID walk result use this format:
-      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
-      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #' 
-      example: 
-      '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAFI'
-      return:
-      running invalid
- 
-=cut
-
-$dict{ 'OIDSEARCHLEAFI' } = sub {
-    my $work1 = shift;
-
-    my $nbr = pop @{ $work1 };
-    my @all = splice @{ $work1 }, 1, $nbr;
-
-    my $string = pop @{ $work1 };
-    my @ret;
-    foreach my $i ( split /\s?\#\s?/, $string )
-    {
-        next unless ( $i );
-        foreach my $regex ( @all )
-        {
-            if ( $i =~ /\.$regex\s?\|\s/ )
-            {
-                my ( undef, $val ) = split /\s\|\s/, $i;
-                push @ret, $val;
-            }
-        }
-    }
-    return \@ret, 3 + $nbr, 0;
-};
-
-########################
-# string operators
-########################
-
-=head1 STRING operators
-
-=cut
-
-=head2 a b EQ
-
-      return the result of 'a' EQ 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ 'EQ' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b eq $a ? 1 : 0 );
-    return \@ret, 2;
-};
-
-=head2 a b NE
-
-      return the result of 'a' NE 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ 'NE' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b ne $a ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b LT
-
-      return the result of 'a' LT 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ 'LT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b lt $a ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b GT
-
-      return the result of 'a' GT 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ 'GT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b gt $a ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b LE
-
-      return the result of 'a' LE 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ 'LE' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b le $a ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b GE
-
-      return the result of 'a' GE 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ 'GE' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b ge $a ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b CMP
-
-      return the result of 'a' CMP 'b'  ( BOOLEAN value )
-	
-=cut
-
-$dict{ 'CMP' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b cmp $a );
-    return \@ret, 2, 0;
-};
-
-=head2 a LEN
-
-      return the length of 'a' 
-	
-=cut
-
-$dict{ 'LEN' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( length $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a b CAT
-
-      return the concatenation 'a' and 'b' 
-	
-=cut
-
-$dict{ 'CAT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( "'" . $b . $a . "'" );
-    return \@ret, 2, 0;
-};
-
-=head2 a b CATALL
-
-      return the concatenation all element on the stack 
-	
-=cut
-
-$dict{ 'CATALL' } = sub {
-    my $work1 = shift;
-    my $dep   = scalar @{ $work1 };
-    my $ret;
-    for ( 1 .. $dep )
-    {
-        $ret .= shift @{ $work1 };
-    }
-    my @ret;
-    push @ret, $ret;
-    return \@ret, 1 + $dep, 0;
-};
-
-=head2 a b REP
-
-      return the result of 'a' x 'b'  duplicate 'a' by the number of 'x' 
-	
-=cut
-
-$dict{ 'REP' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $b x $a );
-    return \@ret, 2, 0;
-};
-
-=head2 a REV
-
-      return the reverse of 'a'
-	
-=cut
-
-$dict{ 'REV' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = reverse $a;
-    my @ret;
-    push @ret, ( $b );
-    return \@ret, 0, 0;
-};
-
-=head2 a b c SUBSTR
-
-      return the substring of 'c' starting at 'b' with the length of 'a'
-	
-=cut
-
-$dict{ 'SUBSTR' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( substr( $c, $b, $a ) );
-    return \@ret, 3, 0;
-};
-
-=head2 a UC
-
-      return 'a' in uppercase
-	
-=cut
-
-$dict{ 'UC' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( uc $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a LC
-
-      return 'a' in lowercase
-	
-=cut
-
-$dict{ 'LC' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( lc $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a UCFIRST
-
-      return 'a' with the first letter in uppercase
-	
-=cut
-
-$dict{ 'UCFIRST' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( ucfirst $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a LCFIRST
-
-      return 'a' with the first letter in lowercase
-	
-=cut
-
-$dict{ 'LCFIRST' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( lcfirst $a );
-    return \@ret, 1, 0;
-};
-
-=head2 a R1 R2 K V SPLIT2
-
-      split a with the REGEX R1
-      each result are splitted with the REGEX R2
-      the result are stored in the variable k and v
-      
-      # .1.3.6.1.2.1.25.3.3.1.2.768 | 48 # .1.3.6.1.2.1.25.3.3.1.2.769 | 38 # .1.3.6.1.2.1.25.3.3.1.2.771 | 42 # .1.3.6.1.2.1.25.3.3.1.2.770 | 58 #,\s?#\s?,\s\|\s,a,b,SPLIT2
-      return a with .1.3.6.1.2.1.25.3.3.1.2.768,.1.3.6.1.2.1.25.3.3.1.2.769,.1.3.6.1.2.1.25.3.3.1.2.771,.1.3.6.1.2.1.25.3.3.1.2.770
-      and b with 48,38,42,58
- 
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-      SPLIT return the matched value WITHOUT the empty string of the beginning
-	
-=cut
-
-$dict{ 'SPLIT2' } = sub {
-    my $work1 = shift;
-    my $v2    = pop @{ $work1 };
-    my $v1    = pop @{ $work1 };
-    my $r2    = pop @{ $work1 };
-    my $r1    = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @T1;
-    my @T2;
-
-    foreach my $i ( split /$r1/, $b )
-    {
-        next unless ( $i );
-        my ( $k, $v ) = split /$r2/, $i, 2;
-        if ( $k )
-        {
-            push @T1, $k;
-            push @T2, $v;
-        }
-    }
-    $var{ $v1 } = \@T1;
-    $var{ $v2 } = \@T2;
-    my @ret;
-    return \@ret, 5, 0;
-};
-
-=head2 a b SPLIT
-
-      return all splitted item of 'a' by the separator 'b' 
-      'b' is a REGEX 
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-      !!! if the split match on the beginning of string,
-      SPLIT return the matched value WITHOUT the empty string of the beginning
-	
-=cut
-
-$dict{ 'SPLIT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @r     = grep /[^(^$)]/, split /$a/, $b;
-    my @ret;
-    push @ret, @r;
-    return \@ret, 2, 0;
-};
-
-=head2 a b SPLITI
-
-      return all splitted item of 'a' by the separator 'b' 
-      'b' is a REGEX case insensitive
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-      !!! if the split match on the beginning of string,
-      SPLIT return the matched value WITHOUT the empty string of the beginning
-      
-=cut
-
-$dict{ 'SPLITI' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @r     = grep /[^(^$)]/, split /$a/i, $b;
-    my @ret;
-    push @ret, @r;
-    return \@ret, 2, 0;
-};
-
-=head2 a b PAT
-
-      return one or more occurance of 'b' in 'a' 
-      'b' is a REGEX
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
-=cut
-
-$dict{ 'PAT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @r     = ( $b =~ m/\Q$a\E/g );
-    my @ret;
-    push @ret, @r;
-    return \@ret, 2, 0;
-};
-
-=head2 a b PATI
-
-      return one or more occurance of 'b' in 'a' 
-      'b' is a REGEX case insensitive
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
-=cut
-
-$dict{ 'PATI' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @r     = ( $b =~ m/$a/ig );
-    my @ret;
-    push @ret, @r;
-    return \@ret, 2, 0;
-};
-
-=head2 a b TPAT
-
-      test if the pattern 'b' is in 'a' 
-      'b' is a REGEX
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
-=cut
-
-$dict{ 'TPAT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $r     = ( $b =~ m/$a/g );
-    my @ret;
-    push @ret, ( $r ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b TPATI
-
-      test if the pattern 'b' is in 'a' 
-      'b' is a REGEX
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-      	
-=cut
-
-$dict{ 'TPATI' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $r     = ( $b =~ m/$a/ig );
-    my @ret;
-    push @ret, ( $r ? 1 : 0 );
-    return \@ret, 2, 0;
-};
-
-=head2 a b c SPAT
-
-      substitute the pattern 'b' by the pattern 'a'  in 'c'
-      'b' and 'c' are a REGEX
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
-=cut
-
-$dict{ 'SPAT' } = sub {
-    my $work1   = shift;
-    my $a       = pop @{ $work1 };
-    my $b       = pop @{ $work1 };
-    my $c       = pop @{ $work1 } || '';
-    my $to_eval = qq{\$c =~ s#$b#$a#};
-    eval( $to_eval );
-    my @ret;
-    push @ret, $c;
-    return \@ret, 3, 0;
-};
-
-=head2 a b c SPATG
-
-      substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
-      'b' and 'c' are a REGEX
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
-=cut
-
-$dict{ 'SPATG' } = sub {
-    my $work1   = shift;
-    my $a       = pop @{ $work1 };
-    my $b       = pop @{ $work1 };
-    my $c       = pop @{ $work1 };
-    my $to_eval = qq{\$c =~ s#$b#$a#g};
-    eval( $to_eval );
-    my @ret;
-    push @ret, $c;
-    return \@ret, 3, 0;
-};
-
-=head2 a b c SPATI
-
-      substitute the pattern 'b' by the pattern 'a'  in 'c'case insensitive (i flag in REGEX)
-      'b' and 'c' are a REGEX
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
-=cut
-
-$dict{ 'SPATI' } = sub {
-    my $work1   = shift;
-    my $a       = pop @{ $work1 };
-    my $b       = pop @{ $work1 };
-    my $c       = pop @{ $work1 };
-    my $to_eval = qq{\$c =~ s#$b#$a#i};
-    eval( $to_eval );
-    my @ret;
-    push @ret, $c;
-    return \@ret, 3, 0;
-};
-
-=head2 a b c SPATGI
-
-      substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
-      and case insensitive (1 flag in REGEX)
-      'b' and 'c' are a REGEX
-      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
-=cut
-
-$dict{ 'SPATGI' } = sub {
-    my $work1   = shift;
-    my $a       = pop @{ $work1 };
-    my $b       = pop @{ $work1 };
-    my $c       = pop @{ $work1 };
-    my $to_eval = qq{\$c =~ s#$b#$a#ig};
-    eval( $to_eval );
-    my @ret;
-    push @ret, $c;
-    return \@ret, 3, 0;
-};
-
-=head2 a ... z PRINTF
-
-     use the format 'z' to print the value(s) on the stack
-     7,3,/,10,3,/,%d %f,PRINTF -> 2 3.333333
-     see printf in perl
-	
-=cut
-
-$dict{ 'PRINTF' } = sub {
-
-    my $work1  = shift;
-    my $format = pop @{ $work1 };
-    my @r      = ( $format =~ m/(%[^ ])/g );
-    my @var;
-    for ( 0 .. $#r )
-    {
-        unshift @var, pop @{ $work1 };
-    }
-    my @ret;
-    push @ret, sprintf $format, @var;
-    return \@ret, 2 + $#r, 0;
-};
-
-=head2 a b PACK
-
-      pack the value 'a' with the format 'b'
-
-      2004,06,08,a4 a2 a2,PACK 
-      result: 20040608
-
-      see pack in perl
-	
-=cut
-
-$dict{ 'PACK' } = sub {
-    my $work1  = shift;
-    my $format = " " . ( pop( @{ $work1 } ) ) . " ";
-    my @r      = ( $format =~ m/([a-zA-Z]\d*\s*)/g );
-    my @var;
-    for ( 0 .. $#r )
-    {
-        unshift @var, pop @{ $work1 };
-    }
-    my @ret;
-    push @ret,, pack( $format, @var );
-    return \@ret, 2 + $#r, 0;
-};
-
-=head2 a b UNPACK
-
-      unpack the value 'a' with the format 'b'
-
-      20040608,a4 a2 a2,PACK
-      result: 2004,06,08
-
-      see unpack in perl
-	
-=cut
-
-$dict{ 'UNPACK' } = sub {
-    my $work1  = shift;
-    my $format = pop @{ $work1 };
-    my $var    = pop @{ $work1 };
-    my @ret;
-    push @ret, unpack( $format, $var );
-    return \@ret, 2, 0;
-};
-
-=head2 a b ISNUM
-
-      test if top of the stack is a number
-      return 1 if if it is a NUMBER otherwise return 0
-	
-=cut
-
-$dict{ 'ISNUM' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0 );
-    return \@ret, 0, 0;
-};
-
-=head2 a b ISNUMD
-
-      test if top of the stack is a number
-      delete the top element on the statck and return 1 if it is a NUMBER otherwise return 0 
-	
-=cut
-
-$dict{ 'ISNUMD' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0 );
-    return \@ret, 1, 0;
-};
-
-=head2 a b ISINT
-
-      test if top of the stack is a integer (natural number)
-      return 1 if if it is a INTEGER otherwise return 0
-	
-=cut
-
-$dict{ 'ISINT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a =~ /^\d+$/ ? 1 : 0 );
-    return \@ret, 0, 0;
-};
-
-=head2 a b ISINTD
-
-      test if top of the stack is a integer (natural number)
-      delete the top element on the statck and return 1 if it is a INTEGER otherwise return 0 
-	
-=cut
-
-$dict{ 'ISINTD' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a =~ /^\d+$/ ? 1 : 0 );
-    return \@ret, 1, 0;
-};
-
-=head2 a b ISHEX
-
-      test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
-      return 1 if if it is a HEXADECIMAL otherwise return 0
-	
-=cut
-
-$dict{ 'ISHEX' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0 );
-    return \@ret, 0, 0;
-};
-
-=head2 a b ISHEXD
-
-      test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
-      delete the top element on the statck and return 1 if it is a HEXADECIMAL otherwise return 0 
-	
-=cut
-
-$dict{ 'ISHEXD' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    push @ret, ( $a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0 );
-    return \@ret, 1, 0;
-};
-
-########################
-# stack operators
-########################
-
-=head1 STACK operators
-
-=cut
-
-=head2	a b SWAP
-
-	return 'b' 'a'
-
-=cut
-
-$dict{ 'SWAP' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @ret;
-    push @ret, $a, $b;
-    return \@ret, 2, 0;
-};
-
-=head2	a b OVER
-
-	return 'a' 'b' 'a'
-
-=cut
-
-$dict{ 'OVER' } = sub {
-    my $work1 = shift;
-    my @ret;
-    push @ret, @{ $work1 }[-2];
-    return \@ret, 0, 0;
-};
-
-=head2	a DUP
-
-	return 'a' 'a'
-
-=cut
-
-$dict{ 'DUP' } = sub {
-    my $work1 = shift;
-    my @ret;
-    push @ret, @{ $work1 }[-1];
-    return \@ret, 0, 0;
-};
-
-=head2	a b DDUP
-
-	return 'a' 'b' 'a' 'b'
-
-=cut
-
-$dict{ 'DDUP' } = sub {
-    my $work1 = shift;
-    my @ret;
-    push @ret, @{ $work1 }[-2], @{ $work1 }[-1];
-    return \@ret, 0, 0;
-};
-
-=head2	a b c ROT
-
-	return 'b' 'c' 'a'
-
-=cut
-
-$dict{ 'ROT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 };
-    my @ret;
-    push @ret, $b, $a, $c;
-    return \@ret, 3, 0;
-};
-
-=head2	a b c RROT
-
-	return 'c' 'a' 'b'
-
-=cut
-
-$dict{ 'RROT' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my $c     = pop @{ $work1 };
-    my @ret;
-    push @ret, $a, $c, $b;
-    return \@ret, 3, 0;
-};
-
-=head2	DEPTH
-
-	return the number of elements on the stack
-
-=cut
-
-$dict{ 'DEPTH' } = sub {
-    my $work1 = shift;
-    my $ret   = scalar @{ $work1 };
-    my @ret;
-    push @ret, $ret;
-    return \@ret, 0, 0;
-};
-
-=head2	a b POP
-
-	remove the last element on the stack
-
-=cut
-
-$dict{ 'POP' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    return \@ret, 1, 0;
-};
-
-=head2	a ... z POPN
-
-	remove the 'z' last element(s) from the stack
-
-=cut
-
-$dict{ 'POPN' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    for ( 1 .. $a )
-    {
-        pop @{ $work1 };
-    }
-    my @ret;
-    return \@ret, 1 + $a, 0;
-};
-
-=head2	a b c d e n ROLL
-
-	rotate the stack on 'n' element
-	a,b,c,d,e,f,4,ROLL -> a b d e f c
-	if n = 3 <=> ROT
-	if  -2 < n < 2 nothing is done
-	if n < -1 ROLL in reverse order
-	a,b,c,d,e,f,-4,ROLL -> a b f e d c
-	To reveerse a stack content use this:
-	a,b,c,d,e,f,DEPTH,+-,ROLL => f e d c b a
-
-=cut
-
-$dict{ 'ROLL' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-
-    my @tmp;
-    my $b;
-    if ( $a > 1 )
-    {
-        @tmp = splice @{ $work1 }, -( $a - 1 );
-        $b = pop @{ $work1 };
-    }
-    if ( $a < -1 )
-    {
-        @tmp = reverse( splice @{ $work1 }, ( $a ) );
-        $a *= -1;
-    }
-    my @ret;
-    if ( $a < 2 && $a > -2 )
-    {
-        return \@ret, 1, 0;
-    }
-    if ( defined $b )
-    {
-        push @ret, @tmp, $b;
-    }
-    else
-    {
-        push @ret, @tmp;
-    }
-    return \@ret, 1 + $a, 0;
-};
-
-=head2 a PICK
-	
-	copy element from depth 'a' to the stack
-
-=cut
-
-$dict{ 'PICK' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    if ( $a <= scalar @{ $work1 } )
-    {
-        push @ret, @{ $work1 }[ -( $a ) ];
-    }
-
-    return \@ret, 1, 0;
-};
-
-=head2 a GET
-	
-	get (remove) element from depth 'a'
-	and put on top of stack 
-
-=cut
-
-$dict{ 'GET' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    my $b;
-    if ( $a <= ( scalar @{ $work1 } ) && ( $a > 1 ) )
-    {
-        my $line = join " | ", @{ $work1 };
-        my @tmp = splice @{ $work1 }, -( $a - 1 );
-        $line = join " | ", @tmp;
-        $b = pop @{ $work1 };
-        push @ret, @tmp, $b;
-        return \@ret, 1 + $a, 0;
-    }
-    else
-    {
-        return \@ret, 1, 0;
-    }
-
-};
-
-=head2 a b PUT
-	
-	put element 'a' at the level 'b' of the stack
-	if 'b' greater than the stack put at first place
-	if 'b' < 0 start to the reverse order of the stack
-
-=cut
-
-$dict{ 'PUT' } = sub {
-    my $work1 = shift;
-    my $len   = scalar @{ $work1 };
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @tmp;
-    my @ret = @{ $work1 };
-    if ( $a >= ( scalar( @{ $work1 } ) ) )
-    {
-        $a = scalar( @{ $work1 } );
-    }
-    if ( $a )
-    {
-        @tmp = splice @ret, -( $a - 1 );
-    }
-    push( @ret, $b, @tmp );
-    return \@ret, $len, 0;
-};
-
-=head2 a b DEL
-	
-	delete 'b' element on the stack from level 'a'
-	'a' and 'b' is get in absolute value 
-
-=cut
-
-$dict{ 'DEL' } = sub {
-    my $work1   = shift;
-    my $len     = scalar( @{ $work1 } );
-    my $start   = abs pop @{ $work1 };
-    my $length1 = abs pop @{ $work1 };
-    my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 2 : $length1 );
-    my @temp;
-    @temp = splice @{ $work1 }, $len - 2 - $start - $length, $length;
-    my @ret;
-    push( @ret, @{ $work1 } );
-    return \@ret, $len, 0;
-};
-
-=head2 a FIND
-	
-	get the level of stack containing the exact value 'a'
-	if no match, return 0	
-
-=cut
-
-$dict{ 'FIND' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-
-    my $nbr = scalar( @{ $work1 } );
-    my $ret = 0;
-    for ( 0 .. $nbr )
-    {
-        my $b = @{ $work1 }[ $nbr - $_ ];
-        if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
-        {
-            if ( $b == $a )
-            {
-                $ret = $_;
-                last;
-            }
-        }
-        else
-        {
-            if ( $b eq $a )
-            {
-                $ret = $_;
-                last;
-            }
-        }
-    }
-    my @ret;
-    push( @ret, $ret );
-    return \@ret, 1, 0;
-};
-
-=head2 a FINDK
-	
-	keep the level of stack containing the exact value 'a'
-	f no match, return an empty stack
-	( shortcut for a,FIND,KEEP )
-	
-=cut
-
-$dict{ 'FINDK' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-
-    my $nbr = scalar( @{ $work1 } );
-    my $ret;
-    for ( 0 .. $nbr )
-    {
-        my $b = @{ $work1 }[ $nbr - $_ ];
-        if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
-        {
-            if ( $b == $a )
-            {
-                $ret = $a;
-                last;
-            }
-        }
-        else
-        {
-            if ( $b eq $a )
-            {
-                $ret = $a;
-                last;
-            }
-        }
-    }
-    my @ret;
-    push( @ret, $ret );
-    return \@ret, $nbr + 1, 0;
-};
-
-=head2 a SEARCH
-	
-	get the first level of stack containing the REGEX 'a'
-
-=cut
-
-$dict{ 'SEARCH' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $ret   = 1;
-    my $nbr   = scalar( @{ $work1 } );
-    my @ret;
-    for ( my $i = $nbr ; $i ; $i-- )
-    {
-        my $b = @{ $work1 }[ $nbr - $i ];
-        if ( $b =~ /$a/ )
-        {
-            $ret = $i;
-            push( @ret, $ret );
-            return \@ret, 1, 0;
-        }
-    }
-    push( @ret, 0 );
-    return \@ret, 1, 0;
-};
-
-=head2 a SEARCHI
-	
-	get the first level of stack containing the REGEX 'a' (cas insensitive)
-
-=cut
-
-$dict{ 'SEARCHI' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $ret   = 1;
-    my $nbr   = scalar( @{ $work1 } );
-    my @ret;
-    for ( my $i = $nbr ; $i ; $i-- )
-    {
-        my $b = @{ $work1 }[ $nbr - $i ];
-        if ( $b =~ /$a/i )
-        {
-            $ret = $i;
-            push( @ret, $ret );
-            return \@ret, 1, 0;
-        }
-    }
-    push( @ret, 0 );
-    return \@ret, 1, 0;
-};
-
-=head2 a SEARCHIA
-
-	get all level of stack containing the REGEX 'a' (cas insensitive)
-	empty the stack and return all the index of item matching
-
-=cut
-
-$dict{ 'SEARCHIA' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $ret;
-    my $nbr = scalar( @{ $work1 } );
-    my @ret;
-    for ( my $i = $nbr ; $i ; $i-- )
-    {
-        my $b = @{ $work1 }[ $nbr - $i ];
-        if ( $b =~ /$a/i )
-        {
-            $ret++;
-            push @ret, $i;
-        }
-    }
-    return \@ret, 1 + $nbr, 0;
-};
-
-=head2 a SEARCHA
-
-	get all level of stack containing the REGEX 'a' (cas sensitive)
-	empty the stack and return all the index of item matching
-
-	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHA
-	result: 8 7 4 2
-
-=cut
-
-$dict{ 'SEARCHA' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $ret;
-    my $nbr = scalar( @{ $work1 } );
-    my @ret;
-    for ( my $i = $nbr ; $i ; $i-- )
-    {
-        my $b = @{ $work1 }[ $nbr - $i ];
-        if ( $b =~ /$a/ )
-        {
-            $ret++;
-            push @ret, $i;
-        }
-    }
-    return \@ret, 1 + $nbr, 0;
-};
-
-=head2 a SEARCHK
-	
-	keep all level of stack containing the REGEX 'a' (cas sensitive)
-
-	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHK
-	result: toto toti tota tutot
-
-=cut
-
-$dict{ 'SEARCHK' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $ret   = 1;
-    my $nbr   = scalar( @{ $work1 } );
-    my @ret;
-    for ( my $i = $nbr ; $i ; $i-- )
-    {
-        my $b = @{ $work1 }[ $nbr - $i ];
-        if ( $b =~ /$a/ )
-        {
-            $ret = $i;
-            push @ret, $b;
-        }
-    }
-    return \@ret, $nbr + 1, 0;
-};
-
-=head2 a SEARCHIK
-	
-	keep all level of stack containing the REGEX 'a' (cas insensitive)
-
-=cut
-
-$dict{ 'SEARCHIK' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $ret   = 1;
-    my $nbr   = scalar( @{ $work1 } );
-    my @ret;
-    for ( my $i = $nbr ; $i ; $i-- )
-    {
-        my $b = @{ $work1 }[ $nbr - $i ];
-        if ( $b =~ /$a/i )
-        {
-            $ret = $i;
-            push @ret, $b;
-        }
-    }
-    return \@ret, $nbr + 1, 0;
-};
-
-=head2 a KEEP
-	
-	delete all element on the stack except the level 'a'
-	if 'a' is deeper then stack, keep the stack untouched
-	
-=cut
-
-$dict{ 'KEEP' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my @ret;
-    if ( $a <= 0 )
-    {
-        return \@ret, 1 + ( scalar @{ $work1 } );
-    }
-    if ( $a < ( ( scalar @{ $work1 } ) + 1 ) )
-    {
-        push @ret, @{ $work1 }[ -( $a ) ];
-        return \@ret, 1 + ( scalar @{ $work1 } ), 0;
-    }
-    else
-    {
-        return \@ret, 1, 0;
-    }
-};
-
-=head2 a KEEPV
-		
-	delete all element on the stack except the levels with indice in the var A
-
-	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,A,KEEPV
-	result: i d g
-		
-=cut
-
-$dict{ 'KEEPV' } = sub {
-    my $work1 = shift;
-    my $name  = pop @{ $work1 };
-    my @ret;
-
-    if ( exists $var{ $name } )
-    {
-        if ( ref $var{ $name } eq 'ARRAY' )
-        {
-            foreach my $ind ( @{ $var{ $name } } )
-            {
-                push @ret, @{ $work1 }[ -$ind ] if ( defined @{ $work1 }[ -$ind ] );
-            }
-        }
-        else
-        {
-            push @ret, @{ $work1 }[ -$var{ $name } ] if ( defined @{ $work1 }[ -$var{ $name } ] );
-        }
-    }
-    return \@ret, scalar( @{ $work1 } ) + 1, 0;
-};
-
-=head2 a KEEPVV
-	
-	keep element from array B with indice from ARRAY A  
-
-	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,8,B,!!,B,A,KEEPVV
-	result: i d g
-	
-=cut
-
-$dict{ 'KEEPVV' } = sub {
-    my $work1 = shift;
-    my $name1 = pop @{ $work1 };
-    my $name2 = pop @{ $work1 };
-    my @ret;
-    my @tmp;
-
-    if ( exists $var{ $name1 } && exists $var{ $name2 } )
-    {
-        if ( ref $var{ $name2 } eq 'ARRAY' )
-        {
-            @tmp = @{ $var{ $name2 } };
-        }
-        else
-        {
-            @tmp = $var{ $name2 };
-        }
-        if ( ref $var{ $name1 } eq 'ARRAY' )
-        {
-            foreach my $ind ( @{ $var{ $name1 } } )
-            {
-                push @ret, $tmp[ -$ind ] if ( defined $tmp[ -$ind ] );
-            }
-        }
-        else
-        {
-            push @ret, $tmp[ -$var{ $name1 } ] if ( defined $tmp[ -$var{ $name1 } ] );
-        }
-    }
-    return \@ret, 2, 0;
-};
-
-=head2 b a KEEPN
-	
-	keep 'b' element on the stack from level 'a'
-	and delete all other element
-	'a' and 'b' is get in absolute value 
-
-	a,b,c,d,e,f,g,h,4,3,KEEPN
-        result: c d e f
-
-=cut
-
-$dict{ 'KEEPN' } = sub {
-    my $work1   = shift;
-    my $len     = scalar( @{ $work1 } );
-    my $start   = abs pop @{ $work1 };
-    my $length1 = abs pop @{ $work1 };
-    my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 1 : $length1 );
-    my @ret     = splice @{ $work1 }, $len - 1 - $start - $length, $length;
-    return \@ret, $len, 0;
-};
-
-=head2 b a KEEPR
-	
-	delete all elements on the stack except the level 'a' and keep all element deeper than 'b'
-	if 'a' is deeper then stack, keep the stack untouched
-
-	a,b,c,d,e,f,g,h,6,3,KEEPR
-        result: a b f
-
-=cut
-
-$dict{ 'KEEPR' } = sub {
-    my $work1 = shift;
-    my $a     = pop @{ $work1 };
-    my $b     = pop @{ $work1 };
-    my @tmp   = splice @{ $work1 }, scalar( @{ $work1 } ) - $b;
-
-    my @ret;
-    if ( $a <= 0 )
-    {
-        return \@ret, 1 + ( scalar @tmp );
-    }
-    if ( $a < ( ( scalar @tmp ) + 1 ) )
-    {
-        push @ret, @tmp[ -( $a ) ];
-        return \@ret, 2 + ( scalar @tmp ), 0;
-    }
-    else
-    {
-        return \@ret, 2, 0;
-    }
-};
-
-=head2 c b a KEEPRN
-	
-	keep 'b' element on the stack from level 'a' and keep all element deeper than 'c'
-	if 'a' is deeper then stack, keep the stack untouched
-
-	a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN
-        result: a b c g h i
-
-=cut
-
-$dict{ 'KEEPRN' } = sub {
-    my $work1 = shift;
-
-    my $start = abs pop @{ $work1 };
-    my @ret;
-    unless ( $start )
-    {
-        return \@ret, +3, 0;
-    }
-    my $length1 = abs pop @{ $work1 };
-    my $deepth  = abs pop @{ $work1 };
-    my @tmp     = splice @{ $work1 }, scalar( @{ $work1 } ) - $deepth;
-    my $len     = scalar( @tmp );
-    my @t       = reverse @tmp;
-    @ret = reverse splice @t, $start - 1, $length1;
-    return \@ret, $len + 3, 0;
-};
-
-=head2 a b PRESERVE
-	
-	keep  element on the stack from level 'a'
-	to level 'b'
-	and delete all other element
-	'a' and 'b' is get in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
-
-=cut
-
-$dict{ 'PRESERVE' } = sub {
-    my $work1 = shift;
+    my $nbr   = pop @{ $work1 };
     my $len   = scalar( @{ $work1 } );
-    my $start = ( abs pop @{ $work1 } );
-    my $end   = ( abs pop @{ $work1 } );
-    my $len1  = scalar( @{ $work1 } );
-    my @temp;
-    if ( $start <= $end )
+    my @ret;
+    my $tmp =@{ $work1 }[ $len -1]; 
+    for my $i ( 1 .. $nbr )
     {
-        @temp = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+        my $b = @{ $work1 }[ $len - $i ];
+        $tmp = $tmp < $b ? $tmp : $b;
     }
-    else
-    {
-        push @temp, @{ $work1 }[ ( $start - 1 ) .. ( $#$work1 ) ];
-        push @temp, @{ $work1 }[ 0 .. ( $end - 1 ) ];
-    }
-    return \@temp, $len, 0;
+    push @ret, $tmp;
+    return \@ret, $nbr + 1, 0;
 };
 
-=head2 a b COPY
-	
-	copy  element on the stack from level 'a'
-	to level 'b'
-	'a' and 'b' is get in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+=head2 a b MAXX
 
+      return the greatest value from the a elements from the stack
+	
 =cut
 
-$dict{ 'COPY' } = sub {
+$dict{MAXX} = sub {
     my $work1 = shift;
+    my $nbr   = pop @{ $work1 };
     my $len   = scalar( @{ $work1 } );
-    my $start = ( abs pop @{ $work1 } );
-    my $end   = ( abs pop @{ $work1 } );
-    my $len1  = scalar( @{ $work1 } );
-    my @temp;
-    if ( $start <= $end )
+    my @ret;
+    my $tmp = 0;
+    for my $i ( 1 .. $nbr )
     {
-        @temp = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+        my $b = @{ $work1 }[ $len - $i ];
+        $tmp = $tmp > $b ? $tmp : $b;
     }
-    else
-    {
-        push @temp, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
-        push @temp, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
-    }
-    return \@temp, 2, 0;
+    push @ret, $tmp;
+    return \@ret, $nbr + 1, 0;
 };
-
 =head2 a SUM
 	
-	sum the a element on top of the stack
-	remove these a element
+	sum the a elements from the top of the stack
+	remove these a elements
 	and return the result value on the stack
 
 =cut
 
-$dict{ 'SUM' } = sub {
+$dict{SUM} = sub {
     my $work1 = shift;
     my $nbr   = pop @{ $work1 };
     my $len   = scalar( @{ $work1 } );
@@ -3126,7 +526,7 @@ $dict{ 'SUM' } = sub {
 
 =cut
 
-$dict{ 'STATS' } = sub {
+$dict{STATS} = sub {
     my $work1 = shift;
     my $nbr   = pop @{ $work1 };
     my $len   = scalar( @{ $work1 } );
@@ -3172,6 +572,2735 @@ $dict{ 'STATS' } = sub {
 };
 
 ########################
+# relational operators
+########################
+
+=head1 RELATIONAL operators
+
+=cut
+
+=head2 a b <
+
+      return the result of 'a' < 'b'  ( BOOLEAN value ) 
+	
+=cut
+
+$dict{'<'} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a > $b ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b <=
+
+      return the result of 'a' <= 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{'<='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a >= $b ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b >
+
+      return the result of 'a' > 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{'>'} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a < $b ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b >=
+
+      return the result of 'a' >= 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{'>='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a <= $b ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b ==
+
+      return the result of 'a' == 'b'  ( BOOLEAN value ) 1 if a == b else 0
+	
+=cut
+
+$dict{'=='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b == $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b <=>
+
+      return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
+	
+=cut
+
+$dict{'<=>'} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b <=> $a );
+    return \@ret, 2, 0;
+};
+
+=head2 a b !=
+
+      return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
+	
+=cut
+
+$dict{'!='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b != $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b v ><
+
+      return the 1 ( BOOLEAN value ) if v greater than a but lower than b. Otherwise return 0
+      ( aka between boundaries excluded )
+=cut
+
+$dict{'><'} = sub {
+    my $work1 = shift;
+    my $v     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $v > $a && $v < $b ) ? 1 : 0 );
+    return \@ret, 3, 0;
+};
+
+=head2 a b v >=<
+
+      return 1 ( BOOLEAN value ) if v greater or equal to a but lower or equal to b. Otherwise return 0 
+      ( aka between boundaries included )
+	
+=cut
+
+$dict{'>=<'} = sub {
+    my $work1 = shift;
+    my $v     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $v >= $a && $v <= $b ) ? 1 : 0 );
+    return \@ret, 3, 0;
+};
+
+=head2 a b N<
+
+      return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{'N<'} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a > $b ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N<=
+
+      return the result of 'a' N<= 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{'N<='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a >= $b ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N>
+
+      return the result of 'a' N> 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{'N>'} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a < $b ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N>=
+
+      return the result of 'a' N>= 'b'  ( BOOLEAN value ) if a is ISNUM
+	
+=cut
+
+$dict{'N>='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $a <= $b ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N==
+
+      return the result of 'a' N== 'b'  ( BOOLEAN value ) 1 if a == b and a ISNUM else 0
+	
+=cut
+
+$dict{'N=='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $b == $a ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b N!=
+
+     return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b and a ISNUM else 1
+     
+=cut
+
+$dict{'N!='} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ( $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ && $b != $a ) ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+
+
+########################
+# logical operators
+########################
+
+=head1 LOGICAL operators
+
+=cut
+
+=head2 a b OR
+
+      return the 1 one of the 2 argument are not equal to 0
+	
+=cut
+
+$dict{OR} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a || $b );
+    return \@ret, 2, 0;
+};
+
+=head2 a b AND
+
+      return the 0 one of the 2 argument are equal to 0
+	
+=cut
+
+$dict{AND} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a && $b );
+    return \@ret, 2, 0;
+};
+
+=head2 a b XOR
+
+      return the 0 if the  2 argument are equal
+	
+=cut
+
+$dict{XOR} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a xor $b ) ? 1 : 0;
+    return \@ret, 2, 0;
+};
+
+=head2 a b NXOR
+
+      return the 0 if the  2 argument are equal. Any non numeric elements is seen as a 0.
+	
+=cut
+
+$dict{NXOR} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    $a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0;
+    $b = $b =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $b : 0;
+    my @ret;
+    push @ret, ( $a xor $b ) ? 1 : 0;
+    return \@ret, 2, 0;
+};
+
+=head2 a NOT
+
+      return the 0 if the argument is not eqauk to 0
+      return the 1 if the argument is  eqauk to 0
+	
+=cut
+
+$dict{NOT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+
+    my @ret;
+    push @ret, ( not $a ) ? 1 : 0;
+    return \@ret, 1, 0;
+};
+
+=head2 a TRUE
+
+      return the 1 if the top of stack is !=0 and if stack not empty
+	
+=cut
+
+$dict{TRUE} = sub {
+    my $work1 = shift;
+    my $a;
+    my $b = 0;
+    if ( scalar @{ $work1 } )
+    {
+        $b = 1;
+        $a = pop @{ $work1 };
+	$a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0;
+        if ( $a > 0 )
+        {
+            $b = 1;
+        }
+        else
+        {
+            $b = 0;
+        }
+    }
+    my @ret;
+    push @ret, $b;
+    return \@ret, 1, 0;
+};
+
+=head2 a FALSE
+
+      return the 0 if the top of stack is !=0
+	
+=cut
+
+$dict{FALSE} = sub {
+    my $work1 = shift;
+    my $a;
+    my $b = 1;
+    if ( scalar @{ $work1 } )
+    {
+        $b = 0;
+        $a = pop @{ $work1 };
+        $a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0;
+        if ( $a > 0 )
+        {
+            $b = 0;
+        }
+        else
+        {
+            $b = 1;
+        }
+    }
+    my @ret;
+    push @ret, $b;
+    return \@ret, 1, 0;
+};
+
+
+=head2 a b >>
+
+      bitwise shift to the right
+      shift the bits in a to the left of b level
+	
+=cut
+
+$dict{'>>'} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b >> $a );
+    return \@ret, 2, 0;
+};
+
+=head2 a b <<
+
+      bitwise shift to the left
+      shift the bits in a to the left of b level
+	
+=cut
+
+$dict{'<<'} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b << $a );
+    return \@ret, 2, 0;
+};
+
+
+########################
+# misc operators
+########################
+
+=head1 MISC operators
+
+=cut
+
+=head2 a VAL,RET, "operator" LOOKUP
+
+      test with the "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
+      the "operator" must be quoted to prevent evaluation
+	
+=cut
+
+$dict{LOOKUP} = sub {
+    my $work1 = shift;
+    my $ope   = pop @{ $work1 };
+
+    my @RET  = @{ $var{ pop @{ $work1 } } };
+    my @VAL  = @{ $var{ pop @{ $work1 } } };
+    my $item = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my @tmp;
+#         push @tmp, $item, $VAL[$ind], $ope;
+        push @tmp, $VAL[$ind], $item, $ope;
+        process( \@tmp );
+        if ( $tmp[0] )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
+};
+
+=head2 a VAL,RET, "operator" LOOKUPP
+
+      test with the perl "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
+      the "operator" must be quoted to prevent evaluation
+	
+=cut
+
+$dict{LOOKUPP} = sub {
+    my $work1 = shift;
+    my $ope   = pop @{ $work1 };
+    my @RET   = @{ $var{ pop @{ $work1 } } };
+    my @VAL   = @{ $var{ pop @{ $work1 } } };
+    my $item  = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my $test  = $item . $ope . $VAL[$ind];
+        my $state = eval $test;
+        if ( $state )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
+};
+
+=head2 a VAL,RET,OPE LOOKUPOP
+
+      loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
+	
+=cut
+
+$dict{LOOKUPOP} = sub {
+    my $work1 = shift;
+    my @OPE   = @{ $var{ pop @{ $work1 } } };
+    my @RET   = @{ $var{ pop @{ $work1 } } };
+    my @VAL   = @{ $var{ pop @{ $work1 } } };
+    my $item  = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my @tmp;
+#         push @tmp, $item, $VAL[$ind], $OPE[$ind];
+        push @tmp, $VAL[$ind], $item, $OPE[$ind];
+        process( \@tmp );
+        if ( $tmp[0] )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
+};
+
+=head2 a VAL,RET,OPE LOOKUPOPP
+
+      loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
+	
+=cut
+
+$dict{LOOKUPOPP} = sub {
+    my $work1 = shift;
+    my @OPE   = @{ $var{ pop @{ $work1 } } };
+    my @RET   = @{ $var{ pop @{ $work1 } } };
+    my @VAL   = @{ $var{ pop @{ $work1 } } };
+    my $item  = pop @{ $work1 };
+    my @ret;
+    for my $ind ( 0 .. $#VAL )
+    {
+        my $test  = $item . $OPE[$ind] . $VAL[$ind];
+        my $state = eval $test;
+        if ( $state )
+        {
+            push @ret, $RET[$ind];
+            last;
+        }
+    }
+    return \@ret, 4, 0;
+};
+
+=head2 TICK
+
+      return the current time in ticks
+	
+=cut
+
+$dict{TICK} = sub {
+    my @ret;
+    push @ret, ( time() );
+    return \@ret, 0, 0;
+};
+
+=head2 a LTIME
+
+      return the localtime coresponding to the ticks value 'a'
+      the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
+      'year' is the elapsed year since 1900
+      'month' start to 0
+      The format is the same as localtime() in perl
+	
+=cut
+
+$dict{LTIME} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( localtime( $a ) );
+    return \@ret, 1, 0;
+};
+
+=head2 a GTIME
+
+      return the gmtime coresponding to the ticks value 'a'
+      the format is 'sec' 'min' 'hour' 'day_in_the_month' 'month' 'year' 'day_in_week' 'day_year' 'dayloight_saving'
+      'year' is the elapsed year since 1900
+      'month' start to 0
+      The format is the same as gmtime() in perl
+	
+=cut
+
+$dict{GTIME} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( gmtime( $a ) );
+    return \@ret, 1, 0;
+};
+
+=head2 a HLTIME
+
+      return the localtime coresponding to the ticks value 'a' in a human readable format
+	
+=cut
+
+$dict{HLTIME} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, scalar( localtime( $a ) );
+    return \@ret, 1, 0;
+};
+
+=head2 a HGTIME
+
+      return the gmtime coresponding to the ticks value 'a' in a human readable format
+	
+=cut
+
+$dict{HGTIME} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, scalar( gmtime( $a ) );
+    return \@ret, 1, 0;
+};
+
+=head2 a HTTPTIME
+
+      return the ticks coresponding to the time value in a format accepted by HTTP::Date
+	
+=cut
+
+$dict{HTTPTIME} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, str2time( $a );
+    return \@ret, 1, 0;
+};
+
+=head2 RAND
+
+      return a random value in the range [0,1[
+	
+=cut
+
+$dict{RAND} = sub {
+    my @ret;
+    push @ret, rand();
+    return \@ret, 0, 0;
+};
+
+=head2 a LRAND
+
+      return a random value in the range [0,'a'[
+	
+=cut
+
+$dict{LRAND} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, rand( $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a SPACE
+
+      return the number 'a' formated with space each 3 digits
+	
+=cut
+
+$dict{SPACE} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $text  = reverse $a;
+    $text =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1 /g;
+    $text = reverse $text;
+    my @ret;
+    push @ret, $text;
+    return \@ret, 1, 0;
+};
+
+=head2 a DOT
+
+      return the number 'a' formated with . (dot) each 3 digits
+	
+=cut
+
+$dict{DOT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $text  = reverse $a;
+    $text =~ s/(\d\d\d)(?=\d)(?!\d*\.)/$1./g;
+    $text = reverse $text;
+    my @ret;
+    push @ret, $text;
+    return \@ret, 1, 0;
+};
+
+=head2 a NORM
+
+      return the number 'a' normalize by slice of 1000 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1000)
+	
+=cut
+
+$dict{NORM} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $exp;
+    $a = $a ? $a : 0;
+    my @EXP = ( " ", "K", "M", "G", "T", "P" );
+    while ( $a > 1000 )
+    {
+        $a = $a / 1000;
+        $exp++;
+    }
+    $a = sprintf "%.2f", $a;
+    my $ret = "$a $EXP[$exp]";
+    my @ret;
+    push @ret, "'" . $ret . "'";
+    return \@ret, 1, 0;
+};
+
+=head2 a NORM2
+
+      return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
+	
+=cut
+
+$dict{NORM2} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $exp;
+    $a = $a ? $a : 0;
+    my @EXP = ( " ", "K", "M", "G", "T", "P" );
+    while ( $a > 1024 )
+    {
+        $a = $a / 1024;
+        $exp++;
+    }
+    $a = sprintf "%.2f", $a;
+    my $ret = "$a $EXP[$exp]";
+    my @ret;
+    push @ret, "'" . $ret . "'";
+    return \@ret, 1, 0;
+};
+
+=head2 a UNORM
+
+      reverse function of NORM
+      return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1000)
+      and calculate the real value base 1000 ( e.g  7k = 7000)
+	
+=cut
+
+$dict{UNORM} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    $a = $a ? $a : 0;
+    $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
+    my $num  = $1;
+    my $suff = lc( $3 );
+    my %EXP  = (
+        "k" => 1,
+        "m" => 2,
+        "g" => 3,
+        "t" => 4,
+        "p" => 5
+    );
+    my $mult = 0;
+
+    if ( exists( $EXP{ $suff } ) )
+    {
+        $mult = $EXP{ $suff };
+    }
+    my $ret = $num * ( 1000**$mult );
+    my @ret;
+    push @ret, "'" . $ret . "'";
+    return \@ret, 1, 0;
+};
+
+=head2 a UNORM2
+
+      reverse function of NORM2
+      return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1024)
+      and calculate the real value base 1024 ( e.g  7k = 7168)
+	
+=cut
+
+$dict{UNORM2} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    $a = $a ? $a : 0;
+    $a =~ /(\d+(\.{0,1}\d*)\s*)(\D)/;
+    my $num  = $1;
+    my $suff = lc( $3 );
+    my %EXP  = (
+        "k" => 1,
+        "m" => 2,
+        "g" => 3,
+        "t" => 4,
+        "p" => 5
+    );
+    my $mult = 0;
+
+    if ( exists( $EXP{ $suff } ) )
+    {
+        $mult = $EXP{ $suff };
+    }
+    my $ret = $num * ( 1024**$mult );
+    my @ret;
+    push @ret, "'" . $ret . "'";
+    return \@ret, 1, 0;
+};
+
+=head2 a OCT
+
+      return the decimal value for the HEX, BINARY or OCTAL value 'a'
+      OCTAL is like  '0nn' where n is in the range of 0-7
+      BINARY is like '0bnnn...'   where n is in the range of 0-1
+      HEX is like '0xnnn' where n is in the range of 0-9A-F
+      if no specific format convert as an hexadecimal by default
+	
+=cut
+
+$dict{OCT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    if ( $a !~ /^0(x|b|([0-7][0-7]))/ )
+    {
+        $a = "0x" . $a;
+    }
+    push @ret, oct( $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a OCTSTR2HEX
+
+      return a HEX string from a OCTETSTRING.
+      useful when receiving an SNMP ASN.1 OCTETSTRING like mac address
+	
+=cut
+
+$dict{OCTSTR2HEX} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, unpack( "H*", pack( "a*", $a ) );
+    return \@ret, 1, 0;
+};
+
+=head2 a HEX2OCTSTR
+
+      return a OCTETSTRING string from a HEX
+      useful when you need to check if an SNMP ASN.1 OCTETSTRING if matching the hex value provided
+	
+=cut
+
+$dict{HEX2OCTSTR} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, unpack( "a*", pack( "H*", $a ) );
+    return \@ret, 1, 0;
+};
+
+=head2 a DDEC2STR
+
+      return a string from a dotted DEC string
+      useful when you need to manipulate an SNMP extension with 'exec' 
+	
+=cut
+
+$dict{DDEC2STR} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, join "", map { sprintf( "%c", $_ ) } ( split /\./, $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a STR2DDEC
+
+      return a dotted DEC string to a string
+      useful when you need to manipulate an SNMP extension with 'exec' 
+	
+=cut
+
+$dict{STR2DDEC} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, join '.', map { unpack( "c", $_ ) } ( split //, $a );
+    return \@ret, 1, 0;
+};
+
+
+########################
+# structurated string operators
+########################
+
+=head1 Structurated string (SLxxx) operators
+
+=cut
+
+=head2 string a b SLSLICE
+
+      return the STRUCTURATED list slice  from 'a' to 'b' extracted from STRUCTURATED list.
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 # Keys4 | val4 #'
+      example:
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 # Keys4 | val4 #,1,2,SLSLICE'
+      return:
+      # key2 | val2 # Keys3 | val3 #
+
+=cut
+
+$dict{SLSLICE} = sub {
+    my $work1 = shift;
+    
+    my $to  = pop @{ $work1 };
+    my $from  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+    ( $from, $to ) = ( $to, $from ) if ( $from > $to );
+    my @ret;
+    
+    $string =~ s/^#\s*//;
+    my @tmp =  ( split /\s?\#\s?/, $string )[$from..$to];
+    my $res = '# ' . join ( ' # ' , @tmp ).' #' if ( scalar @tmp );
+    push @ret, $res;
+    return \@ret, 3, 0;
+};
+
+=head2 string a SLITEM
+
+      return the STRUCTURATED item at position 'a' from a STRUCTURATED list.
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
+      example:
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,1,SLITEM'
+      return:
+      # key2 | val2 #
+
+=cut
+
+$dict{SLITEM} = sub {
+    my $work1 = shift;
+
+    my $item  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    $string =~ s/^#\s*//;
+    my $res =  ( split /\s?\#\s?/, $string )[$item];
+    $res = '# ' . $res .' #' if ( $res );
+    push @ret, $res;
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLGREP
+
+      return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a.
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
+      example:
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,Keys,SLGREP'
+      return:
+      #  Keys3 | val3 #
+
+=cut
+
+$dict{SLGREP} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    my $res;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/ )
+        {
+            $res .= $i . ' # ';
+        }
+    }
+    $res = '# ' . $res if ( $res );
+    $res =~ s/\s+$//;
+    push @ret, $res;
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLGREPI
+
+      return a STRUCTURATED list from a STRUCTURATED list where the STRUCTURATED LIST match the REGEX a (case insensitive).
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #'
+      example:
+      'keys1 | val1 # key2 | val2 # Keys3 | val3 #,Keys,SLGREPI'
+      return:
+      #  keys1 | val1 # Keys3 | val3 #
+
+=cut
+
+$dict{SLGREPI} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    my $res;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/i )
+        {
+            $res .= $i . ' # ';
+        }
+    }
+    $res = '# ' . $res if ( $res );
+    $res =~ s/\s+$//;
+    push @ret, $res;
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLSEARCHALL
+
+      return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a.
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+     
+      example:
+      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 5 # 1.3.6.1.2.1.25.3.3.1.2.780 | 25 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #,2,SLSEARCHALL'
+      return:
+      1.3.6.1.2.1.25.3.3.1.2.780  1.3.6.1.2.1.25.3.3.1.2.782
+
+=cut
+
+$dict{SLSEARCHALL} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $val =~ /$regex/ )
+        {
+            push @ret, $key;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLSEARCHALLI
+
+      return all KEYS from a STRUCTURATED LIST where the STRUCTURATED LIST val match the REGEX a (case insensitive).
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      '# key1 | val1 # key2 | val2 # key12 | VAL12 #,val1,SLSEARCHALLI'
+      example:
+      '# key1 | val1 # key2 | val2 # key12 | VAL12 #,val1,SLSEARCHALLI'
+      return:
+      key1  key12
+
+=cut
+
+$dict{SLSEARCHALLI} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $val =~ /$regex/i )
+        {
+            push @ret, $key;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLSEARCHALLKEYS
+
+      return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST keys match the REGEX a
+      string are the STRUCTURATED list
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #' 
+      example:
+      '# 1.3.6.1.2.1.25.3.3.1.2.779 | 1 # 1.3.6.1.2.1.25.3.3.1.2.780 | 5 # 1.3.6.1.2.1.25.3.3.1.2.781 | 6 # 1.3.6.1.2.1.25.3.3.1.2.782 | 2 #,1.3.6.1.2.1.25.3.3.1.2.,SLSEARCHALLKEYS'
+      return:
+      1 5 6 2
+
+=cut
+
+$dict{SLSEARCHALLKEYS} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        my $match = $1;
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $key =~ /$regex/ )
+        {
+            push @ret, $val;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string a SLSEARCHALLKEYSI
+
+      return all VALUES from a STRUCTURATED LIST where the STRUCTURATED LIST key match the REGEX a.
+      string are the STRUCTURATED list.
+      the STRUCTURATED LIST use this format:
+      each entries are separated by ' # ' and inside each entry , the KEY and the VAL are separated by ' | '
+      '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #'
+      example:
+      '# tata is not happy | and what? # tata is happy | and??  # toto is not happy | oops # toto is happy | yeah #,toto,SLSEARCHALLKEYSI'
+      return:
+      oops yeah
+
+=cut
+
+$dict{SLSEARCHALLKEYSI} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        my $match = $1;
+        my ( $key, $val ) = split /\s\|\s/, $i;
+        if ( $key =~ /$regex/i )
+        {
+            push @ret, $val;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string a OIDSEARCHALLVAL
+
+      return all OID leaf from a snmpwalk macthing the REGEX a 
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
+      example:
+      '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVAL'
+      return:
+      688 2392
+	
+=cut
+
+$dict{OIDSEARCHALLVAL} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/ )
+        {
+            my $match = $1;
+            my ( $oid, undef ) = split /\s\|\s/, $i;
+            $oid =~ /\.(\d+)$/;
+            push @ret, $1;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string a OIDSEARCHALLVALI
+
+      return all OID leaf from a snmpwalk macthing the REGEX a ( case insensitive ) 
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #
+      example:
+      '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVALI'
+      return:
+      688 2392
+	
+=cut
+
+$dict{OIDSEARCHALLVALI} = sub {
+    my $work1 = shift;
+
+    my $regex  = pop @{ $work1 };
+    my $string = pop @{ $work1 };
+
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        if ( $i =~ /$regex/i )
+        {
+            my $match = $1;
+            my ( $oid, undef ) = split /\s\|\s/, $i;
+            $oid =~ /\.(\d+)$/;
+            push @ret, $1;
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 string x x x a OIDSEARCHLEAF
+
+      return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
+      a is the number of leaf to pick from the stack 
+      x are all the leaf
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entry , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" # 
+      example: 
+      '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAF'
+      return:
+      running invalid
+ 
+=cut
+
+$dict{OIDSEARCHLEAF} = sub {
+    my $work1 = shift;
+
+    my $nbr = pop @{ $work1 };
+    my @all = splice @{ $work1 }, 1, $nbr;
+
+    my $string = pop @{ $work1 };
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        foreach my $regex ( @all )
+        {
+            if ( $i =~ /\.$regex\s?\|\s/ )
+            {
+                my ( undef, $val ) = split /\s\|\s/, $i;
+                push @ret, $val;
+            }
+        }
+    }
+    return \@ret, 3 + $nbr, 0;
+};
+
+=head2 string x x x a OIDSEARCHLEAFI
+
+      return all VAL leaf from a snmpwalk when the OID leaf match each REGEX 
+      a ( case insensitive ) is the number of leaf to pick from the stack 
+      x are all the leaf
+      string are the OID walk list
+      the OID walk result use this format:
+      each snmpwalk entries are separated by ' # ' and inside each entriy , the OID and the VAL are separated by ' | ' 
+      '# .1.3.6.1.2.1.25.4.2.1.2.4704 | "TASKMGR.EXE" # .1.3.6.1.2.1.25.4.2.1.2.2692 | "winvnc4.exe" # .1.3.6.1.2.1.25.4.2.1.2.3128 | "CSRSS.EXE" #' 
+      example: 
+      '# .1.3.6.1.2.1.25.4.2.1.7.384 | running # .1.3.6.1.2.1.25.4.2.1.7.688 | running # .1.3.6.1.2.1.25.4.2.1.7.2384 | invalid #,688,2384,2,OIDSEARCHLEAFI'
+      return:
+      running invalid
+ 
+=cut
+
+$dict{OIDSEARCHLEAFI} = sub {
+    my $work1 = shift;
+
+    my $nbr = pop @{ $work1 };
+    my @all = splice @{ $work1 }, 1, $nbr;
+
+    my $string = pop @{ $work1 };
+    my @ret;
+    $string =~ s/^#\s*//;
+    foreach my $i ( split /\s?\#\s?/, $string )
+    {
+        next unless ( $i );
+        foreach my $regex ( @all )
+        {
+            if ( $i =~ /\.$regex\s?\|\s/ )
+            {
+                my ( undef, $val ) = split /\s+\|\s+/, $i;
+                push @ret, $val;
+            }
+        }
+    }
+    return \@ret, 3 + $nbr, 0;
+};
+
+########################
+# string operators
+########################
+
+=head1 STRING operators
+
+=cut
+
+=head2 a b EQ
+
+      return the result of 'a' EQ 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{EQ} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b eq $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b NE
+
+      return the result of 'a' NE 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{NE} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b ne $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b LT
+
+      return the result of 'a' LT 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{LT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b lt $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b GT
+
+      return the result of 'a' GT 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{GT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b gt $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b LE
+
+      return the result of 'a' LE 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{LE} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b le $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b GE
+
+      return the result of 'a' GE 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{GE} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b ge $a ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b CMP
+
+      return the result of 'a' CMP 'b'  ( BOOLEAN value )
+	
+=cut
+
+$dict{CMP} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b cmp $a );
+    return \@ret, 2, 0;
+};
+
+=head2 a LEN
+
+      return the length of 'a' 
+	
+=cut
+
+$dict{LEN} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( length $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a CHOMP
+
+      remove any terminaison line charecter ( CR CR/LF) from 'a' 
+	
+=cut
+
+$dict{CHOMP} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    chomp $a;
+    push @ret, $a ;
+    return \@ret, 1, 0;
+};
+
+=head2 a b CAT
+
+      return the concatenation 'a' and 'b' 
+	
+=cut
+
+$dict{CAT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( "'" . $b . $a . "'" );
+    return \@ret, 2, 0;
+};
+
+=head2 a b CATALL
+
+      return the concatenation all element on the stack 
+	
+=cut
+
+$dict{CATALL} = sub {
+    my $work1 = shift;
+    my $dep   = scalar @{ $work1 };
+    my $ret;
+    for ( 1 .. $dep )
+    {
+        $ret .= shift @{ $work1 };
+    }
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 1 + $dep, 0;
+};
+
+=head2 a b REP
+
+      return the result of 'a' x 'b'  duplicate 'a' by the number of 'x' 
+	
+=cut
+
+$dict{REP} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $b x $a );
+    return \@ret, 2, 0;
+};
+
+=head2 a REV
+
+      return the reverse of 'a'
+	
+=cut
+
+$dict{REV} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = reverse $a;
+    my @ret;
+    push @ret, ( $b );
+    return \@ret, 1, 0;
+};
+
+=head2 a b c SUBSTR
+
+      return the substring of 'c' starting at 'b' with the length of 'a'
+	
+=cut
+
+$dict{SUBSTR} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( substr( $c, $b, $a ) );
+    return \@ret, 3, 0;
+};
+
+=head2 a UC
+
+      return 'a' in uppercase
+	
+=cut
+
+$dict{UC} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( uc $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a LC
+
+      return 'a' in lowercase
+	
+=cut
+
+$dict{LC} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( lc $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a UCFIRST
+
+      return 'a' with the first letter in uppercase
+	
+=cut
+
+$dict{UCFIRST} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( ucfirst $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a LCFIRST
+
+      return 'a' with the first letter in lowercase
+	
+=cut
+
+$dict{LCFIRST} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( lcfirst $a );
+    return \@ret, 1, 0;
+};
+
+=head2 a R1 R2 K V SPLIT2
+
+      split a with the REGEX R1
+      each result are splitted with the REGEX R2
+      the result are stored in the variable k and v
+      
+      # .1.3.6.1.2.1.25.3.3.1.2.768 | 48 # .1.3.6.1.2.1.25.3.3.1.2.769 | 38 # .1.3.6.1.2.1.25.3.3.1.2.771 | 42 # .1.3.6.1.2.1.25.3.3.1.2.770 | 58 #,\s?#\s?,\s\|\s,a,b,SPLIT2
+      return a with .1.3.6.1.2.1.25.3.3.1.2.768,.1.3.6.1.2.1.25.3.3.1.2.769,.1.3.6.1.2.1.25.3.3.1.2.771,.1.3.6.1.2.1.25.3.3.1.2.770
+      and b with 48,38,42,58
+ 
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+      SPLIT return the matched value WITHOUT the empty string of the beginning
+	
+=cut
+
+$dict{SPLIT2} = sub {
+    my $work1 = shift;
+    my $v2    = pop @{ $work1 };
+    my $v1    = pop @{ $work1 };
+    my $r2    = pop @{ $work1 };
+    my $r1    = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @T1;
+    my @T2;
+
+    foreach my $i ( split /$r1/, $b )
+    {
+        next unless ( $i );
+        my ( $k, $v ) = split /$r2/, $i, 2;
+        if ( $k )
+        {
+            push @T1, $k;
+            push @T2, $v;
+        }
+    }
+    $var{ $v1 } = \@T1;
+    $var{ $v2 } = \@T2;
+    my @ret;
+    return \@ret, 5, 0;
+};
+
+=head2 a b SPLIT
+
+      return all splitted item of 'a' by the separator 'b' 
+      'b' is a REGEX 
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+      !!! if the split match on the beginning of string,
+      SPLIT return the matched value WITHOUT the empty string of the beginning
+	
+=cut
+
+$dict{SPLIT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @r     = grep /[^(^$)]/, split /$a/, $b;
+    my @ret;
+    push @ret, @r;
+    return \@ret, 2, 0;
+};
+
+=head2 a b SPLITI
+
+      return all splitted item of 'a' by the separator 'b' 
+      'b' is a REGEX case insensitive
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+      !!! if the split match on the beginning of string,
+      SPLIT return the matched value WITHOUT the empty string of the beginning
+      
+=cut
+
+$dict{SPLITI} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @r     = grep /[^(^$)]/, split /$a/i, $b;
+    my @ret;
+    push @ret, @r;
+    return \@ret, 2, 0;
+};
+
+=head2 a b PAT
+
+      return one or more occurance of 'b' in 'a' 
+      'b' is a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+	
+=cut
+
+$dict{PAT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @r     = ( $b =~ m/\Q$a\E/g );
+    my @ret;
+    push @ret, @r;
+    return \@ret, 2, 0;
+};
+
+=head2 a b PATI
+
+      return one or more occurance of 'b' in 'a' 
+      'b' is a REGEX case insensitive
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+	
+=cut
+
+$dict{PATI} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @r     = ( $b =~ m/$a/ig );
+    my @ret;
+    push @ret, @r;
+    return \@ret, 2, 0;
+};
+
+=head2 a b TPAT
+
+      test if the pattern 'b' is in 'a' 
+      'b' is a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+	
+=cut
+
+$dict{TPAT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $r     = ( $b =~ m/$a/g );
+    my @ret;
+    push @ret, ( $r ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b TPATI
+
+      test if the pattern 'b' is in 'a' 
+      'b' is a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+      	
+=cut
+
+$dict{TPATI} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $r     = ( $b =~ m/$a/ig );
+    my @ret;
+    push @ret, ( $r ? 1 : 0 );
+    return \@ret, 2, 0;
+};
+
+=head2 a b c SPAT
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c'
+      'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+	
+=cut
+
+$dict{SPAT} = sub {
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 } || '';
+    my $to_eval = qq{\$c =~ s#$b#$a#};
+    eval( $to_eval );
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3, 0;
+};
+
+=head2 a b c SPATG
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
+      'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+	
+=cut
+
+$dict{SPATG} = sub {
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 };
+    my $to_eval = qq{\$c =~ s#$b#$a#g};
+    eval( $to_eval );
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3, 0;
+};
+
+=head2 a b c SPATI
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c'case insensitive (i flag in REGEX)
+      'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+	
+=cut
+
+$dict{SPATI} = sub {
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 };
+    my $to_eval = qq{\$c =~ s#$b#$a#i};
+    eval( $to_eval );
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3, 0;
+};
+
+=head2 a b c SPATGI
+
+      substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
+      and case insensitive (1 flag in REGEX)
+      'b' and 'c' are a REGEX
+      !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
+	
+=cut
+
+$dict{SPATGI} = sub {
+    my $work1   = shift;
+    my $a       = pop @{ $work1 };
+    my $b       = pop @{ $work1 };
+    my $c       = pop @{ $work1 };
+    my $to_eval = qq{\$c =~ s#$b#$a#ig};
+    eval( $to_eval );
+    my @ret;
+    push @ret, $c;
+    return \@ret, 3, 0;
+};
+
+=head2 a ... z PRINTF
+
+     use the format 'z' to print the value(s) on the stack
+     7,3,/,10,3,/,%d %f,PRINTF -> 2 3.333333
+     see printf in perl
+	
+=cut
+
+$dict{PRINTF} = sub {
+
+    my $work1  = shift;
+    my $format = pop @{ $work1 };
+    my @r      = ( $format =~ m/(%[^ ])/g );
+    my @var;
+    for ( 0 .. $#r )
+    {
+        unshift @var, pop @{ $work1 };
+    }
+    my @ret;
+    push @ret, sprintf $format, @var;
+    return \@ret, 2 + $#r, 0;
+};
+
+=head2 a b PACK
+
+      pack the value 'a' with the format 'b'
+
+      2004,06,08,a4 a2 a2,PACK 
+      result: 20040608
+
+      see pack in perl
+	
+=cut
+
+$dict{PACK} = sub {
+    my $work1  = shift;
+    my $format = " " . ( pop( @{ $work1 } ) ) . " ";
+    my @r      = ( $format =~ m/([a-zA-Z]\d*\s*)/g );
+    my @var;
+    for ( 0 .. $#r )
+    {
+        unshift @var, pop @{ $work1 };
+    }
+    my @ret;
+    push @ret,, pack( $format, @var );
+    return \@ret, 2 + $#r, 0;
+};
+
+=head2 a b UNPACK
+
+      unpack the value 'a' with the format 'b'
+
+      20040608,a4 a2 a2,UNPACK
+      result: 2004,06,08
+
+      see unpack in perl
+	
+=cut
+
+$dict{UNPACK} = sub {
+    my $work1  = shift;
+    my $format = pop @{ $work1 };
+    my $var    = pop @{ $work1 };
+    my @ret;
+    push @ret, unpack( $format, $var );
+    return \@ret, 2, 0;
+};
+
+=head2 a b ISNUM
+
+      test if top of the stack is a number
+      return 1 if if it is a NUMBER otherwise return 0
+	
+=cut
+
+$dict{ISNUM} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0 );
+    return \@ret, 0, 0;
+};
+
+=head2 a b ISNUMD
+
+      test if top of the stack is a number
+      delete the top element on the statck and return 1 if it is a NUMBER otherwise return 0 
+	
+=cut
+
+$dict{ISNUMD} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? 1 : 0 );
+    return \@ret, 1, 0;
+};
+
+=head2 a b ISINT
+
+      test if top of the stack is a integer (natural number)
+      return 1 if if it is a INTEGER otherwise return 0
+	
+=cut
+
+$dict{ISINT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a =~ /^\d+$/ ? 1 : 0 );
+    return \@ret, 0, 0;
+};
+
+=head2 a b ISINTD
+
+      test if top of the stack is a integer (natural number)
+      delete the top element on the statck and return 1 if it is a INTEGER otherwise return 0 
+	
+=cut
+
+$dict{ISINTD} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a =~ /^\d+$/ ? 1 : 0 );
+    return \@ret, 1, 0;
+};
+
+=head2 a b ISHEX
+
+      test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
+      return 1 if if it is a HEXADECIMAL otherwise return 0
+	
+=cut
+
+$dict{ISHEX} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0 );
+    return \@ret, 0, 0;
+};
+
+=head2 a b ISHEXD
+
+      test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
+      delete the top element on the statck and return 1 if it is a HEXADECIMAL otherwise return 0 
+	
+=cut
+
+$dict{ISHEXD} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    push @ret, ( $a =~ /^(#|0x|0X)(\p{IsXDigit})+$/ ? 1 : 0 );
+    return \@ret, 1, 0;
+};
+
+########################
+# stack operators
+########################
+
+=head1 STACK operators
+
+=cut
+
+=head2	a b SWAP
+
+	return 'b' 'a'
+
+=cut
+
+$dict{SWAP} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a, $b;
+    return \@ret, 2, 0;
+};
+
+=head2	a b OVER
+
+	return 'a' 'b' 'a'
+
+=cut
+
+$dict{OVER} = sub {
+    my $work1 = shift;
+    my @ret;
+    push @ret, @{ $work1 }[-2];
+    return \@ret, 0, 0;
+};
+
+=head2	a DUP
+
+	return 'a' 'a'
+
+=cut
+
+$dict{DUP} = sub {
+    my $work1 = shift;
+    my @ret;
+    push @ret, @{ $work1 }[-1];
+    return \@ret, 0, 0;
+};
+
+=head2	a b DDUP
+
+	return 'a' 'b' 'a' 'b'
+
+=cut
+
+$dict{DDUP} = sub {
+    my $work1 = shift;
+    my @ret;
+    push @ret, @{ $work1 }[-2], @{ $work1 }[-1];
+    return \@ret, 0, 0;
+};
+
+=head2	a b c ROT
+
+	return 'b' 'c' 'a'
+
+=cut
+
+$dict{ROT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    my @ret;
+    push @ret, $b, $a, $c;
+    return \@ret, 3, 0;
+};
+
+=head2	a b c RROT
+
+	return 'c' 'a' 'b'
+
+=cut
+
+$dict{RROT} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my $c     = pop @{ $work1 };
+    my @ret;
+    push @ret, $a, $c, $b;
+    return \@ret, 3, 0;
+};
+
+=head2	DEPTH
+
+	return the number of elements on the stack
+
+=cut
+
+$dict{DEPTH} = sub {
+    my $work1 = shift;
+    my $ret   = scalar @{ $work1 };
+    my @ret;
+    push @ret, $ret;
+    return \@ret, 0, 0;
+};
+
+=head2	a b POP
+
+	remove the last element on the stack
+
+=cut
+
+$dict{POP} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    return \@ret, 1, 0;
+};
+
+=head2	a ... z POPN
+
+	remove the 'z' last element(s) from the stack
+
+=cut
+
+$dict{POPN} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    for ( 1 .. $a )
+    {
+        pop @{ $work1 };
+    }
+    my @ret;
+    return \@ret, 1 + $a, 0;
+};
+
+=head2	a b c d e n ROLL
+
+	rotate the stack on 'n' element
+	a,b,c,d,e,f,4,ROLL -> a b d e f c
+	if n = 3 <=> ROT
+	if  -2 < n < 2 nothing is done
+	if n < -1 ROLL in reverse order
+	a,b,c,d,e,f,-4,ROLL -> a b f e d c
+	To reveerse a stack content use this:
+	a,b,c,d,e,f,DEPTH,+-,ROLL => f e d c b a
+
+=cut
+
+$dict{ROLL} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+
+    my @tmp;
+    my $b;
+    if ( $a > 1 )
+    {
+        @tmp = splice @{ $work1 }, -( $a - 1 );
+        $b = pop @{ $work1 };
+    }
+    if ( $a < -1 )
+    {
+        @tmp = reverse( splice @{ $work1 }, ( $a ) );
+        $a *= -1;
+    }
+    my @ret;
+    if ( $a < 2 && $a > -2 )
+    {
+        return \@ret, 1, 0;
+    }
+    if ( defined $b )
+    {
+        push @ret, @tmp, $b;
+    }
+    else
+    {
+        push @ret, @tmp;
+    }
+    return \@ret, 1 + $a, 0;
+};
+
+=head2 a PICK
+	
+	copy element from depth 'a' to the stack
+
+=cut
+
+$dict{PICK} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    if ( $a <= scalar @{ $work1 } )
+    {
+        push @ret, @{ $work1 }[ -( $a ) ];
+    }
+
+    return \@ret, 1, 0;
+};
+
+=head2 a GET
+	
+	get (remove) element from depth 'a'
+	and put on top of stack 
+
+=cut
+
+$dict{GET} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    my $b;
+    if ( $a <= ( scalar @{ $work1 } ) && ( $a > 1 ) )
+    {
+        my $line = join " | ", @{ $work1 };
+        my @tmp = splice @{ $work1 }, -( $a - 1 );
+        $line = join " | ", @tmp;
+        $b = pop @{ $work1 };
+        push @ret, @tmp, $b;
+        return \@ret, 1 + $a, 0;
+    }
+    else
+    {
+        return \@ret, 1, 0;
+    }
+
+};
+
+=head2 a b PUT
+	
+	put element 'a' at the level 'b' of the stack
+	if 'b' greater than the stack put at first place
+	if 'b' < 0 start to the reverse order of the stack
+
+=cut
+
+$dict{PUT} = sub {
+    my $work1 = shift;
+    my $len   = scalar @{ $work1 };
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @tmp;
+    my @ret = @{ $work1 };
+    if ( $a >= ( scalar( @{ $work1 } ) ) )
+    {
+        $a = scalar( @{ $work1 } );
+    }
+    if ( $a )
+    {
+        @tmp = splice @ret, -( $a - 1 );
+    }
+    push( @ret, $b, @tmp );
+    return \@ret, $len, 0;
+};
+
+=head2 a b DEL
+	
+	delete 'b' element on the stack from level 'a'
+	'a' and 'b' is get in absolute value 
+
+=cut
+
+$dict{DEL} = sub {
+    my $work1   = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $start   = abs pop @{ $work1 };
+    my $length1 = abs pop @{ $work1 };
+    my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 2 : $length1 );
+    my @temp;
+    @temp = splice @{ $work1 }, $len - 2 - $start - $length, $length;
+    my @ret;
+    push( @ret, @{ $work1 } );
+    return \@ret, $len, 0;
+};
+
+=head2 a FIND
+	
+	get the level of stack containing the exact value 'a'
+	if no match, return 0	
+
+=cut
+
+$dict{FIND} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+
+    my $nbr = scalar( @{ $work1 } );
+    my $ret = 0;
+    for ( 1 .. $nbr )
+    {
+        my $b = @{ $work1 }[ $nbr - $_ ];
+        if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
+        {
+            if ( $b == $a )
+            {
+                $ret = $_;
+                last;
+            }
+        }
+        else
+        {
+            if ( $b eq $a )
+            {
+                $ret = $_;
+                last;
+            }
+        }
+    }
+    my @ret;
+    push( @ret, $ret );
+    return \@ret, 1, 0;
+};
+
+=head2 a FINDK
+	
+	keep the level of stack containing the exact value 'a'
+	f no match, return an empty stack
+	( shortcut for a,FIND,KEEP )
+	
+=cut
+
+$dict{FINDK} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+
+    my $nbr = scalar( @{ $work1 } );
+    my $ret;
+    for ( 1 .. $nbr )
+    {
+        my $b = @{ $work1 }[ $nbr - $_ ];
+        if ( $a =~ /^(\d+|\d+\.\d*|\.\d*)$/ )
+        {
+            if ( $b == $a )
+            {
+                $ret = $a;
+                last;
+            }
+        }
+        else
+        {
+            if ( $b eq $a )
+            {
+                $ret = $a;
+                last;
+            }
+        }
+    }
+    my @ret;
+    push( @ret, $ret );
+    return \@ret, $nbr + 1, 0;
+};
+
+=head2 a SEARCH
+	
+	get the first level of stack containing the REGEX 'a'
+
+=cut
+
+$dict{SEARCH} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/ )
+        {
+            $ret = $i;
+            push( @ret, $ret );
+            return \@ret, 1, 0;
+        }
+    }
+    push( @ret, 0 );
+    return \@ret, 1, 0;
+};
+
+=head2 a SEARCHI
+	
+	get the first level of stack containing the REGEX 'a' (cas insensitive)
+
+=cut
+
+$dict{SEARCHI} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/i )
+        {
+            $ret = $i;
+            push( @ret, $ret );
+            return \@ret, 1, 0;
+        }
+    }
+    push( @ret, 0 );
+    return \@ret, 1, 0;
+};
+
+=head2 a SEARCHIA
+
+	get all level of stack containing the REGEX 'a' (cas insensitive)
+	empty the stack and return all the index of item matching
+
+=cut
+
+$dict{SEARCHIA} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret;
+    my $nbr = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/i )
+        {
+            $ret++;
+            push @ret, $i;
+        }
+    }
+    return \@ret, 1 + $nbr, 0;
+};
+
+=head2 a SEARCHA
+
+	get all level of stack containing the REGEX 'a' (cas sensitive)
+	empty the stack and return all the index of item matching
+
+	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHA
+	result: 8 7 4 2
+
+=cut
+
+$dict{SEARCHA} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret;
+    my $nbr = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/ )
+        {
+            $ret++;
+            push @ret, $i;
+        }
+    }
+    return \@ret, 1 + $nbr, 0;
+};
+
+=head2 a SEARCHK
+	
+	keep all level of stack containing the REGEX 'a' (cas sensitive)
+
+	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHK
+	result: toto toti tota tutot
+
+=cut
+
+$dict{SEARCHK} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/ )
+        {
+            $ret = $i;
+            push @ret, $b;
+        }
+    }
+    return \@ret, $nbr + 1, 0;
+};
+
+=head2 a SEARCHIK
+	
+	keep all level of stack containing the REGEX 'a' (cas insensitive)
+
+=cut
+
+$dict{SEARCHIK} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $ret   = 1;
+    my $nbr   = scalar( @{ $work1 } );
+    my @ret;
+    for ( my $i = $nbr ; $i ; $i-- )
+    {
+        my $b = @{ $work1 }[ $nbr - $i ];
+        if ( $b =~ /$a/i )
+        {
+            $ret = $i;
+            push @ret, $b;
+        }
+    }
+    return \@ret, $nbr + 1, 0;
+};
+
+=head2 a KEEP
+	
+	delete all element on the stack except the level 'a'
+	if 'a' is deeper then stack, keep the stack untouched
+	
+=cut
+
+$dict{KEEP} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my @ret;
+    if ( $a <= 0 )
+    {
+        return \@ret, 1 + ( scalar @{ $work1 } );
+    }
+    if ( $a < ( ( scalar @{ $work1 } ) + 1 ) )
+    {
+        push @ret, @{ $work1 }[ -( $a ) ];
+        return \@ret, 1 + ( scalar @{ $work1 } ), 0;
+    }
+    else
+    {
+        return \@ret, 1, 0;
+    }
+};
+
+=head2 a KEEPV
+		
+	delete all element on the stack except the levels with indice in the var A
+
+	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,A,KEEPV
+	result: i d g
+		
+=cut
+
+$dict{KEEPV} = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my @ret;
+
+    if ( exists $var{ $name } )
+    {
+        if ( ref $var{ $name } eq 'ARRAY' )
+        {
+            foreach my $ind ( @{ $var{ $name } } )
+            {
+                push @ret, @{ $work1 }[ -$ind ] if ( defined @{ $work1 }[ -$ind ] );
+            }
+        }
+        else
+        {
+            push @ret, @{ $work1 }[ -$var{ $name } ] if ( defined @{ $work1 }[ -$var{ $name } ] );
+        }
+    }
+    return \@ret, scalar( @{ $work1 } ) + 1, 0;
+};
+
+=head2 a KEEPVV
+	
+	keep element from array B with indice from ARRAY A  
+
+	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,8,B,!!,B,A,KEEPVV
+	result: i d g
+	
+=cut
+
+$dict{KEEPVV} = sub {
+    my $work1 = shift;
+    my $name1 = pop @{ $work1 };
+    my $name2 = pop @{ $work1 };
+    my @ret;
+    my @tmp;
+
+    if ( exists $var{ $name1 } && exists $var{ $name2 } )
+    {
+        if ( ref $var{ $name2 } eq 'ARRAY' )
+        {
+            @tmp = @{ $var{ $name2 } };
+        }
+        else
+        {
+            @tmp = $var{ $name2 };
+        }
+        if ( ref $var{ $name1 } eq 'ARRAY' )
+        {
+            foreach my $ind ( @{ $var{ $name1 } } )
+            {
+                push @ret, $tmp[ -$ind ] if ( defined $tmp[ -$ind ] );
+            }
+        }
+        else
+        {
+            push @ret, $tmp[ -$var{ $name1 } ] if ( defined $tmp[ -$var{ $name1 } ] );
+        }
+    }
+    return \@ret, 2, 0;
+};
+
+=head2 b a KEEPN
+	
+	keep 'b' element on the stack from level 'a'
+	and delete all other element
+	'a' and 'b' is get in absolute value 
+
+	a,b,c,d,e,f,g,h,4,3,KEEPN
+        result: c d e f
+
+=cut
+
+$dict{KEEPN} = sub {
+    my $work1   = shift;
+    my $len     = scalar( @{ $work1 } );
+    my $start   = abs pop @{ $work1 };
+    my $length1 = abs pop @{ $work1 };
+    my $length  = ( $length1 + $start + 2 > $len ? $len - $start - 1 : $length1 );
+    my @ret     = splice @{ $work1 }, $len - 1 - $start - $length, $length;
+    return \@ret, $len, 0;
+};
+
+=head2 b a KEEPR
+	
+	delete all elements on the stack except the level 'a' and keep all element deeper than 'b'
+	if 'a' is deeper then stack, keep the stack untouched
+
+	a,b,c,d,e,f,g,h,6,3,KEEPR
+        result: a b f
+
+=cut
+
+$dict{KEEPR} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };
+    my @tmp   = splice @{ $work1 }, scalar( @{ $work1 } ) - $b;
+
+    my @ret;
+    if ( $a <= 0 )
+    {
+        return \@ret, 1 + ( scalar @tmp );
+    }
+    if ( $a < ( ( scalar @tmp ) + 1 ) )
+    {
+        push @ret, @tmp[ -( $a ) ];
+        return \@ret, 2 + ( scalar @tmp ), 0;
+    }
+    else
+    {
+        return \@ret, 2, 0;
+    }
+};
+
+=head2 c b a KEEPRN
+	
+	keep 'b' element on the stack from level 'a' and keep all element deeper than 'c'
+	if 'a' is deeper then stack, keep the stack untouched
+
+	a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN
+        result: a b c g h i
+
+=cut
+
+$dict{KEEPRN} = sub {
+    my $work1 = shift;
+
+    my $start = abs pop @{ $work1 };
+    my @ret;
+    unless ( $start )
+    {
+        return \@ret, +3, 0;
+    }
+    my $length1 = abs pop @{ $work1 };
+    my $deepth  = abs pop @{ $work1 };
+    my @tmp     = splice @{ $work1 }, scalar( @{ $work1 } ) - $deepth;
+    my $len     = scalar( @tmp );
+    my @t       = reverse @tmp;
+    @ret = reverse splice @t, $start - 1, $length1;
+    return \@ret, $len + 3, 0;
+};
+
+=head2 a b PRESERVE
+	
+	keep  element on the stack from level 'a'
+	to level 'b'
+	and delete all other element
+	'a' and 'b' is get in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{PRESERVE} = sub {
+    my $work1 = shift;
+    my $len   = scalar( @{ $work1 } );
+    my $start = ( abs pop @{ $work1 } );
+    my $end   = ( abs pop @{ $work1 } );
+    my $len1  = scalar( @{ $work1 } );
+    my @temp;
+    if ( $start <= $end )
+    {
+        @temp = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+    }
+    else
+    {
+        push @temp, @{ $work1 }[ ( $start - 1 ) .. ( $#$work1 ) ];
+        push @temp, @{ $work1 }[ 0 .. ( $end - 1 ) ];
+    }
+    return \@temp, $len, 0;
+};
+
+=head2 a b COPY
+	
+	copy  element on the stack from level 'a'
+	to level 'b'
+	'a' and 'b' is get in absolute value 
+	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+
+=cut
+
+$dict{COPY} = sub {
+    my $work1 = shift;
+    my $len   = scalar( @{ $work1 } );
+    my $start = ( abs pop @{ $work1 } );
+    my $end   = ( abs pop @{ $work1 } );
+    my $len1  = scalar( @{ $work1 } );
+    my @temp;
+    if ( $start <= $end )
+    {
+        @temp = @{ $work1 }[ ( $len1 - $end ) .. ( $len1 - $start ) ];
+    }
+    else
+    {
+        push @temp, @{ $work1 }[ ( $len1 - $end ) .. ( $#$work1 ) ];
+        push @temp, @{ $work1 }[ ( 0 ) .. ( $len1 - $start ) ];
+    }
+    return \@temp, 2, 0;
+};
+
+########################
 # DICT operator
 ########################
 
@@ -3185,7 +3314,7 @@ $dict{ 'STATS' } = sub {
 	
 =cut
 
-$dict{ 'WORDS' } = sub {
+$dict{WORDS} = sub {
     my @tmp = join " | ", sort keys( %dict );
     my @ret;
     push @ret, @tmp;
@@ -3198,7 +3327,7 @@ $dict{ 'WORDS' } = sub {
 	
 =cut
 
-$dict{ 'VARS' } = sub {
+$dict{VARS} = sub {
     my @tmp = join " | ", sort keys( %var );
     my @ret;
     push @ret, @tmp;
@@ -3211,7 +3340,7 @@ $dict{ 'VARS' } = sub {
 	
 =cut
 
-$dict{ 'SIZE' } = sub {
+$dict{SIZE} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $ret   = 0;
@@ -3237,7 +3366,7 @@ $dict{ 'SIZE' } = sub {
         
 =cut
 
-$dict{ 'POPV' } = sub {
+$dict{POPV} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $ret   = 0;
@@ -3264,7 +3393,7 @@ $dict{ 'POPV' } = sub {
         
 =cut
 
-$dict{ 'SHIFTV' } = sub {
+$dict{SHIFTV} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my $ret   = 0;
@@ -3291,7 +3420,7 @@ $dict{ 'SHIFTV' } = sub {
         
 =cut
 
-$dict{ 'IND' } = sub {
+$dict{IND} = sub {
     my $work1 = shift;
     my $ind   = pop @{ $work1 };
     my $name  = pop @{ $work1 };
@@ -3320,7 +3449,7 @@ $dict{ 'IND' } = sub {
 	
 =cut
 
-$dict{ 'INC' } = sub {
+$dict{INC} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     if ( ( !ref( $var{ $a } ) ) && $var{ $a } =~ /\d+/ )
@@ -3337,7 +3466,7 @@ $dict{ 'INC' } = sub {
 	
 =cut
 
-$dict{ 'DEC' } = sub {
+$dict{DEC} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     if ( ( !ref( $var{ $a } ) ) && $var{ $a } =~ /\d+/ )
@@ -3354,11 +3483,29 @@ $dict{ 'DEC' } = sub {
 	
 =cut
 
-$dict{ 'VARIABLE' } = sub {
+$dict{VARIABLE} = sub {
     my $work1 = shift;
     my $a     = pop @{ $work1 };
     my @ret;
-    $var{ $a } = '';
+    if ( $a )
+    {
+        $var{ $a } = '';
+        return \@ret, 1, 0;
+    }
+    return \@ret, 0, 0;
+};
+
+=head2 v UNSET 
+
+       delete the variable v 
+	
+=cut
+
+$dict{UNSET} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 }; 
+    my @ret;
+    delete $var{$a} if exists  $var{$a};
     return \@ret, 1, 0;
 };
 
@@ -3368,7 +3515,7 @@ $dict{ 'VARIABLE' } = sub {
 	
 =cut
 
-$dict{ '!' } = sub {
+$dict{'!'} = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my $val   = pop @{ $work1 };
@@ -3383,7 +3530,7 @@ $dict{ '!' } = sub {
 	
 =cut
 
-$dict{ '!A' } = sub {
+$dict{'!A'} = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my $val   = pop @{ $work1 };
@@ -3415,7 +3562,7 @@ $dict{ '!A' } = sub {
 
 =cut
 
-$dict{ '!!' } = sub {
+$dict{'!!'} = sub {
 
     my $work1     = shift;
     my $len       = scalar( @{ $work1 } );
@@ -3436,7 +3583,7 @@ $dict{ '!!' } = sub {
 
 =cut
 
-$dict{ '!!A' } = sub {
+$dict{'!!A'} = sub {
 
     my $work1     = shift;
     my $len       = scalar( @{ $work1 } );
@@ -3473,7 +3620,7 @@ $dict{ '!!A' } = sub {
 
 =cut
 
-$dict{ '!!C' } = sub {
+$dict{'!!C'} = sub {
 
     my $work1     = shift;
     my $len       = scalar( @{ $work1 } );
@@ -3494,7 +3641,7 @@ $dict{ '!!C' } = sub {
 
 =cut
 
-$dict{ '!!CA' } = sub {
+$dict{'!!CA'} = sub {
 
     my $work1     = shift;
     my $len       = scalar( @{ $work1 } );
@@ -3533,7 +3680,7 @@ $dict{ '!!CA' } = sub {
 
 =cut
 
-$dict{ '!!!' } = sub {
+$dict{'!!!'} = sub {
     my $work1 = shift;
     my $len   = scalar( @{ $work1 } );
     my $name  = pop @{ $work1 };
@@ -3568,7 +3715,7 @@ $dict{ '!!!' } = sub {
 
 =cut
 
-$dict{ '!!!A' } = sub {
+$dict{'!!!A'} = sub {
     my $work1 = shift;
     my $len   = scalar( @{ $work1 } );
     my $name  = pop @{ $work1 };
@@ -3618,7 +3765,7 @@ $dict{ '!!!A' } = sub {
 
 =cut
 
-$dict{ '!!!C' } = sub {
+$dict{'!!!C'} = sub {
 
     my $work1     = shift;
     my $len       = scalar( @{ $work1 } );
@@ -3643,7 +3790,7 @@ $dict{ '!!!C' } = sub {
     return \@temp, 3, 0;
 };
 
-=head2 x1 x2 x3 ... b a var !!!C
+=head2 x1 x2 x3 ... b a var !!!CA
 	
 	append element(s) on the stack in the variable 'var'
 	starting at element  'a' to element 'b'	
@@ -3652,7 +3799,7 @@ $dict{ '!!!C' } = sub {
 
 =cut
 
-$dict{ '!!!CA' } = sub {
+$dict{'!!!CA'} = sub {
 
     my $work1     = shift;
     my $len       = scalar( @{ $work1 } );
@@ -3692,13 +3839,14 @@ $dict{ '!!!CA' } = sub {
     return \@temp, 3, 0;
 };
 
+
 =head2  var @
 
         return the value of the variable 'var'
 	
 =cut
 
-$dict{ '@' } = sub {
+$dict{'@'} = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my @ret;
@@ -3713,13 +3861,13 @@ $dict{ '@' } = sub {
     return \@ret, 1, 0;
 };
 
-=head2 :xxx  name1 ;
+=head2 : xxx  name1 ;
 
         create a new entry in the dictionary whith name name1 and store the progam xxx
 	
 =cut
 
-$dict{ ';' } = sub {
+$dict{';'} = sub {
     my $work1   = shift;
     my $return1 = shift;
     my $len     = scalar( @{ $work1 } );
@@ -3730,13 +3878,36 @@ $dict{ ';' } = sub {
     my @ret;
     pop @pre;
     my $name = pop @BLOCK;
+    unless ( exists  $dict{ $name } )
+    {
+    $pub_dict{ $name } = 1;
     $dict{ $name } = sub {
         my $ret;
         @ret = @BLOCK;
         return \@ret, 0, 0;
     };
     return \@ret, $#BLOCK + 2, 2;
+    }
+    return \@ret, $#BLOCK + 2, 0;
 };
+
+=head2 name1 FORGOT
+
+        delete/erase a create word (name1 )
+	
+=cut
+
+$dict{FORGOT} = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my @ret;
+    if ( exists $pub_dict{$name} )
+    {
+    delete $pub_dict{$name} ;
+    delete $dict{$name} ;
+    }
+     return \@ret, 1, 0;
+     };
 
 =head2 : xxx yyy name1 PERL
 
@@ -3748,29 +3919,34 @@ $dict{ ';' } = sub {
 	
 =cut
 
-$dict{ 'PERL' } = sub {
+$dict{PERL} = sub {
     my $work1   = shift;
     my $return1 = shift;
 
     my $b_ref      = pop @{ $return1 };
-    my $a_ref      = pop @{ $return1 };
+    my $a_ref      = pop @{ $return1 } // 0;
     my @in         = @{ $work1 };
     my @pre        = splice @in, 0, $a_ref;
     my @tmp        = ( @pre, @in );
     my $len_before = scalar( @tmp );
-    process( \@tmp );
     my $len_after = scalar( @tmp );
     my $delta     = $len_before - $len_after;
     my @BLOCK     = splice( @tmp, -$delta, $len_before - $delta );
     my $name      = join ";", @BLOCK;
-    eval( $name );
 
+    my $not_stdout;
+    open($not_stdout,'>', \my $buf ); 
+    select($not_stdout);
+    eval $name;
     if ( $@ )
     {
         chomp $@;
         $DEBUG = $@;
     }
-    my @ret = ();
+    select(STDOUT);
+    close $not_stdout;
+    my @ret = @pre;
+    push @ret,  $buf;
     return \@ret, scalar @BLOCK + $delta, 2;
 };
 
@@ -3785,7 +3961,7 @@ $dict{ 'PERL' } = sub {
 	
 =cut
 
-$dict{ 'PERLFUNC' } = sub {
+$dict{PERLFUNC} = sub {
     my $work1   = shift;
     my $return1 = shift;
 
@@ -3798,7 +3974,6 @@ $dict{ 'PERLFUNC' } = sub {
     my $name       = pop @BLOCK;
     my $len_before = scalar( @BLOCK );
     process( \@BLOCK );
-
     foreach my $item ( @BLOCK )
     {
         if ( $item =~ /^(\d+|^\$\w+)$/ )
@@ -3831,6 +4006,145 @@ $dict{ 'PERLFUNC' } = sub {
     return \@ret, scalar( @BLOCK ) + $delta + 1, 2;
 };
 
+=head2  name1 PERLFUNC0
+
+        execute the PERL function name1 with no parameters 
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	the parameter are "stringified"
+	!!! because this function don't know the namescape of the caller 
+	!!! the parameter for the function must be scalar 
+	!!! and not a perl variable or a ref to a perl compenent 
+	!!! see PERLVAR
+	e.g. 'Test2,PERLFUNC0'
+	call the function Test2();
+	
+=cut
+
+$dict{PERLFUNC0} = sub {
+    my $work1   = shift;
+    my $name    = pop @{ $work1 };
+
+    my $todo;
+    my $ref_var = peek_my( 3 );
+
+    if ( $name !~ /::[^:]*$/ )
+    {
+        $todo = "main::" . $name . ';';
+    }
+    else
+    {
+        my $before = ${^PREMATCH};
+        eval "require  $before";
+        $todo = $name . ';';
+    }
+
+    my @ret = eval( $todo );
+    if ( $@ )
+    {
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
+    }
+    return \@ret, 1 , 0;
+};
+
+=head2  xxx nbr name1 PERLFUNCX
+
+        execute the PERL function name1 with nbr parameters from the stack xxx
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	the parameter are "stringified"
+	!!! because this function don't know the namescape of the caller 
+	!!! the parameter for the function must be scalar 
+	!!! and not a perl variable or a ref to a perl compenent 
+	!!! see PERLVAR
+	e.g. 'file,name,2,substit,PERLFUNCX'
+	call the function substit("name", "file");
+	
+=cut
+
+$dict{PERLFUNCX} = sub {
+    my $work1   = shift;
+    my $name    = pop @{ $work1 };
+    my $nbr_arg = pop @{ $work1 };
+    my $arg = '';
+    my $todo;
+    my $ref_var = peek_my( 3 );
+    for ( 1 .. $nbr_arg )
+    {
+        my $new = pop @{ $work1 };
+        if ( $new =~ /^[\\$%@]/ )
+        {
+            $arg = $arg . ',' . $new;
+        }
+        else
+        {
+            $arg = $arg . ',"' . $new . '"';
+        }
+    }
+    if ( $arg )
+    {
+        $arg =~ s/^,//;
+    }
+    if ( $name !~ /::[^:]*$/ )
+    {
+        $todo = "main::" . $name . '(' . $arg . ');';
+    }
+    else
+    {
+        my $before = ${^PREMATCH};
+        eval "require  $before";
+        $todo = $name . '(' . $arg . ');';
+    }
+
+    my @ret = eval( $todo );
+    if ( $@ )
+    {
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
+    }
+    return \@ret, $nbr_arg + 2, 0;
+};
+
+=head2  xxx name1 PERLFUNC1
+
+        execute the PERL function name1 with the only one parameter xxx
+	the default name space is "main::"
+	It is possible tu use a specific name space
+	the parameter are "stringified"
+	e.g. 'file,name,CAT,substit,PERLFUNC1'
+	call the function substit("filename");
+	
+=cut
+
+$dict{PERLFUNC1} = sub {
+    my $work1 = shift;
+    my $name  = pop @{ $work1 };
+    my $arg   = pop @{ $work1 };
+    my $todo;
+    if ( $name !~ /::[^:]*$/ )
+    {
+        $todo = "main::" . $name . '("' . $arg . '");';
+    }
+    else
+    {
+        my $before = ${^PREMATCH};
+        eval "require  $before";
+        $todo = $name . '("' . $arg . '");';
+    }
+    my @ret = eval( $todo );
+    if ( $@ )
+    {
+        chomp $@;
+        $DEBUG = $@;
+        @ret   = ();
+    }
+    return \@ret, 2, 0;
+
+};
+
 =head2  xxx nbr name1 PERLVAR
 
         Return the perl variable.
@@ -3846,7 +4160,7 @@ $dict{ 'PERLFUNC' } = sub {
 	
 =cut
 
-$dict{ 'PERLVAR' } = sub {
+$dict{PERLVAR} = sub {
     my $work1 = shift;
     my $name  = pop @{ $work1 };
     my $name1 = pop @{ $work1 };
@@ -3956,109 +4270,13 @@ sub __deref__
 
 }
 
-=head2  xxx nbr name1 PERLFUNCX
-
-        execute the PERL function name1 with nbr parameters from the stack xxx
-	the default name space is "main::"
-	It is possible tu use a specific name space
-	the parameter are "stringified"
-	!!! because this function don't know the namescape of the caller 
-	!!! the paramter for the function must be scalar 
-	!!! and not a perl variable or a ref to a perl compenent 
-	!!! see PERLVAR
-	e.g. 'file,name,2,substit,PERLFUNCX'
-	call the function substit("name", "file");
-	
-=cut
-
-$dict{ 'PERLFUNCX' } = sub {
-    my $work1   = shift;
-    my $name    = pop @{ $work1 };
-    my $nbr_arg = pop @{ $work1 };
-    my $arg;
-    my $todo;
-    my $ref_var = peek_my( 3 );
-    for ( 1 .. $nbr_arg )
-    {
-        my $new = pop @{ $work1 };
-        if ( $new =~ /^[\\$%@]/ )
-        {
-            $arg = $arg . ',' . $new;
-        }
-        else
-        {
-            $arg = $arg . ',"' . $new . '"';
-        }
-    }
-    if ( $arg )
-    {
-        $arg =~ s/^,//;
-    }
-    if ( $name !~ /::[^:]*$/ )
-    {
-        $todo = "main::" . $name . '(' . $arg . ');';
-    }
-    else
-    {
-        my $before = ${^PREMATCH};
-        eval "require  $before";
-        $todo = $name . '(' . $arg . ');';
-    }
-
-    my @ret = eval( $todo );
-    if ( $@ )
-    {
-        chomp $@;
-        $DEBUG = $@;
-        @ret   = ();
-    }
-    return \@ret, $nbr_arg + 2, 0;
-};
-
-=head2  xxx name1 PERLFUNC1
-
-        execute the PERL function name1 with the only one parameter xxx
-	the default name space is "main::"
-	It is possible tu use a specific name space
-	the parameter are "stringified"
-	e.g. 'file,name,CAT,substit,PERLFUNC1'
-	call the function substit("filename");
-	
-=cut
-
-$dict{ 'PERLFUNC1' } = sub {
-    my $work1 = shift;
-    my $name  = pop @{ $work1 };
-    my $arg   = pop @{ $work1 };
-    my $todo;
-    if ( $name !~ /::[^:]*$/ )
-    {
-        $todo = "main::" . $name . '("' . $arg . '");';
-    }
-    else
-    {
-        my $before = ${^PREMATCH};
-        eval "require  $before";
-        $todo = $name . '("' . $arg . '");';
-    }
-    my @ret = eval( $todo );
-    if ( $@ )
-    {
-        chomp $@;
-        $DEBUG = $@;
-        @ret   = ();
-    }
-    return \@ret, 2, 0;
-
-};
-
 =head2 a >R
 
         put 'a' on the return stack
 	
 =cut
 
-$dict{ '>R' } = sub {
+$dict{'>R'} = sub {
     my @ret;
     my $work1 = shift;
     my $val   = pop @{ $work1 };
@@ -4072,7 +4290,7 @@ $dict{ '>R' } = sub {
 	
 =cut
 
-$dict{ 'R>' } = sub {
+$dict{'R>'} = sub {
     my @ret;
     my $work1   = shift;
     my $return1 = shift;
@@ -4091,7 +4309,7 @@ $dict{ 'R>' } = sub {
 	
 =cut
 
-$dict{ 'RL' } = sub {
+$dict{RL} = sub {
     my @ret;
     my $work1   = shift;
     my $return1 = shift;
@@ -4105,7 +4323,7 @@ $dict{ 'RL' } = sub {
 	
 =cut
 
-$dict{ 'R@' } = sub {
+$dict{'R@'} = sub {
     my @ret;
     my $work1   = shift;
     my $return1 = shift;
@@ -4132,7 +4350,7 @@ $dict{ 'R@' } = sub {
        'a'( append = seek to end )
 =cut
 
-$dict{ 'OPEN' } = sub {
+$dict{OPEN} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
@@ -4152,6 +4370,21 @@ $dict{ 'OPEN' } = sub {
     return \@ret, 3, 0;
 };
 
+=head2 file, UNLINK
+
+       UNLINK ( delete ) a file 
+      
+=cut
+
+$dict{UNLINK} = sub {
+    my @ret;
+    my $work1  = shift;
+    my $file   = pop @{ $work1 };
+
+    
+    push @ret , unlink($file);
+    return \@ret, 1, 0;
+};
 =head2  FH, STAT
 
        STAT the file using the handle stored in the var FH ( FH could also be a file path )
@@ -4161,7 +4394,7 @@ $dict{ 'OPEN' } = sub {
 	
 =cut
 
-$dict{ 'STAT' } = sub {
+$dict{STAT} = sub {
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
     my $fh     = $var{ $fh_var };
@@ -4180,7 +4413,7 @@ $dict{ 'STAT' } = sub {
 	
 =cut
 
-$dict{ 'SEEK' } = sub {
+$dict{SEEK} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
@@ -4197,12 +4430,12 @@ $dict{ 'SEEK' } = sub {
 	
 =cut
 
-$dict{ 'TELL' } = sub {
+$dict{TELL} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
     my $fh     = $var{ $fh_var };
-    my $tmp    = tell( $fh );
+    my $tmp    = sysseek($fh, 0, 1);
     push @ret, $tmp;
     return \@ret, 1, 0;
 };
@@ -4213,7 +4446,7 @@ $dict{ 'TELL' } = sub {
 	
 =cut
 
-$dict{ 'CLOSE' } = sub {
+$dict{CLOSE} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
@@ -4230,7 +4463,7 @@ $dict{ 'CLOSE' } = sub {
 	
 =cut
 
-$dict{ 'GETC' } = sub {
+$dict{GETC} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
@@ -4249,14 +4482,16 @@ $dict{ 'GETC' } = sub {
 	
 =cut
 
-$dict{ 'GETCS' } = sub {
+$dict{GETCS} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
     my $nbr    = pop @{ $work1 };
+    my $fh = $var{ $fh_var };
     for ( 1 .. $nbr )
     {
         my $buf = getc( $var{ $fh_var } );
+	#sysread $fh, $buf, 1;
         push @ret, $buf;
     }
     return \@ret, 2, 0;
@@ -4268,12 +4503,13 @@ $dict{ 'GETCS' } = sub {
 	
 =cut
 
-$dict{ 'WRITE' } = sub {
+$dict{WRITE} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
     my $nbr    = pop @{ $work1 };
     my $buf;
+   
     for ( 1 .. $nbr )
     {
         $buf .= pop @{ $work1 };
@@ -4290,16 +4526,17 @@ $dict{ 'WRITE' } = sub {
 	
 =cut
 
-$dict{ 'WRITELINE' } = sub {
+$dict{WRITELINE} = sub {
     my @ret;
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
     my $nbr    = pop @{ $work1 };
-    my $buf;
-    for ( 1 .. $nbr )
-    {
-        my $tmp = pop @{ $work1 };
-        chomp $tmp;
+    my $buf; 
+     my $from = ( 1 + ( $#$work1 ) - $nbr );
+    $from = $from < 0 ? 0 : $from;
+    my @TMP = @{ $work1 }[ $from .. ( $#$work1 ) ];
+    foreach my $tmp ( @TMP )
+    {   
         $buf .= "$tmp\n";
     }
     my $fh = $var{ $fh_var };
@@ -4313,13 +4550,13 @@ $dict{ 'WRITELINE' } = sub {
 	
 =cut
 
-$dict{ 'READLINE' } = sub {
+$dict{READLINE} = sub {
 
     my $work1  = shift;
     my $fh_var = pop @{ $work1 };
     my $fh     = $var{ $fh_var };
     my $buf;
-    my $tmp;
+    my $tmp = '';
     while ( $tmp !~ /((\n\r)|\n|\r)/ )
     {
         last if ( !sysread $fh, $tmp, 1 );
@@ -4347,7 +4584,7 @@ $dict{ 'READLINE' } = sub {
 
 =cut
 
-$dict{ 'THEN' } = sub {
+$dict{THEN} = sub {
     my @ret;
     my $work1   = shift;
     my $return1 = shift;
@@ -4387,7 +4624,7 @@ $dict{ 'THEN' } = sub {
 
 =cut
 
-$dict{ 'THENELSE' } = sub {
+$dict{THENELSE} = sub {
     my @ret;
     my $work1   = shift;
     my $return1 = shift;
@@ -4444,7 +4681,7 @@ $dict{ 'THENELSE' } = sub {
 
 =cut
 
-$dict{ 'REPEAT' } = sub {
+$dict{REPEAT} = sub {
     my @ret;
     my $work1   = shift;
     my $return1 = shift;
@@ -4489,7 +4726,7 @@ $dict{ 'REPEAT' } = sub {
 	
 =cut
 
-$dict{ 'LOOP' } = sub {
+$dict{LOOP} = sub {
     my $work1   = shift;
     my $return1 = shift;
     my $len     = scalar( @{ $work1 } );
@@ -4500,19 +4737,20 @@ $dict{ 'LOOP' } = sub {
     my @pre1    = @{ $work1 };
     my @HEAD    = splice @pre1, 0, $a_ref;
     pop @pre;
-    my $a   = pop @pre;
-    my $b   = pop @pre;
-    my $ind = $a;
+    my $start   = pop @pre;
+    my $end   = pop @pre;
+    my $ind = $start;
     my @ret;
 
-    if ( $ind <= $b )
+    if ( $ind <= $end )
     {
+        $var{ _T_ }= $ind;
         $ind++;
         my @TMP = @pre;
         push @TMP, @BLOCK;
         process( \@TMP );
         @pre = @TMP;
-        push @pre, $b, $ind, "DO", @BLOCK, "LOOP";
+        push @pre, $end, $ind, "DO", @BLOCK, "LOOP";
     }
     return \@pre, $len + 1, 0;
 };
@@ -4525,7 +4763,7 @@ $dict{ 'LOOP' } = sub {
 	
 =cut
 
-$dict{ '+LOOP' } = sub {
+$dict{'+LOOP'} = sub {
     my $work1   = shift;
     my $return1 = shift;
     my $len     = scalar( @{ $work1 } );
@@ -4536,47 +4774,33 @@ $dict{ '+LOOP' } = sub {
     my @pre1    = @{ $work1 };
     my @HEAD    = splice @pre1, 0, $a_ref;
     pop @pre;
+    my $inc = pop @pre;
     my $start      = pop @pre;
     my $end        = pop @pre;
+    
     my @TMP1       = @pre;
     my $subs_start = scalar( @TMP1 ) - 1;
-
     push @TMP1, @BLOCK;
-    process( \@TMP1 );
-    my $inc = pop @TMP1;
     my $ind = $start;
     my @ret;
-
     if ( $inc < 0 )
     {
         if ( $ind >= $end )
-        {
+        {  
+	    $var{ _T_ }= $ind;
             $ind += $inc;
-            for ( my $i = $subs_start ; $i <= $#TMP1 ; $i++ )
-            {
-                if ( $TMP1[$i] =~ /_I_/ )
-                {
-                    $TMP1[$i] = "<" . ( $ind - $inc ) . ">";
-                }
-            }
             @pre = @TMP1;
-            push @pre, $end, $ind, "DO", @BLOCK, "+LOOP";
+            push @pre, $end, $ind,$inc, "DO", @BLOCK, "+LOOP";
         }
     }
     elsif ( $inc > 0 )
     {
         if ( $ind <= $end )
         {
+	    $var{ _T_ }= $ind;
             $ind += $inc;
-            for ( my $i = $subs_start ; $i <= $#TMP1 ; $i++ )
-            {
-                if ( $TMP1[$i] =~ /_I_/ )
-                {
-                    $TMP1[$i] = ( $ind - $inc );
-                }
-            }
             @pre = @TMP1;
-            push @pre, $end, $ind, "DO", @BLOCK, "+LOOP";
+            push @pre, $end, $ind,$inc, "DO", @BLOCK, "+LOOP";
         }
     }
     else
@@ -4644,7 +4868,7 @@ sub process
     my $is_begin;
     my $is_while;
     my $is_do;
-    my $is_if;
+    my $is_if=0;
     my $is_else;
     my $else;
     my @work;

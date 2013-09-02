@@ -3,9 +3,9 @@
 use Data::Dumper;
 
 use Getopt::Std;
-
+$ENV{TZ}='EST';
 my %option;
-getopts( "vhdi:o:r:f:SI:p", \%option );
+getopts( "vhdi:o:r:f:SI:pT:", \%option );
 
 my $DEBUG = $option{ d };
 
@@ -63,6 +63,7 @@ if ( $option{ h } )
     print "\t -f file \t use this file for the RPN test\n";
     print "\t -S \t\t shell mode\n";
     print "\t -I path \t path to RPN.pm to use\n";
+    print "\t -T tz \t set a specific timezone\n";
     print "\t -p \t\t process partial RPN\n";
     exit;
 }
@@ -76,6 +77,8 @@ if ( $option{ I } )
 {
     require Parse::RPN;
 }
+
+$ENV{TZ}= $option{ T } if (  $option{ T } );
 
 import Parse::RPN;
 #use Module::Reload;
@@ -191,6 +194,11 @@ else
                         print "IN sep=[" . rpn_separator_in() . "]\n";
                         print "OUT sep=[" . rpn_separator_out() . "]\n";
                         print "DEBUG =[$DEBUG]\n";
+			print "TZ=[". $ENV{TZ}."]\n";                    }
+		    elsif ( $cmd =~ /t/i )
+                    { 
+		        print "<$arg>\n";
+                        $ENV{TZ} = $arg;
                     }
                     else
                     {

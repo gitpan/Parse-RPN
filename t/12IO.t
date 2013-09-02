@@ -19,16 +19,16 @@ my $WIDTH = 35;
 $| = 1;
 my @tests;
 
-push @tests, [ './t/sample,STAT',                                                 '8 4096 1377893354 1377893354 1378029905 40 0 0 0 1 33188 81158171 2050', 'STAT' ];
-push @tests, [ 'Hello,./t/sample,r,FH,OPEN,4,FH,GETC',                            'Hello test',                                                             'OPEN + GETC' ];
-push @tests, [ 'Hello,./t/sample,r,FH,OPEN,4,FH,GETCS',                           'Hello t e s t',                                                          'GETCS' ];
-push @tests, [ 'Hello,./t/sample,r,FH,OPEN,5,0,FH,SEEK,4,FH,GETCS',               'Hello f i l e',                                                          'SEEK' ];
-push @tests, [ 'Hello,./t/sample,r,FH,OPEN,FH,READLINE',                          "Hello test file\n",                                                      'READLINE' ];
-push @tests, [ 'Hello,./t/sample,r,FH,OPEN,FH,READLINE,CHOMP',                    'Hello test file',                                                        'READLINE +CHOMP' ];
-push @tests, [ './t/sample,r,FH,OPEN,FH,5,FH,GETC,FH,TELL',                       'FH test  5',                                                             'TELL' ];
-push @tests, [ 'Hello,./t/sample1,crw,FH,OPEN,1,FH,WRITE,-2,1,FH,SEEK,1,FH,GETC', 'l',                                                                      'WRITE' ];
-push @tests, [ 'A,b,C,Hello,world,and,universe,4,FH,WRITELINE',                   'A b C',                                                                  'WRITELINE' ];
-push @tests, [ 'FH,CLOSE,./t/sample1,UNLINK',                                     '1',                                                                      'UNLINK' ];
+push @tests, [ './t/sample,STAT,\s,SPLIT,8,KEEP',                                 '40',                'STAT' ];
+push @tests, [ 'Hello,./t/sample,r,FH,OPEN,4,FH,GETC',                            'Hello test',        'OPEN + GETC' ];
+push @tests, [ 'Hello,./t/sample,r,FH,OPEN,4,FH,GETCS',                           'Hello t e s t',     'GETCS' ];
+push @tests, [ 'Hello,./t/sample,r,FH,OPEN,5,0,FH,SEEK,4,FH,GETCS',               'Hello f i l e',     'SEEK' ];
+push @tests, [ 'Hello,./t/sample,r,FH,OPEN,FH,READLINE',                          "Hello test file\n", 'READLINE' ];
+push @tests, [ 'Hello,./t/sample,r,FH,OPEN,FH,READLINE,CHOMP',                    'Hello test file',   'READLINE +CHOMP' ];
+push @tests, [ './t/sample,r,FH,OPEN,FH,5,FH,GETC,FH,TELL',                       'FH test  5',        'TELL' ];
+push @tests, [ 'Hello,./t/sample1,crw,FH,OPEN,1,FH,WRITE,-2,1,FH,SEEK,1,FH,GETC', 'l',                 'WRITE' ];
+push @tests, [ 'A,b,C,Hello,world,and,universe,4,FH,WRITELINE',                   'A b C',             'WRITELINE' ];
+push @tests, [ 'FH,CLOSE,./t/sample1,UNLINK',                                     '1',                 'UNLINK' ];
 
 foreach ( @tests )
 {

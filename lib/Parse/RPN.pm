@@ -65,6 +65,7 @@ use vars qw($VERSION @ISA @EXPORT @EXPORT_OK);
 require Exporter;
 require AutoLoader;
 
+use Data::Dumper;
 use Carp qw(carp);
 
 sub cc
@@ -78,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.77';
+$VERSION = '2.78';
 
 my %dict;
 my %pub_dict;

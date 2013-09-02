@@ -1,7 +1,11 @@
 version <2 is only a RPN parser
 
 ----------------------------
-revision : 2.77
+revision : 2.78 Mon Sep  2 12:24:01 2013 +0200
+
+update test with TZ set tp EST to allow make test succeed anywhere
+----------------------------
+revision : 2.77 Sun Sep  1 18:23:05 2013 +0200
 
 Parse::RPN
 	MOD >> << : Swap arguments

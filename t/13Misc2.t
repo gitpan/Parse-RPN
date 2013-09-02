@@ -9,6 +9,7 @@ use warnings;
 use Test::More tests => 24;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
+$ENV{TZ}='EST';
 use Parse::RPN;
 
 #########################
@@ -19,12 +20,12 @@ my $WIDTH = 35;
 $| = 1;
 my @tests;
 
-push @tests, [ 'TICK', time, 'TIME' ];
-push @tests, [ '1378031372,LTIME',                                                                   '32 29 12 1 8 113 0 243 1',                 'LTIME' ];
+push @tests, [ 'TICK',                                                                                time,                                      'TIME' ];
+push @tests, [ '1378031372,LTIME',                                                                   '32 29 5 1 8 113 0 243 0',                  'LTIME' ];
 push @tests, [ '1378031372,GTIME',                                                                   '32 29 10 1 8 113 0 243 0',                 'GTIME' ];
-push @tests, [ '1378031372,HLTIME',                                                                  'Sun Sep  1 12:29:32 2013',                 'HLTIME' ];
+push @tests, [ '1378031372,HLTIME',                                                                  'Sun Sep  1 05:29:32 2013',                 'HLTIME' ];
 push @tests, [ '1378031372,HGTIME',                                                                  'Sun Sep  1 10:29:32 2013',                 'HGTIME' ];
-push @tests, [ '08-Feb-2013,HTTPTIME',                                                               '1360278000',                               'HTTPTIME' ];
+push @tests, [ '08-Feb-2013,HTTPTIME,CHOMP',                                                               '1360299600',                               'HTTPTIME' ];
 push @tests, [ '1234567890,SPACE',                                                                   '1 234 567 890',                            'SPACE' ];
 push @tests, [ '1234567890,DOT',                                                                     '1.234.567.890',                            'DOT' ];
 push @tests, [ '1234567890,NORM',                                                                    '1.23 G',                                   'NORM' ];

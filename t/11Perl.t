@@ -9,6 +9,7 @@ use warnings;
 use Test::More tests => 7;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
+$ENV{TZ}='EST';
 use Parse::RPN;
 
 #########################
@@ -56,7 +57,7 @@ my $WIDTH = 35;
 $| = 1;
 my @tests;
 
-push @tests, [ 'print( scalar (localtime(1377867665)));,PERL', 'Fri Aug 30 15:01:05 2013',          'PERL' ];
+push @tests, [ 'print( scalar (localtime(1377867665)));,PERL', 'Fri Aug 30 08:01:05 2013',          'PERL' ];
 push @tests, [ ':,print 1377867665,PERL',                      '1377867665',                        'PERL' ];
 push @tests, [ 'test,:,10,2,Test,PERLFUNC',                    'test 0.2',                          'PERLFUNC' ];
 push @tests, [ 'test,Test2,PERLFUNC0',                         'test default_value',                'PERLFUNC' ];

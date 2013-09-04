@@ -6,10 +6,10 @@ use strict;
 use 5.006;
 use warnings;
 
-use Test::More tests => 7;
+use Test::More tests => 10;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
-$ENV{TZ}='EST';
+$ENV{ TZ } = 'EST';
 use Parse::RPN;
 
 #########################
@@ -30,7 +30,6 @@ sub Test1
 
 sub Test2
 {
-
     return "default_value";
 }
 
@@ -49,6 +48,10 @@ my %S = (
 
 my @T = qw( test1 test2 Test3 TEST4 );
 
+my $s = \%S;
+
+my $scal = 1.23456789;
+
 #########################
 my $WIDTH = 35;
 
@@ -57,13 +60,16 @@ my $WIDTH = 35;
 $| = 1;
 my @tests;
 
-push @tests, [ 'print( scalar (localtime(1377867665)));,PERL', 'Fri Aug 30 08:01:05 2013',          'PERL' ];
-push @tests, [ ':,print 1377867665,PERL',                      '1377867665',                        'PERL' ];
-push @tests, [ 'test,:,10,2,Test,PERLFUNC',                    'test 0.2',                          'PERLFUNC' ];
-push @tests, [ 'test,Test2,PERLFUNC0',                         'test default_value',                'PERLFUNC' ];
-push @tests, [ 'test,5,6,2,Test,PERLFUNCX',                    'test 1.2',                          'PERLFUNCX' ];
-push @tests, [ 'test,123,Test1,PERLFUNC1',                     'test 321',                          'PERLFUNC1' ];
-push @tests, [ '{@T},PERLVAR',                                 '# test1 # test2 # Test3 # TEST4 #', 'PERLVAR' ];
+push @tests, [ 'print( scalar (localtime(1377867665)));,PERL', 'Fri Aug 30 08:01:05 2013',               'PERL' ];
+push @tests, [ ':,print 1377867665,PERL',                      '1377867665',                             'PERL' ];
+push @tests, [ 'test,:,10,2,Test,PERLFUNC',                    'test 0.2',                               'PERLFUNC' ];
+push @tests, [ 'test,Test2,PERLFUNC0',                         'test default_value',                     'PERLFUNC' ];
+push @tests, [ 'test,5,6,2,Test,PERLFUNCX',                    'test 1.2',                               'PERLFUNCX' ];
+push @tests, [ 'test,123,Test1,PERLFUNC1',                     'test 321',                               'PERLFUNC1' ];
+push @tests, [ '{@T},PERLVAR',                                 '# test1 # test2 # Test3 # TEST4 #',      'PERLVAR' ];
+push @tests, [ '{$s}->{mac},PERLVAR',                          0xccaabbff,                               'PERLVAR' ];
+push @tests, [ '{$s}->{extra},PERLVAR',                        '# c | qwerty # a | azerty # b | test #', 'PERLVAR' ];
+push @tests, [ '{$scal},PERLVAR',                              '1.23456789',                             'PERLVAR' ];
 
 foreach ( @tests )
 {

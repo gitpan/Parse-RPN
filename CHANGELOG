@@ -1,6 +1,11 @@
 version <2 is only a RPN parser
 
 ----------------------------
+revision : 2.79 Wed Sep  4 14:09:21 CEST 2013
+
+fix PERLVAR for simple scalar 
+add $scal test variable in RPN.pl
+----------------------------
 revision : 2.78 Mon Sep  2 12:24:01 2013 +0200
 
 update test with TZ set tp EST to allow make test succeed anywhere

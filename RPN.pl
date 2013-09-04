@@ -10,6 +10,7 @@ getopts( "vhdi:o:r:f:SI:pT:", \%option );
 my $DEBUG = $option{ d };
 
 my $sep_in = ',';
+
 my %S      = (
     bytesin  => 100,
     bytesout => 222,
@@ -24,6 +25,8 @@ my %S      = (
 );
 
 my @T = qw( test1 test2 Test3 TEST4 ); 
+
+my $scal = 1.23456789;
 
 sub Test {
    my $a  = shift;
@@ -159,6 +162,8 @@ else
             Term::ReadKey->import();
 
             my $term = new Term::ReadLine 'ProgramName';
+#	    print Dumper($term->Attribs());
+#	     print Dumper($term->Features());
             my $line;
             while ( defined( $line = $term->readline( 'RPN to evaluate>' ) ) )
             {
@@ -208,6 +213,7 @@ else
                         print "\\c h \t display current separators\n";
                         print "\\c d \t toggle debug mode\n";
 			print "\\c r \t force reload of module RPN.pm\n";
+			print "\\c t X \t set the time zone (TZ) to X\n";
                         print "\\c q \t quit the program\n";
                         print "\\c X \t any other argument display this help\n";
                     }

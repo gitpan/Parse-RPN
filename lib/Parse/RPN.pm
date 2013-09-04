@@ -79,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.78';
+$VERSION = '2.79';
 
 my %dict;
 my %pub_dict;
@@ -4245,21 +4245,26 @@ sub __deref__
     my $var_ref   = shift;
     my $array_ref = shift;
     my $ret;
-    my $ref = shift @{ $array_ref };
-    if ( ref $var_ref eq 'REF' )
+    my $ref = shift @{ $array_ref }; 
+      if ( ref $var_ref eq 'REF' )
     {
         $var_ref = $$var_ref;
     }
     if ( $ref =~ s/\{|\}//g )
     {
-        $ret = $var_ref->{ $ref };
+      if (  ref $var_ref->{ $ref } eq 'SCALAR') 
+      {
+          $ret = ${$var_ref->{ $ref }};
+      } else {
+          $ret = $var_ref->{ $ref };
+      }
     }
     elsif ( $ref =~ s/\[|\]//g )
     {
         $ret = $var_ref->[$ref];
     }
     if ( ref $ret eq 'REF' )
-    {
+    {  
         $ret = $$ret;
     }
     if ( scalar @{ $array_ref } )
@@ -4268,7 +4273,6 @@ sub __deref__
     }
     
     return $ret;
-
 }
 
 =head2 a >R

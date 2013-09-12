@@ -1,5 +1,14 @@
 version <2 is only a RPN parser
+----------------------------
+revision :2.80 Fri Sep  6 11:53:29 CEST 2013
 
+RPN.pm
+	Prevent crash when variable not defined in PERLVAR 
+t/11Perl.t  
+        and test for var not defined   
+	test returning a hash multikey are most of the time in different order, removing multikey test 
+RPN.pl
+	Use persistent history ( and add flag and command to set another histoty file )
 ----------------------------
 revision : 2.79 Wed Sep  4 14:09:21 CEST 2013
 

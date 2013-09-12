@@ -79,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.79';
+$VERSION = '2.80';
 
 my %dict;
 my %pub_dict;
@@ -4173,33 +4173,20 @@ $dict{PERLVAR} = sub {
     my $ref_var;
     while ( ! exists  $ref_var->{$base_name} )
     {
-        $ref_var= peek_my( $level++ );
+        eval { $ref_var= peek_my( $level++ ) };
+	if ( $@ )
+	{ 
+            return \@ret, 1, 0;
+	}
     }
 
     my @all     = split /->/, $name;
     my $res     = __deref__( $ref_var, \@all );
-#    if ( ref $res eq 'ARRAY' )
-#    {
-#        @ret = @{ $res };
-#    }
-#    elsif ( ref $res eq 'HASH' )
-#    {
-#       # my $tmp = '# ' . join ' ', map { $_ . ' | ' . $res->{ $_ } . ' #' } keys %$res;
-#	my ($tmp ,undef )= __to_sl__($res,0);
-#        push @ret, $tmp;
-#    }
-#    elsif ( ref $res eq 'SCALAR' )
-#    {
-#        push @ret, '"' . $$res . '"', '';
-#    }
-#    else
-#    {
-#        push @ret, $res;
-#    }
     my ($tmp ,undef )= __to_sl__($res,0);
     $tmp =~ s/#\s+$/\#/;
     $tmp =~ s/^\s+#/\#/;
-        push @ret, $tmp;
+    push @ret, $tmp;
+    
     return \@ret, 1, 0;
 
 };

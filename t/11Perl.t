@@ -6,7 +6,7 @@ use strict;
 use 5.006;
 use warnings;
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 $ENV{ TZ } = 'EST';
@@ -68,8 +68,9 @@ push @tests, [ 'test,5,6,2,Test,PERLFUNCX',                    'test 1.2',      
 push @tests, [ 'test,123,Test1,PERLFUNC1',                     'test 321',                               'PERLFUNC1' ];
 push @tests, [ '{@T},PERLVAR',                                 '# test1 # test2 # Test3 # TEST4 #',      'PERLVAR' ];
 push @tests, [ '{$s}->{mac},PERLVAR',                          0xccaabbff,                               'PERLVAR' ];
-push @tests, [ '{$s}->{extra},PERLVAR',                        '# c | qwerty # a | azerty # b | test #', 'PERLVAR' ];
+push @tests, [ '{$s}->{extra}->{a},PERLVAR',                   'azerty', 'PERLVAR' ];
 push @tests, [ '{$scal},PERLVAR',                              '1.23456789',                             'PERLVAR' ];
+push @tests, [ '{$scal1},PERLVAR',                              '',                             'PERLVAR' ];
 
 foreach ( @tests )
 {

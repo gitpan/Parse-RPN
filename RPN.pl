@@ -4,8 +4,10 @@ use Data::Dumper;
 
 use Getopt::Std;
 $ENV{TZ}='EST';
+
+my $history_file = glob('~/.RPN.history');
 my %option;
-getopts( "vhdi:o:r:f:SI:pT:", \%option );
+getopts( "vhdi:o:r:f:SI:pT:H:", \%option );
 
 my $DEBUG = $option{ d };
 
@@ -23,6 +25,8 @@ my %S      = (
     },
     extra1 => [ 'azerty1', 'test1' ]
 );
+
+my $s1 = 'extra';
 
 my @T = qw( test1 test2 Test3 TEST4 ); 
 
@@ -53,6 +57,8 @@ if ( !defined $option{ r } && !defined $option{ v } && !defined $option{ f } && 
     $option{ h } = 1;
 }
 
+$history_file = glob( $option{ H } ) if $option{ H };
+
 if ( $option{ h } )
 {
     print "Usage: $0 [options ...]\n\n";
@@ -67,6 +73,7 @@ if ( $option{ h } )
     print "\t -S \t\t shell mode\n";
     print "\t -I path \t path to RPN.pm to use\n";
     print "\t -T tz \t set a specific timezone\n";
+    print "\t -H hist \t use this history file in Term mode (default=$history_file)\n";
     print "\t -p \t\t process partial RPN\n";
     exit;
 }
@@ -159,47 +166,53 @@ else
         }
         else
         {
-            Term::ReadKey->import();
-
-            my $term = new Term::ReadLine 'ProgramName';
-#	    print Dumper($term->Attribs());
-#	     print Dumper($term->Features());
+            my $term = new Term::ReadLine 'RPN.pl';
+            my $attribs = $term->Attribs();
+            $term->using_history();
+            $term->read_history($history_file);
+            $term->clear_signals();
             my $line;
             while ( defined( $line = $term->readline( 'RPN to evaluate>' ) ) )
-            {
+            { 
+	       
 	        reload() ;
                 if ( $line =~ /^\\c\s+(\w)(\s*)(.*)$/ )
                 {
                     my $cmd = $1;
                     my $arg = $3;
 
-# print "execute command <$cmd> <$arg> \n";
-                    if ( $cmd =~ /q/i )
+                    if ( $cmd =~ /q/ )
                     {
                         exit;
                     }
-                    elsif ( $cmd =~ /o/i )
+                    elsif ( $cmd =~ /o/ )
                     {
                         rpn_separator_out( $arg );
                     }
-                    elsif ( $cmd =~ /i/i )
+                    elsif ( $cmd =~ /i/ )
                     {
                         rpn_separator_in( $arg );
                     }
-                    elsif ( $cmd =~ /d/i )
+                    elsif ( $cmd =~ /d/ )
                     {
                         $DEBUG ^= 1;
                     }
-		    elsif ( $cmd =~ /r/i )
+		    elsif ( $cmd =~ /r/ )
                     {  
                         reload(1) ;
                     }
-                    elsif ( $cmd =~ /h/i )
+		    elsif ( $cmd =~ /H/ )
+                    {  
+                        $history_file =  glob($arg);
+                    }
+                    elsif ( $cmd =~ /h/ )
                     {
                         print "IN sep=[" . rpn_separator_in() . "]\n";
                         print "OUT sep=[" . rpn_separator_out() . "]\n";
                         print "DEBUG =[$DEBUG]\n";
-			print "TZ=[". $ENV{TZ}."]\n";                    }
+			print "TZ=[". $ENV{TZ}."]\n";
+			print "HIST=[". $history_file."]\n";
+	            }
 		    elsif ( $cmd =~ /t/i )
                     { 
 		        print "<$arg>\n";
@@ -215,11 +228,13 @@ else
 			print "\\c r \t force reload of module RPN.pm\n";
 			print "\\c t X \t set the time zone (TZ) to X\n";
                         print "\\c q \t quit the program\n";
+			print "\\c H X \t set the histoty file to X\n";
                         print "\\c X \t any other argument display this help\n";
                     }
                 }
 		else
 		{
+		    $term->write_history($history_file);
                     my $res = rpn( $line );
                     print $res, "\n" unless $@;
 		}

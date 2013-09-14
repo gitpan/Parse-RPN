@@ -1,4 +1,10 @@
 version <2 is only a RPN parser
+
+----------------------------
+revision :2.81 Sat Sep 14 12:20:19 CEST 2013
+
+
+Don't use ${^PREMATCH} to cope with perl 5.18
 ----------------------------
 revision :2.80 Fri Sep  6 11:53:29 CEST 2013
 

@@ -79,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.80';
+$VERSION = '2.81';
 
 my %dict;
 my %pub_dict;
@@ -3993,7 +3993,7 @@ $dict{PERLFUNC} = sub {
     }
     else
     {
-        my $before = ${^PREMATCH};
+        my $before = $`;
         eval "require  $before";
         $todo = $name . '(' . $arg . ');';
     }
@@ -4035,7 +4035,7 @@ $dict{PERLFUNC0} = sub {
     }
     else
     {
-        my $before = ${^PREMATCH};
+        my $before = $`;
         eval "require  $before";
         $todo = $name . ';';
     }
@@ -4094,7 +4094,7 @@ $dict{PERLFUNCX} = sub {
     }
     else
     {
-        my $before = ${^PREMATCH};
+        my $before = $`;
         eval "require  $before";
         $todo = $name . '(' . $arg . ');';
     }
@@ -4131,7 +4131,7 @@ $dict{PERLFUNC1} = sub {
     }
     else
     {
-        my $before = ${^PREMATCH};
+        my $before = $`;
         eval "require  $before";
         $todo = $name . '("' . $arg . '");';
     }

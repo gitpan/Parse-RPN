@@ -1,4 +1,4 @@
-home::GIT::Parse-RPN::bUlsiebr::Cloinbt:r:ihPboaumrtese:ed::G:PIReTPr:Nl:(P3Da)orcsuem-eRnPtNa:t:ibolnib::lib::Parse::RPN(3)
+Parse::RPN(3)         User Contributed Perl Documentation        Parse::RPN(3)
 
 
 
@@ -458,7 +458,9 @@ SSTTRRIINNGG ooppeerraattoorrss
    aa bb GGEE
              return the result of 'a' GE 'b'  ( BOOLEAN value )
 
-   aa bb CCMMPP
+   aa bb CCMMPP WWOORRDDSS,,LLEENN
+       == 11558844'' ##   aatt tt//0099DDIICCTT..tt lliinnee 5588.. ## LLooookkss lliikkee yyoouu ffaaiilleedd 11 tteesstt ooff
+       3311..
              return the result of 'a' CMP 'b'  ( BOOLEAN value )
 
    aa LLEENN
@@ -470,8 +472,20 @@ SSTTRRIINNGG ooppeerraattoorrss
    aa bb CCAATT
              return the concatenation 'a' and 'b'
 
+   aa bb ...... nn  xx CCAATTNN
+             return the concatenation of the 'x' element from the stack
+
    aa bb CCAATTAALLLL
              return the concatenation all element on the stack
+
+   aa bb xx JJOOIINN
+             return the concatenation 'a', 'x' and 'b'
+
+   aa bb ...... nn  xx yy JJOOIINNNN
+             return the concatenation of the 'y' element from the stack with 'x' as separator
+
+   aa bb xx JJOOIINNAALLLL
+             return the concatenation all element on the stack with 'x' as separator
 
    aa bb RREEPP
              return the result of 'a' x 'b'  duplicate 'a' by the number of 'x'
@@ -1431,4 +1445,4 @@ PPOODD EERRRROORRSS
 
 
 
-perl v5.18.1                    ho2m0e1:3:-G0I9T-:0:6Parse-RPN::blib::lib::Parse::RPN(3)
+perl v5.18.1                      2013-09-23                     Parse::RPN(3)

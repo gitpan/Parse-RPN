@@ -79,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.81';
+$VERSION = '2.82';
 
 my %dict;
 my %pub_dict;
@@ -1985,6 +1985,9 @@ $dict{GE} = sub {
 };
 
 =head2 a b CMP
+	WORDS,LEN                                                              = 1584'
+#   at t/09DICT.t line 58.
+# Looks like you failed 1 test of 31.
 
       return the result of 'a' CMP 'b'  ( BOOLEAN value )
 	
@@ -2043,6 +2046,26 @@ $dict{CAT} = sub {
     return \@ret, 2, 0;
 };
 
+=head2 a b ... n  x CATN
+
+      return the concatenation of the 'x' element from the stack 
+	
+=cut
+
+$dict{CATN} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+   
+    my $ret;
+    my @ret;
+    for ( 1 .. $a )
+    {
+    $ret .= pop @{ $work1 };
+    }
+    push @ret, $ret;
+    return \@ret, 1 +$a, 0;
+};
+
 =head2 a b CATALL
 
       return the concatenation all element on the stack 
@@ -2059,6 +2082,63 @@ $dict{CATALL} = sub {
     }
     my @ret;
     push @ret, $ret;
+    return \@ret, 1 + $dep, 0;
+};
+
+
+=head2 a b x JOIN
+
+      return the concatenation 'a', 'x' and 'b' 
+	
+=cut
+
+$dict{JOIN} = sub {
+    my $work1 = shift;
+    my $x     = pop @{ $work1 };
+    my $a     = pop @{ $work1 };
+    my $b     = pop @{ $work1 };  
+    my @ret;
+    push @ret, ( "'" . $b .$x. $a . "'" );
+    return \@ret, 3, 0;
+};
+
+=head2 a b ... n  x y JOINN
+
+      return the concatenation of the 'y' element from the stack with 'x' as separator
+	
+=cut
+
+$dict{JOINN} = sub {
+    my $work1 = shift;
+    my $a     = pop @{ $work1 };
+    my $x     = pop @{ $work1 };
+    my $ret;
+    for ( 1 .. $a-1 )
+    {
+        $ret .= (pop @{ $work1 }) . $x;
+    }
+    $ret .= pop @{ $work1 };
+    my @ret = ( $ret );
+    return \@ret, 2 +$a, 0;
+};
+
+=head2 a b x JOINALL
+
+      return the concatenation all element on the stack with 'x' as separator
+	
+=cut
+
+$dict{JOINALL} = sub {
+    my $work1 = shift;
+    my $x     = pop @{ $work1 };
+    my $dep   = scalar @{ $work1 };
+    my $ret;
+    for ( 1 .. $dep-1 )
+    {
+        $ret .= (shift @{ $work1 }) .$x;
+    }
+    $ret .= pop @{ $work1 };
+    my @ret =( $ret );  
     return \@ret, 1 + $dep, 0;
 };
 

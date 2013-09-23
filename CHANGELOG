@@ -1,5 +1,9 @@
 version <2 is only a RPN parser
+----------------------------
+revision :2.82 Mon Sep 23 17:49:50 CEST 2013
 
+add CATN JOIN JOINN and JOINALL
+add/update test related
 ----------------------------
 revision :2.81 Sat Sep 14 12:20:19 CEST 2013
 

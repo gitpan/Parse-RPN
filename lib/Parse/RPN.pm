@@ -79,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.82';
+$VERSION = '2.83';
 
 my %dict;
 my %pub_dict;

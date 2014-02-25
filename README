@@ -2,8 +2,8 @@ Parse::RPN(3)         User Contributed Perl Documentation        Parse::RPN(3)
 
 
 
-PPaarrssee--RRPPNN ((VV 22..xxxx)) -- IInnttrroodduuccttiioonn
-         Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
+NNAAMMEE
+         Parse::RPN (2.xx) - Is a minimalist RPN parser/processor (a little like FORTH)
 
 SSYYNNOOPPSSIISS
          use Parse::RPN;
@@ -12,7 +12,7 @@ SSYYNNOOPPSSIISS
 
          $error=rpn_error();
 
-         string... is a list of RPN operator and value separated by a coma
+         string... is a list of RPN operators and values separated by a coma
          in scalar mode RPN return the result of the calculation (If the stack contain more then one element,
          you receive a warning and the top value on the stack)
          in array mode, you receive the content of the stack after evaluation
@@ -34,11 +34,11 @@ DDEESSCCRRIIPPTTIIOONN
          The evaluation follow the rule of RPN or FORTH or POSTCRIPT or pockect calcutor HP.
          Look on web for documentation about the use of RPN notation.
 
-         I use this module in a application where the final user need to create an maintain
-         a configuration file with the possibility to do calculation on variable returned from application.
+         I use this module in a application where the final user need to create and maintain
+         a configuration file with the possibility to do calculation on variables returned from application.
 
          The idea of this module is comming from Math::RPN of Owen DeLong, owen@delong.com that I used for more then a year
-         before some of my customer would like more ...
+         before some of my customer would like more...
 
          rpn_error() return the last error from the evaluation (illegal division by 0, error from the PERL function execution...)
          each time that rpn() is call the rpn_error() is reinitianised.
@@ -161,10 +161,10 @@ RREELLAATTIIOONNAALL ooppeerraattoorrss
              return 1 ( BOOLEAN value ) if v greater or equal to a but lower or equal to b. Otherwise return 0
              ( aka between boundaries included )
 
-   aa bb
+   aa bb NN<<
              return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
 
-   aa bb ==
+   aa bb NN>>==
              return the result of 'a' N<= 'b'  ( BOOLEAN value ) if a is ISNUM
 
    aa bb NN>>
@@ -216,14 +216,17 @@ MMIISSCC ooppeerraattoorrss
              the "operator" must be quoted to prevent evaluation
 
    aa VVAALL,,RREETT,, ""ooppeerraattoorr"" LLOOOOKKUUPPPP
-             test with the perl "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
-             the "operator" must be quoted to prevent evaluation
+             Test with the perl "operator" the [a] value on each elements of VAL
+             and if test succeed return the value from array RET with the same index
+             The "operator" must be quoted to prevent evaluation
 
    aa VVAALL,,RREETT,,OOPPEE LLOOOOKKUUPPOOPP
-             loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
+             Loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY
+             against the corresponding value in array VAL and return the value from array RET with the same index
 
    aa VVAALL,,RREETT,,OOPPEE LLOOOOKKUUPPOOPPPP
-             loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
+             Loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY
+             against the corresponding value in array VAL and return the value from array RET with the same index
 
    TTIICCKK
              return the current time in ticks
@@ -1429,20 +1432,6 @@ LLIICCEENNSSEE
                This is free software, and you are welcome to redistribute
                it under certain conditions;
 
-PPOODD EERRRROORRSS
-       Hey! TThhee aabboovvee ddooccuummeenntt hhaadd ssoommee ccooddiinngg eerrrroorrss,, wwhhiicchh aarree eexxppllaaiinneedd
-       bbeellooww::
-
-       Around line 721:
-           Unterminated N<...> sequence
-
-           Deleting unknown formatting code N<>
-
-       Around line 736:
-           Unterminated N<...> sequence
-
-           Deleting unknown formatting code N<>
 
 
-
-perl v5.18.1                      2013-09-25                     Parse::RPN(3)
+perl v5.18.2                      2014-02-25                     Parse::RPN(3)

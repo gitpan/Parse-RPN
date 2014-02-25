@@ -9,9 +9,9 @@
 #
 ###########################################################
 
-=head1 Parse-RPN (V 2.xx) - Introduction
+=head1 NAME
 
-  Parse::RPN - Is a minimalist RPN parser/processor (a little like FORTH)
+  Parse::RPN (2.xx) - Is a minimalist RPN parser/processor (a little like FORTH)
 
 =head1 SYNOPSIS
 
@@ -21,7 +21,7 @@
   
   $error=rpn_error();
 
-  string... is a list of RPN operator and value separated by a coma
+  string... is a list of RPN operators and values separated by a coma
   in scalar mode RPN return the result of the calculation (If the stack contain more then one element, 
   you receive a warning and the top value on the stack)
   in array mode, you receive the content of the stack after evaluation
@@ -44,11 +44,11 @@
   The evaluation follow the rule of RPN or FORTH or POSTCRIPT or pockect calcutor HP.
   Look on web for documentation about the use of RPN notation.
   
-  I use this module in a application where the final user need to create an maintain 
-  a configuration file with the possibility to do calculation on variable returned from application.
+  I use this module in a application where the final user need to create and maintain 
+  a configuration file with the possibility to do calculation on variables returned from application.
   
   The idea of this module is comming from Math::RPN of Owen DeLong, owen@delong.com that I used for more then a year
-  before some of my customer would like more ...
+  before some of my customer would like more...
 
   rpn_error() return the last error from the evaluation (illegal division by 0, error from the PERL function execution...)
   each time that rpn() is call the rpn_error() is reinitianised.
@@ -79,7 +79,7 @@ sub cc
 
 @EXPORT = qw(rpn rpn_error rpn_separator_out  rpn_separator_in);
 
-$VERSION = '2.83';
+$VERSION = '2.84';
 
 my %dict;
 my %pub_dict;
@@ -98,13 +98,13 @@ my $separator_in  = ',';
 ########################
 
 =head1 MATHEMATIC operators
-	
+        
 =cut
 
 =head2 a b +
 
       return the result of 'a' + 'b' 
-	
+        
 =cut
 
 $dict{'+'} = sub {
@@ -120,7 +120,7 @@ $dict{'+'} = sub {
 =head2 a b -
 
       return the result of 'a' - 'b' 
-	
+        
 =cut
 
 $dict{'-'} = sub {
@@ -135,7 +135,7 @@ $dict{'-'} = sub {
 =head2 a b *
 
       return the result of 'a' * 'b' 
-	
+        
 =cut
 
 $dict{'*'} = sub {
@@ -151,7 +151,7 @@ $dict{'*'} = sub {
 
       return the result of 'a' / 'b' 
       if b =0 return '' (to prevent exception raise)
-	
+        
 =cut
 
 $dict{'/'} = sub {
@@ -177,7 +177,7 @@ $dict{'/'} = sub {
 =head2 a b **
 
       return the result of 'a' ** 'b'  (exponant)
-	
+        
 =cut
 
 $dict{'**'} = sub {
@@ -192,7 +192,7 @@ $dict{'**'} = sub {
 =head2 a 1+
 
       return the result of 'a' +1 
-	
+        
 =cut
 
 $dict{'1+'} = sub {
@@ -206,7 +206,7 @@ $dict{'1+'} = sub {
 =head2 a 1-
 
       return the result of 'a' -1 
-	
+        
 =cut
 
 $dict{'1-'} = sub {
@@ -220,7 +220,7 @@ $dict{'1-'} = sub {
 =head2 a 2-
 
       return the result of 'a' -2 
-	
+        
 =cut
 
 $dict{'2-'} = sub {
@@ -234,7 +234,7 @@ $dict{'2-'} = sub {
 =head2 a 2+
 
       return the result of 'a' +2 
-	
+        
 =cut
 
 $dict{'2+'} = sub {
@@ -248,7 +248,7 @@ $dict{'2+'} = sub {
 =head2 a b MOD
 
       return the result of 'a' % 'b'
-	
+        
 =cut
 
 $dict{MOD} = sub {
@@ -263,7 +263,7 @@ $dict{MOD} = sub {
 =head2 a ABS
 
       return the result of  abs 'a'
-	
+        
 =cut
 
 $dict{ABS} = sub {
@@ -278,7 +278,7 @@ $dict{ABS} = sub {
 =head2 a INT
 
       return the result of INT 'a' 
-	
+        
 =cut
 
 $dict{INT} = sub {
@@ -292,7 +292,7 @@ $dict{INT} = sub {
 =head2 a +-
 
       return the result negate value of 'a' (- 'a' )
-	
+        
 =cut
 
 $dict{'+-'} = sub {
@@ -306,7 +306,7 @@ $dict{'+-'} = sub {
 =head2 a REMAIN
 
       return the result of 'a' - int 'a' (fractional part of 'a' ) 
-	
+        
 =cut
 
 $dict{REMAIN} = sub {
@@ -320,7 +320,7 @@ $dict{REMAIN} = sub {
 =head2 a SIN
 
       return the result of sin 'a'  ('a' in RADIAN)
-	
+        
 =cut
 
 $dict{SIN} = sub {
@@ -334,7 +334,7 @@ $dict{SIN} = sub {
 =head2 a COS
 
       return the result of cos 'a'  ('a' in RADIAN)
-	
+        
 =cut
 
 $dict{COS} = sub {
@@ -348,7 +348,7 @@ $dict{COS} = sub {
 =head2 a TAN
 
       return the result of tan 'a'  ('a' in RADIAN)
-	
+        
 =cut
 
 $dict{TAN} = sub {
@@ -362,7 +362,7 @@ $dict{TAN} = sub {
 =head2 a CTAN
 
       return the result of cotan 'a'  ('a' in RADIAN)
-	
+        
 =cut
 
 $dict{CTAN} = sub {
@@ -377,7 +377,7 @@ $dict{CTAN} = sub {
 
       return the result of ln 'a' 
       if = 0 return '' (to prevent exception raise)
-	
+        
 =cut
 
 $dict{LN} = sub {
@@ -402,7 +402,7 @@ $dict{LN} = sub {
 =head2 a EXP
 
       return the result of 'e' ** 'a' 
-	
+        
 =cut
 
 $dict{EXP} = sub {
@@ -416,7 +416,7 @@ $dict{EXP} = sub {
 =head2 PI
 
       return the value of PI (3.14159265358979)
-	
+        
 =cut
 
 $dict{PI} = sub {
@@ -428,7 +428,7 @@ $dict{PI} = sub {
 =head2 a b MIN
 
       return the smallest value of the 2 arguments
-	
+        
 =cut
 
 $dict{MIN} = sub {
@@ -443,7 +443,7 @@ $dict{MIN} = sub {
 =head2 a b MAX
 
       return the greatest value of the 2 arguments
-	
+        
 =cut
 
 $dict{MAX} = sub {
@@ -458,7 +458,7 @@ $dict{MAX} = sub {
 =head2 a MINX
 
       return the smallest value from the a elements from the stack
-	
+        
 =cut
 
 $dict{MINX} = sub {
@@ -479,7 +479,7 @@ $dict{MINX} = sub {
 =head2 a b MAXX
 
       return the greatest value from the a elements from the stack
-	
+        
 =cut
 
 $dict{MAXX} = sub {
@@ -497,10 +497,10 @@ $dict{MAXX} = sub {
     return \@ret, $nbr + 1, 0;
 };
 =head2 a SUM
-	
-	sum the a elements from the top of the stack
-	remove these a elements
-	and return the result value on the stack
+        
+        sum the a elements from the top of the stack
+        remove these a elements
+        and return the result value on the stack
 
 =cut
 
@@ -520,10 +520,10 @@ $dict{SUM} = sub {
 };
 
 =head2 a STATS
-	
-	STATS the a element on top of the stack
-	remove these a element
-	the new variable _SUM_, _MULT_, _ARITH_MEAN_, _GEOM_MEAN_, _QUAD_MEAN_ (= _RMS_), _HARM_MEAN_, _STD_DEV_, _SAMPLE_STD_DEV_, _VARIANCE_,
+        
+        STATS the a element on top of the stack
+        remove these a element
+        the new variable _SUM_, _MULT_, _ARITH_MEAN_, _GEOM_MEAN_, _QUAD_MEAN_ (= _RMS_), _HARM_MEAN_, _STD_DEV_, _SAMPLE_STD_DEV_, _VARIANCE_,
 
 =cut
 
@@ -583,7 +583,7 @@ $dict{STATS} = sub {
 =head2 a b <
 
       return the result of 'a' < 'b'  ( BOOLEAN value ) 
-	
+        
 =cut
 
 $dict{'<'} = sub {
@@ -598,7 +598,7 @@ $dict{'<'} = sub {
 =head2 a b <=
 
       return the result of 'a' <= 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{'<='} = sub {
@@ -613,7 +613,7 @@ $dict{'<='} = sub {
 =head2 a b >
 
       return the result of 'a' > 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{'>'} = sub {
@@ -628,7 +628,7 @@ $dict{'>'} = sub {
 =head2 a b >=
 
       return the result of 'a' >= 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{'>='} = sub {
@@ -643,7 +643,7 @@ $dict{'>='} = sub {
 =head2 a b ==
 
       return the result of 'a' == 'b'  ( BOOLEAN value ) 1 if a == b else 0
-	
+        
 =cut
 
 $dict{'=='} = sub {
@@ -658,7 +658,7 @@ $dict{'=='} = sub {
 =head2 a b <=>
 
       return the result of 'a' <=> 'b'  ( BOOLEAN value  ) -1 if a < b ,0 if a == b, 1 if a > b
-	
+        
 =cut
 
 $dict{'<=>'} = sub {
@@ -673,7 +673,7 @@ $dict{'<=>'} = sub {
 =head2 a b !=
 
       return the result of 'a' != 'b'  ( BOOLEAN value ) 0 if a == b else 1
-	
+        
 =cut
 
 $dict{'!='} = sub {
@@ -705,7 +705,7 @@ $dict{'><'} = sub {
 
       return 1 ( BOOLEAN value ) if v greater or equal to a but lower or equal to b. Otherwise return 0 
       ( aka between boundaries included )
-	
+        
 =cut
 
 $dict{'>=<'} = sub {
@@ -718,10 +718,10 @@ $dict{'>=<'} = sub {
     return \@ret, 3, 0;
 };
 
-=head2 a b N<
+=head2 a b NE<lt>
 
       return the result of 'a' N< 'b'  ( BOOLEAN value ) if a is ISNUM
-	
+        
 =cut
 
 $dict{'N<'} = sub {
@@ -733,10 +733,10 @@ $dict{'N<'} = sub {
     return \@ret, 2, 0;
 };
 
-=head2 a b N<=
+=head2 a b NE<gt>=
 
       return the result of 'a' N<= 'b'  ( BOOLEAN value ) if a is ISNUM
-	
+        
 =cut
 
 $dict{'N<='} = sub {
@@ -751,7 +751,7 @@ $dict{'N<='} = sub {
 =head2 a b N>
 
       return the result of 'a' N> 'b'  ( BOOLEAN value ) if a is ISNUM
-	
+        
 =cut
 
 $dict{'N>'} = sub {
@@ -766,7 +766,7 @@ $dict{'N>'} = sub {
 =head2 a b N>=
 
       return the result of 'a' N>= 'b'  ( BOOLEAN value ) if a is ISNUM
-	
+        
 =cut
 
 $dict{'N>='} = sub {
@@ -781,7 +781,7 @@ $dict{'N>='} = sub {
 =head2 a b N==
 
       return the result of 'a' N== 'b'  ( BOOLEAN value ) 1 if a == b and a ISNUM else 0
-	
+        
 =cut
 
 $dict{'N=='} = sub {
@@ -821,7 +821,7 @@ $dict{'N!='} = sub {
 =head2 a b OR
 
       return the 1 one of the 2 argument are not equal to 0
-	
+        
 =cut
 
 $dict{OR} = sub {
@@ -836,7 +836,7 @@ $dict{OR} = sub {
 =head2 a b AND
 
       return the 0 one of the 2 argument are equal to 0
-	
+        
 =cut
 
 $dict{AND} = sub {
@@ -851,7 +851,7 @@ $dict{AND} = sub {
 =head2 a b XOR
 
       return the 0 if the  2 argument are equal
-	
+        
 =cut
 
 $dict{XOR} = sub {
@@ -866,7 +866,7 @@ $dict{XOR} = sub {
 =head2 a b NXOR
 
       return the 0 if the  2 argument are equal. Any non numeric elements is seen as a 0.
-	
+        
 =cut
 
 $dict{NXOR} = sub {
@@ -884,7 +884,7 @@ $dict{NXOR} = sub {
 
       return the 0 if the argument is not eqauk to 0
       return the 1 if the argument is  eqauk to 0
-	
+        
 =cut
 
 $dict{NOT} = sub {
@@ -899,7 +899,7 @@ $dict{NOT} = sub {
 =head2 a TRUE
 
       return the 1 if the top of stack is !=0 and if stack not empty
-	
+        
 =cut
 
 $dict{TRUE} = sub {
@@ -910,7 +910,7 @@ $dict{TRUE} = sub {
     {
         $b = 1;
         $a = pop @{ $work1 };
-	$a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0;
+        $a = $a =~ /^([+-]?)(?=\d|\.\d)\d*(\.\d*)?([Ee]([+-]?\d+))?$/ ? $a : 0;
         if ( $a > 0 )
         {
             $b = 1;
@@ -928,7 +928,7 @@ $dict{TRUE} = sub {
 =head2 a FALSE
 
       return the 0 if the top of stack is !=0
-	
+        
 =cut
 
 $dict{FALSE} = sub {
@@ -959,7 +959,7 @@ $dict{FALSE} = sub {
 
       bitwise shift to the right
       shift the bits in a to the left of b level
-	
+        
 =cut
 
 $dict{'>>'} = sub {
@@ -975,7 +975,7 @@ $dict{'>>'} = sub {
 
       bitwise shift to the left
       shift the bits in a to the left of b level
-	
+        
 =cut
 
 $dict{'<<'} = sub {
@@ -1000,7 +1000,7 @@ $dict{'<<'} = sub {
 
       test with the "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
       the "operator" must be quoted to prevent evaluation
-	
+        
 =cut
 
 $dict{LOOKUP} = sub {
@@ -1028,9 +1028,10 @@ $dict{LOOKUP} = sub {
 
 =head2 a VAL,RET, "operator" LOOKUPP
 
-      test with the perl "operator" the [a] value on each elements of VAL and if test succeed return the value from array RET with the same index
-      the "operator" must be quoted to prevent evaluation
-	
+      Test with the perl "operator" the [a] value on each elements of VAL 
+      and if test succeed return the value from array RET with the same index
+      The "operator" must be quoted to prevent evaluation
+        
 =cut
 
 $dict{LOOKUPP} = sub {
@@ -1055,8 +1056,9 @@ $dict{LOOKUPP} = sub {
 
 =head2 a VAL,RET,OPE LOOKUPOP
 
-      loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
-	
+      Loop on each item of array VAL and test the value [ a ]  with the operator from ope ARRAY 
+      against the corresponding value in array VAL and return the value from array RET with the same index
+        
 =cut
 
 $dict{LOOKUPOP} = sub {
@@ -1083,8 +1085,9 @@ $dict{LOOKUPOP} = sub {
 
 =head2 a VAL,RET,OPE LOOKUPOPP
 
-      loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY against the corresponding value in array VAL and return the value from array RET with the same index
-	
+      Loop on each item of array VAL and test the value [ a ]  with the perl operator from ope ARRAY 
+      against the corresponding value in array VAL and return the value from array RET with the same index
+        
 =cut
 
 $dict{LOOKUPOPP} = sub {
@@ -1110,7 +1113,7 @@ $dict{LOOKUPOPP} = sub {
 =head2 TICK
 
       return the current time in ticks
-	
+        
 =cut
 
 $dict{TICK} = sub {
@@ -1126,7 +1129,7 @@ $dict{TICK} = sub {
       'year' is the elapsed year since 1900
       'month' start to 0
       The format is the same as localtime() in perl
-	
+        
 =cut
 
 $dict{LTIME} = sub {
@@ -1144,7 +1147,7 @@ $dict{LTIME} = sub {
       'year' is the elapsed year since 1900
       'month' start to 0
       The format is the same as gmtime() in perl
-	
+        
 =cut
 
 $dict{GTIME} = sub {
@@ -1158,7 +1161,7 @@ $dict{GTIME} = sub {
 =head2 a HLTIME
 
       return the localtime coresponding to the ticks value 'a' in a human readable format
-	
+        
 =cut
 
 $dict{HLTIME} = sub {
@@ -1172,7 +1175,7 @@ $dict{HLTIME} = sub {
 =head2 a HGTIME
 
       return the gmtime coresponding to the ticks value 'a' in a human readable format
-	
+        
 =cut
 
 $dict{HGTIME} = sub {
@@ -1186,7 +1189,7 @@ $dict{HGTIME} = sub {
 =head2 a HTTPTIME
 
       return the ticks coresponding to the time value in a format accepted by HTTP::Date
-	
+        
 =cut
 
 $dict{HTTPTIME} = sub {
@@ -1200,7 +1203,7 @@ $dict{HTTPTIME} = sub {
 =head2 RAND
 
       return a random value in the range [0,1[
-	
+        
 =cut
 
 $dict{RAND} = sub {
@@ -1212,7 +1215,7 @@ $dict{RAND} = sub {
 =head2 a LRAND
 
       return a random value in the range [0,'a'[
-	
+        
 =cut
 
 $dict{LRAND} = sub {
@@ -1226,7 +1229,7 @@ $dict{LRAND} = sub {
 =head2 a SPACE
 
       return the number 'a' formated with space each 3 digits
-	
+        
 =cut
 
 $dict{SPACE} = sub {
@@ -1243,7 +1246,7 @@ $dict{SPACE} = sub {
 =head2 a DOT
 
       return the number 'a' formated with . (dot) each 3 digits
-	
+        
 =cut
 
 $dict{DOT} = sub {
@@ -1260,7 +1263,7 @@ $dict{DOT} = sub {
 =head2 a NORM
 
       return the number 'a' normalize by slice of 1000 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1000)
-	
+        
 =cut
 
 $dict{NORM} = sub {
@@ -1284,7 +1287,7 @@ $dict{NORM} = sub {
 =head2 a NORM2
 
       return the number 'a' normalize by slice of 1024 with extra power value "K", "M", "G", "T", "P" (or nothing if lower than 1024)
-	
+        
 =cut
 
 $dict{NORM2} = sub {
@@ -1310,7 +1313,7 @@ $dict{NORM2} = sub {
       reverse function of NORM
       return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1000)
       and calculate the real value base 1000 ( e.g  7k = 7000)
-	
+        
 =cut
 
 $dict{UNORM} = sub {
@@ -1344,7 +1347,7 @@ $dict{UNORM} = sub {
       reverse function of NORM2
       return the number from a 'a' with a sufix "K", "M", "G", "T", "P" (or nothing if lower than 1024)
       and calculate the real value base 1024 ( e.g  7k = 7168)
-	
+        
 =cut
 
 $dict{UNORM2} = sub {
@@ -1380,7 +1383,7 @@ $dict{UNORM2} = sub {
       BINARY is like '0bnnn...'   where n is in the range of 0-1
       HEX is like '0xnnn' where n is in the range of 0-9A-F
       if no specific format convert as an hexadecimal by default
-	
+        
 =cut
 
 $dict{OCT} = sub {
@@ -1399,7 +1402,7 @@ $dict{OCT} = sub {
 
       return a HEX string from a OCTETSTRING.
       useful when receiving an SNMP ASN.1 OCTETSTRING like mac address
-	
+        
 =cut
 
 $dict{OCTSTR2HEX} = sub {
@@ -1414,7 +1417,7 @@ $dict{OCTSTR2HEX} = sub {
 
       return a OCTETSTRING string from a HEX
       useful when you need to check if an SNMP ASN.1 OCTETSTRING if matching the hex value provided
-	
+        
 =cut
 
 $dict{HEX2OCTSTR} = sub {
@@ -1429,7 +1432,7 @@ $dict{HEX2OCTSTR} = sub {
 
       return a string from a dotted DEC string
       useful when you need to manipulate an SNMP extension with 'exec' 
-	
+        
 =cut
 
 $dict{DDEC2STR} = sub {
@@ -1444,7 +1447,7 @@ $dict{DDEC2STR} = sub {
 
       return a dotted DEC string to a string
       useful when you need to manipulate an SNMP extension with 'exec' 
-	
+        
 =cut
 
 $dict{STR2DDEC} = sub {
@@ -1745,7 +1748,7 @@ $dict{SLSEARCHALLKEYSI} = sub {
       '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVAL'
       return:
       688 2392
-	
+        
 =cut
 
 $dict{OIDSEARCHALLVAL} = sub {
@@ -1781,7 +1784,7 @@ $dict{OIDSEARCHALLVAL} = sub {
       '# .1.3.6.1.2.1.25.4.2.1.2.488 | "termsrv.exe" # .1.3.6.1.2.1.25.4.2.1.2.688 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.5384 | "aimsserver.exe" # .1.3.6.1.2.1.25.4.2.1.2.2392 | "Apache.exe" # .1.3.6.1.2.1.25.4.2.1.2.2600 | "cpqnimgt.exe" #,Apache\.exe,OIDSEARCHALLVALI'
       return:
       688 2392
-	
+        
 =cut
 
 $dict{OIDSEARCHALLVALI} = sub {
@@ -1897,7 +1900,7 @@ $dict{OIDSEARCHLEAFI} = sub {
 =head2 a b EQ
 
       return the result of 'a' EQ 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{EQ} = sub {
@@ -1912,7 +1915,7 @@ $dict{EQ} = sub {
 =head2 a b NE
 
       return the result of 'a' NE 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{NE} = sub {
@@ -1927,7 +1930,7 @@ $dict{NE} = sub {
 =head2 a b LT
 
       return the result of 'a' LT 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{LT} = sub {
@@ -1942,7 +1945,7 @@ $dict{LT} = sub {
 =head2 a b GT
 
       return the result of 'a' GT 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{GT} = sub {
@@ -1957,7 +1960,7 @@ $dict{GT} = sub {
 =head2 a b LE
 
       return the result of 'a' LE 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{LE} = sub {
@@ -1972,7 +1975,7 @@ $dict{LE} = sub {
 =head2 a b GE
 
       return the result of 'a' GE 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{GE} = sub {
@@ -1985,12 +1988,12 @@ $dict{GE} = sub {
 };
 
 =head2 a b CMP
-	WORDS,LEN                                                              = 1584'
+        WORDS,LEN                                                              = 1584'
 #   at t/09DICT.t line 58.
 # Looks like you failed 1 test of 31.
 
       return the result of 'a' CMP 'b'  ( BOOLEAN value )
-	
+        
 =cut
 
 $dict{CMP} = sub {
@@ -2005,7 +2008,7 @@ $dict{CMP} = sub {
 =head2 a LEN
 
       return the length of 'a' 
-	
+        
 =cut
 
 $dict{LEN} = sub {
@@ -2019,7 +2022,7 @@ $dict{LEN} = sub {
 =head2 a CHOMP
 
       remove any terminaison line charecter ( CR CR/LF) from 'a' 
-	
+        
 =cut
 
 $dict{CHOMP} = sub {
@@ -2034,7 +2037,7 @@ $dict{CHOMP} = sub {
 =head2 a b CAT
 
       return the concatenation 'a' and 'b' 
-	
+        
 =cut
 
 $dict{CAT} = sub {
@@ -2049,7 +2052,7 @@ $dict{CAT} = sub {
 =head2 a b ... n  x CATN
 
       return the concatenation of the 'x' element from the stack 
-	
+        
 =cut
 
 $dict{CATN} = sub {
@@ -2069,7 +2072,7 @@ $dict{CATN} = sub {
 =head2 a b CATALL
 
       return the concatenation all element on the stack 
-	
+        
 =cut
 
 $dict{CATALL} = sub {
@@ -2089,7 +2092,7 @@ $dict{CATALL} = sub {
 =head2 a b x JOIN
 
       return the concatenation 'a', 'x' and 'b' 
-	
+        
 =cut
 
 $dict{JOIN} = sub {
@@ -2105,7 +2108,7 @@ $dict{JOIN} = sub {
 =head2 a b ... n  x y JOINN
 
       return the concatenation of the 'y' element from the stack with 'x' as separator
-	
+        
 =cut
 
 $dict{JOINN} = sub {
@@ -2125,7 +2128,7 @@ $dict{JOINN} = sub {
 =head2 a b x JOINALL
 
       return the concatenation all element on the stack with 'x' as separator
-	
+        
 =cut
 
 $dict{JOINALL} = sub {
@@ -2145,7 +2148,7 @@ $dict{JOINALL} = sub {
 =head2 a b REP
 
       return the result of 'a' x 'b'  duplicate 'a' by the number of 'x' 
-	
+        
 =cut
 
 $dict{REP} = sub {
@@ -2160,7 +2163,7 @@ $dict{REP} = sub {
 =head2 a REV
 
       return the reverse of 'a'
-	
+        
 =cut
 
 $dict{REV} = sub {
@@ -2175,7 +2178,7 @@ $dict{REV} = sub {
 =head2 a b c SUBSTR
 
       return the substring of 'c' starting at 'b' with the length of 'a'
-	
+        
 =cut
 
 $dict{SUBSTR} = sub {
@@ -2191,7 +2194,7 @@ $dict{SUBSTR} = sub {
 =head2 a UC
 
       return 'a' in uppercase
-	
+        
 =cut
 
 $dict{UC} = sub {
@@ -2205,7 +2208,7 @@ $dict{UC} = sub {
 =head2 a LC
 
       return 'a' in lowercase
-	
+        
 =cut
 
 $dict{LC} = sub {
@@ -2219,7 +2222,7 @@ $dict{LC} = sub {
 =head2 a UCFIRST
 
       return 'a' with the first letter in uppercase
-	
+        
 =cut
 
 $dict{UCFIRST} = sub {
@@ -2233,7 +2236,7 @@ $dict{UCFIRST} = sub {
 =head2 a LCFIRST
 
       return 'a' with the first letter in lowercase
-	
+        
 =cut
 
 $dict{LCFIRST} = sub {
@@ -2256,7 +2259,7 @@ $dict{LCFIRST} = sub {
  
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
       SPLIT return the matched value WITHOUT the empty string of the beginning
-	
+        
 =cut
 
 $dict{SPLIT2} = sub {
@@ -2292,7 +2295,7 @@ $dict{SPLIT2} = sub {
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
       !!! if the split match on the beginning of string,
       SPLIT return the matched value WITHOUT the empty string of the beginning
-	
+        
 =cut
 
 $dict{SPLIT} = sub {
@@ -2330,7 +2333,7 @@ $dict{SPLITI} = sub {
       return one or more occurance of 'b' in 'a' 
       'b' is a REGEX
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
+        
 =cut
 
 $dict{PAT} = sub {
@@ -2348,7 +2351,7 @@ $dict{PAT} = sub {
       return one or more occurance of 'b' in 'a' 
       'b' is a REGEX case insensitive
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
+        
 =cut
 
 $dict{PATI} = sub {
@@ -2366,7 +2369,7 @@ $dict{PATI} = sub {
       test if the pattern 'b' is in 'a' 
       'b' is a REGEX
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
+        
 =cut
 
 $dict{TPAT} = sub {
@@ -2384,7 +2387,7 @@ $dict{TPAT} = sub {
       test if the pattern 'b' is in 'a' 
       'b' is a REGEX
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-      	
+        
 =cut
 
 $dict{TPATI} = sub {
@@ -2402,7 +2405,7 @@ $dict{TPATI} = sub {
       substitute the pattern 'b' by the pattern 'a'  in 'c'
       'b' and 'c' are a REGEX
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
+        
 =cut
 
 $dict{SPAT} = sub {
@@ -2422,7 +2425,7 @@ $dict{SPAT} = sub {
       substitute the pattern 'b' by the pattern 'a'  in 'c' as many time as possible (g flag in REGEX)
       'b' and 'c' are a REGEX
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
+        
 =cut
 
 $dict{SPATG} = sub {
@@ -2442,7 +2445,7 @@ $dict{SPATG} = sub {
       substitute the pattern 'b' by the pattern 'a'  in 'c'case insensitive (i flag in REGEX)
       'b' and 'c' are a REGEX
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
+        
 =cut
 
 $dict{SPATI} = sub {
@@ -2463,7 +2466,7 @@ $dict{SPATI} = sub {
       and case insensitive (1 flag in REGEX)
       'b' and 'c' are a REGEX
       !!! becare, if you need to use : as a regex, you need to backslash to prevent overlap with new dictionary entry
-	
+        
 =cut
 
 $dict{SPATGI} = sub {
@@ -2483,7 +2486,7 @@ $dict{SPATGI} = sub {
      use the format 'z' to print the value(s) on the stack
      7,3,/,10,3,/,%d %f,PRINTF -> 2 3.333333
      see printf in perl
-	
+        
 =cut
 
 $dict{PRINTF} = sub {
@@ -2509,7 +2512,7 @@ $dict{PRINTF} = sub {
       result: 20040608
 
       see pack in perl
-	
+        
 =cut
 
 $dict{PACK} = sub {
@@ -2534,7 +2537,7 @@ $dict{PACK} = sub {
       result: 2004,06,08
 
       see unpack in perl
-	
+        
 =cut
 
 $dict{UNPACK} = sub {
@@ -2550,7 +2553,7 @@ $dict{UNPACK} = sub {
 
       test if top of the stack is a number
       return 1 if if it is a NUMBER otherwise return 0
-	
+        
 =cut
 
 $dict{ISNUM} = sub {
@@ -2565,7 +2568,7 @@ $dict{ISNUM} = sub {
 
       test if top of the stack is a number
       delete the top element on the statck and return 1 if it is a NUMBER otherwise return 0 
-	
+        
 =cut
 
 $dict{ISNUMD} = sub {
@@ -2580,7 +2583,7 @@ $dict{ISNUMD} = sub {
 
       test if top of the stack is a integer (natural number)
       return 1 if if it is a INTEGER otherwise return 0
-	
+        
 =cut
 
 $dict{ISINT} = sub {
@@ -2595,7 +2598,7 @@ $dict{ISINT} = sub {
 
       test if top of the stack is a integer (natural number)
       delete the top element on the statck and return 1 if it is a INTEGER otherwise return 0 
-	
+        
 =cut
 
 $dict{ISINTD} = sub {
@@ -2610,7 +2613,7 @@ $dict{ISINTD} = sub {
 
       test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
       return 1 if if it is a HEXADECIMAL otherwise return 0
-	
+        
 =cut
 
 $dict{ISHEX} = sub {
@@ -2625,7 +2628,7 @@ $dict{ISHEX} = sub {
 
       test if top of the stack is a hexadecimal value (starting with 0x or 0X or # )
       delete the top element on the statck and return 1 if it is a HEXADECIMAL otherwise return 0 
-	
+        
 =cut
 
 $dict{ISHEXD} = sub {
@@ -2644,9 +2647,9 @@ $dict{ISHEXD} = sub {
 
 =cut
 
-=head2	a b SWAP
+=head2  a b SWAP
 
-	return 'b' 'a'
+        return 'b' 'a'
 
 =cut
 
@@ -2659,9 +2662,9 @@ $dict{SWAP} = sub {
     return \@ret, 2, 0;
 };
 
-=head2	a b OVER
+=head2  a b OVER
 
-	return 'a' 'b' 'a'
+        return 'a' 'b' 'a'
 
 =cut
 
@@ -2672,9 +2675,9 @@ $dict{OVER} = sub {
     return \@ret, 0, 0;
 };
 
-=head2	a DUP
+=head2  a DUP
 
-	return 'a' 'a'
+        return 'a' 'a'
 
 =cut
 
@@ -2685,9 +2688,9 @@ $dict{DUP} = sub {
     return \@ret, 0, 0;
 };
 
-=head2	a b DDUP
+=head2  a b DDUP
 
-	return 'a' 'b' 'a' 'b'
+        return 'a' 'b' 'a' 'b'
 
 =cut
 
@@ -2698,9 +2701,9 @@ $dict{DDUP} = sub {
     return \@ret, 0, 0;
 };
 
-=head2	a b c ROT
+=head2  a b c ROT
 
-	return 'b' 'c' 'a'
+        return 'b' 'c' 'a'
 
 =cut
 
@@ -2714,9 +2717,9 @@ $dict{ROT} = sub {
     return \@ret, 3, 0;
 };
 
-=head2	a b c RROT
+=head2  a b c RROT
 
-	return 'c' 'a' 'b'
+        return 'c' 'a' 'b'
 
 =cut
 
@@ -2730,9 +2733,9 @@ $dict{RROT} = sub {
     return \@ret, 3, 0;
 };
 
-=head2	DEPTH
+=head2  DEPTH
 
-	return the number of elements on the stack
+        return the number of elements on the stack
 
 =cut
 
@@ -2744,9 +2747,9 @@ $dict{DEPTH} = sub {
     return \@ret, 0, 0;
 };
 
-=head2	a b POP
+=head2  a b POP
 
-	remove the last element on the stack
+        remove the last element on the stack
 
 =cut
 
@@ -2757,9 +2760,9 @@ $dict{POP} = sub {
     return \@ret, 1, 0;
 };
 
-=head2	a ... z POPN
+=head2  a ... z POPN
 
-	remove the 'z' last element(s) from the stack
+        remove the 'z' last element(s) from the stack
 
 =cut
 
@@ -2774,16 +2777,16 @@ $dict{POPN} = sub {
     return \@ret, 1 + $a, 0;
 };
 
-=head2	a b c d e n ROLL
+=head2  a b c d e n ROLL
 
-	rotate the stack on 'n' element
-	a,b,c,d,e,f,4,ROLL -> a b d e f c
-	if n = 3 <=> ROT
-	if  -2 < n < 2 nothing is done
-	if n < -1 ROLL in reverse order
-	a,b,c,d,e,f,-4,ROLL -> a b f e d c
-	To reveerse a stack content use this:
-	a,b,c,d,e,f,DEPTH,+-,ROLL => f e d c b a
+        rotate the stack on 'n' element
+        a,b,c,d,e,f,4,ROLL -> a b d e f c
+        if n = 3 <=> ROT
+        if  -2 < n < 2 nothing is done
+        if n < -1 ROLL in reverse order
+        a,b,c,d,e,f,-4,ROLL -> a b f e d c
+        To reveerse a stack content use this:
+        a,b,c,d,e,f,DEPTH,+-,ROLL => f e d c b a
 
 =cut
 
@@ -2820,8 +2823,8 @@ $dict{ROLL} = sub {
 };
 
 =head2 a PICK
-	
-	copy element from depth 'a' to the stack
+        
+        copy element from depth 'a' to the stack
 
 =cut
 
@@ -2838,9 +2841,9 @@ $dict{PICK} = sub {
 };
 
 =head2 a GET
-	
-	get (remove) element from depth 'a'
-	and put on top of stack 
+        
+        get (remove) element from depth 'a'
+        and put on top of stack 
 
 =cut
 
@@ -2866,10 +2869,10 @@ $dict{GET} = sub {
 };
 
 =head2 a b PUT
-	
-	put element 'a' at the level 'b' of the stack
-	if 'b' greater than the stack put at first place
-	if 'b' < 0 start to the reverse order of the stack
+        
+        put element 'a' at the level 'b' of the stack
+        if 'b' greater than the stack put at first place
+        if 'b' < 0 start to the reverse order of the stack
 
 =cut
 
@@ -2893,9 +2896,9 @@ $dict{PUT} = sub {
 };
 
 =head2 a b DEL
-	
-	delete 'b' element on the stack from level 'a'
-	'a' and 'b' is get in absolute value 
+        
+        delete 'b' element on the stack from level 'a'
+        'a' and 'b' is get in absolute value 
 
 =cut
 
@@ -2913,9 +2916,9 @@ $dict{DEL} = sub {
 };
 
 =head2 a FIND
-	
-	get the level of stack containing the exact value 'a'
-	if no match, return 0	
+        
+        get the level of stack containing the exact value 'a'
+        if no match, return 0   
 
 =cut
 
@@ -2951,11 +2954,11 @@ $dict{FIND} = sub {
 };
 
 =head2 a FINDK
-	
-	keep the level of stack containing the exact value 'a'
-	f no match, return an empty stack
-	( shortcut for a,FIND,KEEP )
-	
+        
+        keep the level of stack containing the exact value 'a'
+        f no match, return an empty stack
+        ( shortcut for a,FIND,KEEP )
+        
 =cut
 
 $dict{FINDK} = sub {
@@ -2990,8 +2993,8 @@ $dict{FINDK} = sub {
 };
 
 =head2 a SEARCH
-	
-	get the first level of stack containing the REGEX 'a'
+        
+        get the first level of stack containing the REGEX 'a'
 
 =cut
 
@@ -3016,8 +3019,8 @@ $dict{SEARCH} = sub {
 };
 
 =head2 a SEARCHI
-	
-	get the first level of stack containing the REGEX 'a' (cas insensitive)
+        
+        get the first level of stack containing the REGEX 'a' (cas insensitive)
 
 =cut
 
@@ -3043,8 +3046,8 @@ $dict{SEARCHI} = sub {
 
 =head2 a SEARCHIA
 
-	get all level of stack containing the REGEX 'a' (cas insensitive)
-	empty the stack and return all the index of item matching
+        get all level of stack containing the REGEX 'a' (cas insensitive)
+        empty the stack and return all the index of item matching
 
 =cut
 
@@ -3068,11 +3071,11 @@ $dict{SEARCHIA} = sub {
 
 =head2 a SEARCHA
 
-	get all level of stack containing the REGEX 'a' (cas sensitive)
-	empty the stack and return all the index of item matching
+        get all level of stack containing the REGEX 'a' (cas sensitive)
+        empty the stack and return all the index of item matching
 
-	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHA
-	result: 8 7 4 2
+        toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHA
+        result: 8 7 4 2
 
 =cut
 
@@ -3095,11 +3098,11 @@ $dict{SEARCHA} = sub {
 };
 
 =head2 a SEARCHK
-	
-	keep all level of stack containing the REGEX 'a' (cas sensitive)
+        
+        keep all level of stack containing the REGEX 'a' (cas sensitive)
 
-	toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHK
-	result: toto toti tota tutot
+        toto,toti,titi,tata,tota,tito,tutot,truc,tot,SEARCHK
+        result: toto toti tota tutot
 
 =cut
 
@@ -3122,8 +3125,8 @@ $dict{SEARCHK} = sub {
 };
 
 =head2 a SEARCHIK
-	
-	keep all level of stack containing the REGEX 'a' (cas insensitive)
+        
+        keep all level of stack containing the REGEX 'a' (cas insensitive)
 
 =cut
 
@@ -3146,10 +3149,10 @@ $dict{SEARCHIK} = sub {
 };
 
 =head2 a KEEP
-	
-	delete all element on the stack except the level 'a'
-	if 'a' is deeper then stack, keep the stack untouched
-	
+        
+        delete all element on the stack except the level 'a'
+        if 'a' is deeper then stack, keep the stack untouched
+        
 =cut
 
 $dict{KEEP} = sub {
@@ -3172,12 +3175,12 @@ $dict{KEEP} = sub {
 };
 
 =head2 a KEEPV
-		
-	delete all element on the stack except the levels with indice in the var A
+                
+        delete all element on the stack except the levels with indice in the var A
 
-	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,A,KEEPV
-	result: i d g
-		
+        1,5,2,3,A,!!,a,b,c,d,e,f,g,i,A,KEEPV
+        result: i d g
+                
 =cut
 
 $dict{KEEPV} = sub {
@@ -3203,12 +3206,12 @@ $dict{KEEPV} = sub {
 };
 
 =head2 a KEEPVV
-	
-	keep element from array B with indice from ARRAY A  
+        
+        keep element from array B with indice from ARRAY A  
 
-	1,5,2,3,A,!!,a,b,c,d,e,f,g,i,8,B,!!,B,A,KEEPVV
-	result: i d g
-	
+        1,5,2,3,A,!!,a,b,c,d,e,f,g,i,8,B,!!,B,A,KEEPVV
+        result: i d g
+        
 =cut
 
 $dict{KEEPVV} = sub {
@@ -3244,12 +3247,12 @@ $dict{KEEPVV} = sub {
 };
 
 =head2 b a KEEPN
-	
-	keep 'b' element on the stack from level 'a'
-	and delete all other element
-	'a' and 'b' is get in absolute value 
+        
+        keep 'b' element on the stack from level 'a'
+        and delete all other element
+        'a' and 'b' is get in absolute value 
 
-	a,b,c,d,e,f,g,h,4,3,KEEPN
+        a,b,c,d,e,f,g,h,4,3,KEEPN
         result: c d e f
 
 =cut
@@ -3265,11 +3268,11 @@ $dict{KEEPN} = sub {
 };
 
 =head2 b a KEEPR
-	
-	delete all elements on the stack except the level 'a' and keep all element deeper than 'b'
-	if 'a' is deeper then stack, keep the stack untouched
+        
+        delete all elements on the stack except the level 'a' and keep all element deeper than 'b'
+        if 'a' is deeper then stack, keep the stack untouched
 
-	a,b,c,d,e,f,g,h,6,3,KEEPR
+        a,b,c,d,e,f,g,h,6,3,KEEPR
         result: a b f
 
 =cut
@@ -3297,11 +3300,11 @@ $dict{KEEPR} = sub {
 };
 
 =head2 c b a KEEPRN
-	
-	keep 'b' element on the stack from level 'a' and keep all element deeper than 'c'
-	if 'a' is deeper then stack, keep the stack untouched
+        
+        keep 'b' element on the stack from level 'a' and keep all element deeper than 'c'
+        if 'a' is deeper then stack, keep the stack untouched
 
-	a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN
+        a,b,c,d,e,f,g,h,i,j,7,3,2,KEEPRN
         result: a b c g h i
 
 =cut
@@ -3325,12 +3328,12 @@ $dict{KEEPRN} = sub {
 };
 
 =head2 a b PRESERVE
-	
-	keep  element on the stack from level 'a'
-	to level 'b'
-	and delete all other element
-	'a' and 'b' is get in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+        
+        keep  element on the stack from level 'a'
+        to level 'b'
+        and delete all other element
+        'a' and 'b' is get in absolute value 
+        if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
 =cut
 
@@ -3354,11 +3357,11 @@ $dict{PRESERVE} = sub {
 };
 
 =head2 a b COPY
-	
-	copy  element on the stack from level 'a'
-	to level 'b'
-	'a' and 'b' is get in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+        
+        copy  element on the stack from level 'a'
+        to level 'b'
+        'a' and 'b' is get in absolute value 
+        if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
 =cut
 
@@ -3392,7 +3395,7 @@ $dict{COPY} = sub {
 =head2 WORDS
 
         return as one stack element the list of WORD in DICT separated by a |
-	
+        
 =cut
 
 $dict{WORDS} = sub {
@@ -3405,7 +3408,7 @@ $dict{WORDS} = sub {
 =head2 VARS
 
         return as one stack element the list of VARS  separated by a |
-	
+        
 =cut
 
 $dict{VARS} = sub {
@@ -3418,7 +3421,7 @@ $dict{VARS} = sub {
 =head2 v SIZE
 
         return the size of the variable on the stack
-	
+        
 =cut
 
 $dict{SIZE} = sub {
@@ -3527,7 +3530,7 @@ $dict{IND} = sub {
 =head2 v INC
 
         incremente (+ 1) the value of the variable on the statck
-	
+        
 =cut
 
 $dict{INC} = sub {
@@ -3544,7 +3547,7 @@ $dict{INC} = sub {
 =head2 v DEC
 
         decremente (- 1) the value of the variable on the statck
-	
+        
 =cut
 
 $dict{DEC} = sub {
@@ -3561,7 +3564,7 @@ $dict{DEC} = sub {
 =head2 VARIABLE xxx
 
        declare the variable 'xxx' (reserve memory)
-	
+        
 =cut
 
 $dict{VARIABLE} = sub {
@@ -3579,7 +3582,7 @@ $dict{VARIABLE} = sub {
 =head2 v UNSET 
 
        delete the variable v 
-	
+        
 =cut
 
 $dict{UNSET} = sub {
@@ -3593,7 +3596,7 @@ $dict{UNSET} = sub {
 =head2 xx var !
 
         set and delete from the stack the value xx to the variable 'var'
-	
+        
 =cut
 
 $dict{'!'} = sub {
@@ -3608,7 +3611,7 @@ $dict{'!'} = sub {
 =head2 xx var !A
 
         append to the variable and delete from the stack the value xx to the variable 'var'
-	
+        
 =cut
 
 $dict{'!A'} = sub {
@@ -3637,9 +3640,9 @@ $dict{'!A'} = sub {
 };
 
 =head2 x1 x2 x3 ... n var !!
-	
-	put and delete from the stack 'n' element(s) from the stack in the variable 'var'
-	'n' is in absolute value 
+        
+        put and delete from the stack 'n' element(s) from the stack in the variable 'var'
+        'n' is in absolute value 
 
 =cut
 
@@ -3658,9 +3661,9 @@ $dict{'!!'} = sub {
 };
 
 =head2 x1 x2 x3 ... n var !!A
-	
-	append and delete 'n' element(s) from the stack in the variable 'var'
-	'n' is in absolute value 
+        
+        append and delete 'n' element(s) from the stack in the variable 'var'
+        'n' is in absolute value 
 
 =cut
 
@@ -3695,9 +3698,9 @@ $dict{'!!A'} = sub {
 };
 
 =head2 x1 x2 x3 ... n var !!C
-	
-	copy 'n' element(s) from the stack in the variable 'var'
-	'n' is in absolute value 
+        
+        copy 'n' element(s) from the stack in the variable 'var'
+        'n' is in absolute value 
 
 =cut
 
@@ -3716,9 +3719,9 @@ $dict{'!!C'} = sub {
 };
 
 =head2 x1 x2 x3 ... n var !!CA
-	
-	append  'n' element(s) from the stack in the variable 'var'
-	'n' is in absolute value 
+        
+        append  'n' element(s) from the stack in the variable 'var'
+        'n' is in absolute value 
 
 =cut
 
@@ -3753,11 +3756,11 @@ $dict{'!!CA'} = sub {
 };
 
 =head2 x1 x2 x3 ... b a var !!!
-	
-	put and delete ' element(s) from the stack in the variable 'var'
-	starting at element  'a' to element 'b'
-	'a' and 'b' in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+        
+        put and delete ' element(s) from the stack in the variable 'var'
+        starting at element  'a' to element 'b'
+        'a' and 'b' in absolute value 
+        if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
 =cut
 
@@ -3788,11 +3791,11 @@ $dict{'!!!'} = sub {
 };
 
 =head2 x1 x2 x3 ... b a var !!!A
-	
-	append and delete ' element(s) from the stack in the variable 'var'
-	starting at element  'a' to element 'b'
-	'a' and 'b' in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+        
+        append and delete ' element(s) from the stack in the variable 'var'
+        starting at element  'a' to element 'b'
+        'a' and 'b' in absolute value 
+        if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
 =cut
 
@@ -3838,11 +3841,11 @@ $dict{'!!!A'} = sub {
 };
 
 =head2 x1 x2 x3 ... b a var !!!C
-	
-	copy element(s) on the stack in the variable 'var'
-	starting at element  'a' to element 'b'	
-	'a' and 'b' in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+        
+        copy element(s) on the stack in the variable 'var'
+        starting at element  'a' to element 'b' 
+        'a' and 'b' in absolute value 
+        if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
 =cut
 
@@ -3872,11 +3875,11 @@ $dict{'!!!C'} = sub {
 };
 
 =head2 x1 x2 x3 ... b a var !!!CA
-	
-	append element(s) on the stack in the variable 'var'
-	starting at element  'a' to element 'b'	
-	'a' and 'b' in absolute value 
-	if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+        
+        append element(s) on the stack in the variable 'var'
+        starting at element  'a' to element 'b' 
+        'a' and 'b' in absolute value 
+        if 'a' > 'b'  keep the reverse of selection (boustrophedon)
 
 =cut
 
@@ -3924,7 +3927,7 @@ $dict{'!!!CA'} = sub {
 =head2  var @
 
         return the value of the variable 'var'
-	
+        
 =cut
 
 $dict{'@'} = sub {
@@ -3945,7 +3948,7 @@ $dict{'@'} = sub {
 =head2 : xxx  name1 ;
 
         create a new entry in the dictionary whith name name1 and store the progam xxx
-	
+        
 =cut
 
 $dict{';'} = sub {
@@ -3975,7 +3978,7 @@ $dict{';'} = sub {
 =head2 name1 FORGOT
 
         delete/erase a create word (name1 )
-	
+        
 =cut
 
 $dict{FORGOT} = sub {
@@ -3993,11 +3996,11 @@ $dict{FORGOT} = sub {
 =head2 : xxx yyy name1 PERL
 
         execute the PERL code
-	with parameter(s) xxx yyy
-	!!! be care if the perl code need to use a coma (,) 
-	you need to enclose the line inside double quote
-	if you need double quote in code use qq{ ... }
-	
+        with parameter(s) xxx yyy
+        !!! be care if the perl code need to use a coma (,) 
+        you need to enclose the line inside double quote
+        if you need double quote in code use qq{ ... }
+        
 =cut
 
 $dict{PERL} = sub {
@@ -4034,12 +4037,12 @@ $dict{PERL} = sub {
 =head2 : xxx name1 PERLFUNC
 
         execute the PERL function name1 with the parameter xxx
-	the default name space is "main::"
-	It is possible tu use a specific name space
-	the parameter are "stringified"
-	e.g. ':,5,filename,save,PERLFUNC'
-	call the function save("filename", 5);
-	
+        the default name space is "main::"
+        It is possible tu use a specific name space
+        the parameter are "stringified"
+        e.g. ':,5,filename,save,PERLFUNC'
+        call the function save("filename", 5);
+        
 =cut
 
 $dict{PERLFUNC} = sub {
@@ -4090,16 +4093,16 @@ $dict{PERLFUNC} = sub {
 =head2  name1 PERLFUNC0
 
         execute the PERL function name1 with no parameters 
-	the default name space is "main::"
-	It is possible tu use a specific name space
-	the parameter are "stringified"
-	!!! because this function don't know the namescape of the caller 
-	!!! the parameter for the function must be scalar 
-	!!! and not a perl variable or a ref to a perl compenent 
-	!!! see PERLVAR
-	e.g. 'Test2,PERLFUNC0'
-	call the function Test2();
-	
+        the default name space is "main::"
+        It is possible tu use a specific name space
+        the parameter are "stringified"
+        !!! because this function don't know the namescape of the caller 
+        !!! the parameter for the function must be scalar 
+        !!! and not a perl variable or a ref to a perl compenent 
+        !!! see PERLVAR
+        e.g. 'Test2,PERLFUNC0'
+        call the function Test2();
+        
 =cut
 
 $dict{PERLFUNC0} = sub {
@@ -4133,16 +4136,16 @@ $dict{PERLFUNC0} = sub {
 =head2  xxx nbr name1 PERLFUNCX
 
         execute the PERL function name1 with nbr parameters from the stack xxx
-	the default name space is "main::"
-	It is possible tu use a specific name space
-	the parameter are "stringified"
-	!!! because this function don't know the namescape of the caller 
-	!!! the parameter for the function must be scalar 
-	!!! and not a perl variable or a ref to a perl compenent 
-	!!! see PERLVAR
-	e.g. 'file,name,2,substit,PERLFUNCX'
-	call the function substit("name", "file");
-	
+        the default name space is "main::"
+        It is possible tu use a specific name space
+        the parameter are "stringified"
+        !!! because this function don't know the namescape of the caller 
+        !!! the parameter for the function must be scalar 
+        !!! and not a perl variable or a ref to a perl compenent 
+        !!! see PERLVAR
+        e.g. 'file,name,2,substit,PERLFUNCX'
+        call the function substit("name", "file");
+        
 =cut
 
 $dict{PERLFUNCX} = sub {
@@ -4192,12 +4195,12 @@ $dict{PERLFUNCX} = sub {
 =head2  xxx name1 PERLFUNC1
 
         execute the PERL function name1 with the only one parameter xxx
-	the default name space is "main::"
-	It is possible tu use a specific name space
-	the parameter are "stringified"
-	e.g. 'file,name,CAT,substit,PERLFUNC1'
-	call the function substit("filename");
-	
+        the default name space is "main::"
+        It is possible tu use a specific name space
+        the parameter are "stringified"
+        e.g. 'file,name,CAT,substit,PERLFUNC1'
+        call the function substit("filename");
+        
 =cut
 
 $dict{PERLFUNC1} = sub {
@@ -4231,14 +4234,14 @@ $dict{PERLFUNC1} = sub {
         Return the perl variable.
         If the var returned is an array, return each element of the array on the stack
         If the var returned is a hash , return a STRUCTURATED LIST
-	the default name space is "main::"
-	It is possible tu use a specific name space
-	the parameter are "stringified"
-	e.g.1 '{$data},PERLVAR'
-	call the value of $data;
-	e.g.2 '{%S}->{extra},PERLVAR'
-	call the value of $S->{extra};
-	
+        the default name space is "main::"
+        It is possible tu use a specific name space
+        the parameter are "stringified"
+        e.g.1 '{$data},PERLVAR'
+        call the value of $data;
+        e.g.2 '{%S}->{extra},PERLVAR'
+        call the value of $S->{extra};
+        
 =cut
 
 $dict{PERLVAR} = sub {
@@ -4254,10 +4257,10 @@ $dict{PERLVAR} = sub {
     while ( ! exists  $ref_var->{$base_name} )
     {
         eval { $ref_var= peek_my( $level++ ) };
-	if ( $@ )
-	{ 
+        if ( $@ )
+        { 
             return \@ret, 1, 0;
-	}
+        }
     }
 
     my @all     = split /->/, $name;
@@ -4345,7 +4348,7 @@ sub __deref__
 =head2 a >R
 
         put 'a' on the return stack
-	
+        
 =cut
 
 $dict{'>R'} = sub {
@@ -4359,7 +4362,7 @@ $dict{'>R'} = sub {
 =head2 R>
 
        remove first element from the return stack and copy on the normal stack
-	
+        
 =cut
 
 $dict{'R>'} = sub {
@@ -4378,7 +4381,7 @@ $dict{'R>'} = sub {
 =head2 RL
 
        return the depth of the return stack
-	
+        
 =cut
 
 $dict{RL} = sub {
@@ -4392,7 +4395,7 @@ $dict{RL} = sub {
 =head2 R@
 
        copy return stack on normal stack
-	
+        
 =cut
 
 $dict{'R@'} = sub {
@@ -4463,7 +4466,7 @@ $dict{UNLINK} = sub {
        return the same content as perl stat. Keep in mind that the indice 0 from the perl array is the 1 fisrt stack level.
        To get the size of a file:
        /tmp/rpn,STAT,13,8,KEEPR
-	
+        
 =cut
 
 $dict{STAT} = sub {
@@ -4482,7 +4485,7 @@ $dict{STAT} = sub {
        if WHENCE = 1 seek from the current position 
        if WHENCE = 2 seek from the end of the file ( offset must be < 0 )
        ( see perldoc -f seek )
-	
+        
 =cut
 
 $dict{SEEK} = sub {
@@ -4499,7 +4502,7 @@ $dict{SEEK} = sub {
 =head2   FH, TELL
 
        TELL return the position in the file using the handle stored in the var FH 
-	
+        
 =cut
 
 $dict{TELL} = sub {
@@ -4515,7 +4518,7 @@ $dict{TELL} = sub {
 =head2  FH, CLOSE
 
        CLOSE the file handle stored in the var FH 
-	
+        
 =cut
 
 $dict{CLOSE} = sub {
@@ -4532,7 +4535,7 @@ $dict{CLOSE} = sub {
        read and put on top of the stack N character from the filedscriptor stored in the variable FH
        to do a file slurp:
        /tmp/rpn,r,fh,OPEN,sh,STAT,13,6,KEEPR,fh,GETC,fh,CLOSE
-	
+        
 =cut
 
 $dict{GETC} = sub {
@@ -4551,7 +4554,7 @@ $dict{GETC} = sub {
 
        read and put on the stack N character from the filedscriptor stored in the variable FH
        each character is pushed on the stack ( and then the stack is evalueted )
-	
+        
 =cut
 
 $dict{GETCS} = sub {
@@ -4563,7 +4566,7 @@ $dict{GETCS} = sub {
     for ( 1 .. $nbr )
     {
         my $buf = getc( $var{ $fh_var } );
-	#sysread $fh, $buf, 1;
+        #sysread $fh, $buf, 1;
         push @ret, $buf;
     }
     return \@ret, 2, 0;
@@ -4572,7 +4575,7 @@ $dict{GETCS} = sub {
 =head2 N, FH, WRITE
 
         put and delete N element from the stack to the filedscriptor stored in the variable FH
-	
+        
 =cut
 
 $dict{WRITE} = sub {
@@ -4595,7 +4598,7 @@ $dict{WRITE} = sub {
 
         put and delete N element from the stack as a new line for each element to the filedscriptor stored in the variable FH
         to flush buffer, use 0,0,FH,SEEK
-	
+        
 =cut
 
 $dict{WRITELINE} = sub {
@@ -4619,7 +4622,7 @@ $dict{WRITELINE} = sub {
 =head2 FH, READLINE
 
        read and put on the stack a line from the filedscriptor stored in the variable FH
-	
+        
 =cut
 
 $dict{READLINE} = sub {
@@ -4649,10 +4652,10 @@ $dict{READLINE} = sub {
 
 =head2 a IF xxx THEN
 
-	test the element on top of stack 
-		if == 1 execute 'xxx' block
-		
-	The loop is executed always one time
+        test the element on top of stack 
+                if == 1 execute 'xxx' block
+                
+        The loop is executed always one time
 
 =cut
 
@@ -4688,11 +4691,11 @@ $dict{THEN} = sub {
 
 =head2 a IF zzz ELSE xxx THEN
 
-	test the element on top of stack 
-		if == 1 execute 'xxx' block
-		if != 1 execute 'zzz' block 
-		
-	The loop is executed always one time
+        test the element on top of stack 
+                if == 1 execute 'xxx' block
+                if != 1 execute 'zzz' block 
+                
+        The loop is executed always one time
 
 =cut
 
@@ -4743,12 +4746,12 @@ $dict{THENELSE} = sub {
 
 =head2 BEGIN xxx WHILE zzz REPEAT
 
-	execute 'xxx' block
-	test the element on top of stack 
-		if == 0 execute 'zzz' block and branch again at 'BEGIN'
-		if != 0 end the loop
-		
-	The loop is executed always one time
+        execute 'xxx' block
+        test the element on top of stack 
+                if == 0 execute 'zzz' block and branch again at 'BEGIN'
+                if != 0 end the loop
+                
+        The loop is executed always one time
 
 
 =cut
@@ -4793,9 +4796,9 @@ $dict{REPEAT} = sub {
 
 =head2  end start DO,block,LOOP
 
-	process 'block' with iterator from value 'start' until 'end' value,with increment of 1;
-	The iterator variable is the second value on the stack (start argument)
-	
+        process 'block' with iterator from value 'start' until 'end' value,with increment of 1;
+        The iterator variable is the second value on the stack (start argument)
+        
 =cut
 
 $dict{LOOP} = sub {
@@ -4829,10 +4832,10 @@ $dict{LOOP} = sub {
 
 =head2  end start increment DO,block,+LOOP
 
-	process 'block' with iterator from value 'start' untill 'end' value,with increment of 'increment' 
-	This allow rational or negative value
-	The iterator variable is the second value on the stack (start argument)
-	
+        process 'block' with iterator from value 'start' untill 'end' value,with increment of 'increment' 
+        This allow rational or negative value
+        The iterator variable is the second value on the stack (start argument)
+        
 =cut
 
 $dict{'+LOOP'} = sub {
@@ -4859,7 +4862,7 @@ $dict{'+LOOP'} = sub {
     {
         if ( $ind >= $end )
         {  
-	    $var{ _T_ }= $ind;
+            $var{ _T_ }= $ind;
             $ind += $inc;
             @pre = @TMP1;
             push @pre, $end, $ind,$inc, "DO", @BLOCK, "+LOOP";
@@ -4869,7 +4872,7 @@ $dict{'+LOOP'} = sub {
     {
         if ( $ind <= $end )
         {
-	    $var{ _T_ }= $ind;
+            $var{ _T_ }= $ind;
             $ind += $inc;
             @pre = @TMP1;
             push @pre, $end, $ind,$inc, "DO", @BLOCK, "+LOOP";
@@ -5106,8 +5109,8 @@ sub process
 
 =head2  rpn_error()
 
-	function which return the debug info from the calculation (like a division by 0)
-	
+        function which return the debug info from the calculation (like a division by 0)
+        
 =cut
 
 sub rpn_error
@@ -5117,9 +5120,9 @@ sub rpn_error
 
 =head2  rpn_separator_out( 'sep' )
 
-	function to set a specific separator for the returned stack (default = space)
-	This is useful when the result of rpn() is use inside another rpn() call 
-	
+        function to set a specific separator for the returned stack (default = space)
+        This is useful when the result of rpn() is use inside another rpn() call 
+        
 =cut
 
 sub rpn_separator_out
@@ -5131,9 +5134,9 @@ sub rpn_separator_out
 
 =head2  rpn_separator_in( 'sep' )
 
-	function to set a specific separator for the input data (default = ')
-	
-	
+        function to set a specific separator for the input data (default = ')
+        
+        
 =cut
 
 sub rpn_separator_in
@@ -5155,362 +5158,362 @@ __END__
      The left part is the state before evalutation 
      and the right part is the state of the stack after evaluation 
 
-	Arithmetic operators
-	---------------------
-            +  			([a][b])		([a+b])
-	    -  			([a][b])		([a-b])
-	    *  			([a][b])		([a*b])
-            /  			([a][b])		([a/b])		Becare if division by null return a blank value
-	    **     		([a][b])		([a**b])
-            1+ 			([a]) 			([a+1])
-	    1- 			([a]) 			([a-1])
-	    2+ 			([a]) 			([a+2])
-	    2- 			([a]) 			([a-2])    
-            MOD  		([a][b])		([a%b])
-            ABS     		([a])   		([ABS a])
-            INT     		([a])			([INT a])
-	    +-		        ([a]) 			([-a])
-	    REMAIN	        ([a]) 			([a- INT a])
-	    
-	Rationnal operators
-	-------------------  
-            SIN			([a]) 			([SIN a])	Unit in radian
-            COS			([a]) 			([COS a])	Unit in radian
-            TAN			([a]) 			([TAN a])	Unit in radian
-            CTAN		([a]) 			([CTAN a])	Unit in radian
-	    LN		        ([a]) 			([LOG a])
-            EXP		        ([a]) 			([EXP a])
-	    PI						([3.14159265358979])	
-	    
-	Relational operator
-	----------------
-	    <		       	([a][b])		([1]) if [a]<[b] else ([0])
-	    <=		       	([a][b])		([1]) if [a]<=[b] else ([0])
-	    >		       	([a][b])		([1]) if [a]>[b] else ([0])
-	    >=		       	([a][b])		([1]) if [a]>=[b] else ([0])    
-	    == 	        	([a][b])		([1]) if [a]==[b] else ([0])
-	    <=>	     	       	([a][b])		([-1]) if [a]>[b],([1]) if [a]<[b], ([0])if [a]==[b]
-            != 	        	([a][b])		([0]) if [a]==[b] else ([1])
-	    TRUE		([a])			Return 1 if [a]>0 and exist
-	    FALSE		([a])			Return 0 if [a]>0
-	    
-	Logical operator
-	----------------
-	
-	    OR		       	([a][b])		([1]) if [a] or [b] >0
-	    AND		       	([a][b])		([1]) if [a] and [b] >0
-	    XOR		       	([a][b])		([1]) if [a] and [b] are >0 or ==0
-	    NOT		        ([a])			Return 0 if [a]>0, Return 1 if[a]==0, 
-	
-	Other operator
-	----------------
-	
-	    >>		       	([a][b])		shift to the right the bits from [a] of [b] rank
-	    <<		       	([a][b])		shift to the left the bits from [a] of [b] rank
-            MIN	     	       	([a][b])		([a]) if  [a]<[b] else ([b]) 
-            MAX		       	([a][b])		([a]) if  [a]>[b] else ([b]) 
-            LOOKUP		([a] V R [ope] )	test [ a ] on all value of array V with the operator [ope] 
-							if succeed, return the value from array R at the succesfull indice
-            LOOKUPP		([a] V R [ope] )	test [ a ] on all value of array V with the perl operator [ope] 
-							if succeed, return the value from array R at the succesfull indice
-            LOOKUPOP		([a] V R O] )		test [ a ] on all value of array V with the operator from the array OPE with the same indice
-            LOOKUPOPP		([a] V R O] )		test [ a ] on all value of array V with the perl operator from the array OPE with the same indice
-							if succeed, return the value from array R at the succesfull indice
-            TICK		()			([time]) time in ticks
-	    LTIME		([a])			([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
-							localtime of [a] like PERL
-	    GTIME		([a])			([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
-							([a]) gmtime of [a] like PERL
-	    HLTIME		([a])			([a]) localtime human readeable
-	    HGTIME		([a])			gmtime human readeable		
-            RAND		()			([rand]) a random numder between 0 and 1
-            LRAND		([a])			([rand]) a random numder between 0 and [a]
-	    SPACE		([a])			Return [a] with space between each 3 digits
-	    DOT			([a])			Return [a] with dot (.) between each 3 digits
-	    NORM		([a])			Return [a] normalized by 1000 (K,M,G = 1000 * unit)
-	    NORM2		([a])			Return [a] normalized by 1000 (K,M,G = 1024 * unit)
-	    OCT			(|a|)			Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
-	    OCTSTR2HEX		(|a|)                   Return a HEX string from a OCTETSTRING
-	    HEX2OCTSTR		(|a|)                   Return a OCTETSTRING string from a HEX
-            DDEC2STR		(|a|)                   Return a string from a dotted DEC string
-            STR2DDEC		(|a|)                   Return a dotted DEC string to a string
+        Arithmetic operators
+        ---------------------
+            +                   ([a][b])                ([a+b])
+            -                   ([a][b])                ([a-b])
+            *                   ([a][b])                ([a*b])
+            /                   ([a][b])                ([a/b])         Becare if division by null return a blank value
+            **                  ([a][b])                ([a**b])
+            1+                  ([a])                   ([a+1])
+            1-                  ([a])                   ([a-1])
+            2+                  ([a])                   ([a+2])
+            2-                  ([a])                   ([a-2])    
+            MOD                 ([a][b])                ([a%b])
+            ABS                 ([a])                   ([ABS a])
+            INT                 ([a])                   ([INT a])
+            +-                  ([a])                   ([-a])
+            REMAIN              ([a])                   ([a- INT a])
+            
+        Rationnal operators
+        -------------------  
+            SIN                 ([a])                   ([SIN a])       Unit in radian
+            COS                 ([a])                   ([COS a])       Unit in radian
+            TAN                 ([a])                   ([TAN a])       Unit in radian
+            CTAN                ([a])                   ([CTAN a])      Unit in radian
+            LN                  ([a])                   ([LOG a])
+            EXP                 ([a])                   ([EXP a])
+            PI                                          ([3.14159265358979])    
+            
+        Relational operator
+        ----------------
+            <                   ([a][b])                ([1]) if [a]<[b] else ([0])
+            <=                  ([a][b])                ([1]) if [a]<=[b] else ([0])
+            >                   ([a][b])                ([1]) if [a]>[b] else ([0])
+            >=                  ([a][b])                ([1]) if [a]>=[b] else ([0])    
+            ==                  ([a][b])                ([1]) if [a]==[b] else ([0])
+            <=>                 ([a][b])                ([-1]) if [a]>[b],([1]) if [a]<[b], ([0])if [a]==[b]
+            !=                  ([a][b])                ([0]) if [a]==[b] else ([1])
+            TRUE                ([a])                   Return 1 if [a]>0 and exist
+            FALSE               ([a])                   Return 0 if [a]>0
+            
+        Logical operator
+        ----------------
+        
+            OR                  ([a][b])                ([1]) if [a] or [b] >0
+            AND                 ([a][b])                ([1]) if [a] and [b] >0
+            XOR                 ([a][b])                ([1]) if [a] and [b] are >0 or ==0
+            NOT                 ([a])                   Return 0 if [a]>0, Return 1 if[a]==0, 
+        
+        Other operator
+        ----------------
+        
+            >>                  ([a][b])                shift to the right the bits from [a] of [b] rank
+            <<                  ([a][b])                shift to the left the bits from [a] of [b] rank
+            MIN                 ([a][b])                ([a]) if  [a]<[b] else ([b]) 
+            MAX                 ([a][b])                ([a]) if  [a]>[b] else ([b]) 
+            LOOKUP              ([a] V R [ope] )        test [ a ] on all value of array V with the operator [ope] 
+                                                        if succeed, return the value from array R at the succesfull indice
+            LOOKUPP             ([a] V R [ope] )        test [ a ] on all value of array V with the perl operator [ope] 
+                                                        if succeed, return the value from array R at the succesfull indice
+            LOOKUPOP            ([a] V R O] )           test [ a ] on all value of array V with the operator from the array OPE with the same indice
+            LOOKUPOPP           ([a] V R O] )           test [ a ] on all value of array V with the perl operator from the array OPE with the same indice
+                                                        if succeed, return the value from array R at the succesfull indice
+            TICK                ()                      ([time]) time in ticks
+            LTIME               ([a])                   ([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
+                                                        localtime of [a] like PERL
+            GTIME               ([a])                   ([min][hour][day_in_the_month][month][year][day_in_week][day_year][daylight_saving]
+                                                        ([a]) gmtime of [a] like PERL
+            HLTIME              ([a])                   ([a]) localtime human readeable
+            HGTIME              ([a])                   gmtime human readeable          
+            RAND                ()                      ([rand]) a random numder between 0 and 1
+            LRAND               ([a])                   ([rand]) a random numder between 0 and [a]
+            SPACE               ([a])                   Return [a] with space between each 3 digits
+            DOT                 ([a])                   Return [a] with dot (.) between each 3 digits
+            NORM                ([a])                   Return [a] normalized by 1000 (K,M,G = 1000 * unit)
+            NORM2               ([a])                   Return [a] normalized by 1000 (K,M,G = 1024 * unit)
+            OCT                 (|a|)                   Return the DECIMAL value from HEX,OCTAL or BINARY value |a| (see oct from perl)
+            OCTSTR2HEX          (|a|)                   Return a HEX string from a OCTETSTRING
+            HEX2OCTSTR          (|a|)                   Return a OCTETSTRING string from a HEX
+            DDEC2STR            (|a|)                   Return a string from a dotted DEC string
+            STR2DDEC            (|a|)                   Return a dotted DEC string to a string
 
-	String operators
-	----------------
-            EQ	       		([a][b])		([1]) if [a] eq [b] else ([0])
-	    NE	       		([a][b])		([1]) if [a] ne [b] else ([0])
-            LT			([a][b])		([1]) if [a] lt [b] else ([0])
-            GT			([a][b])		([1]) if [a] gt [b] else ([0])
-            LE			([a][b])		([1]) if [a] le [b] else ([0])
-            GE			([a][b])		([1]) if [a] ge [b] else ([0])
-            CMP			([a][b])		([-1]) if [a] gt [b],([1]) if [a] lt [b], ([0])if [a] eq [b]
-            LEN 		([a])			([LENGTH a])
-	    CAT			([a][b])		([ab])	String concatenation
-	    CATALL		([a][b]...[z])		([ab...z]) String concatenation of all elements on the stack
-            REP			([a][b])		([a x b]) repeat [b] time the motif [a]
-	    REV			([a])			([REVERSE a])
-            SUBSTR		([a][b][c])		([SUBSTR [a], [b], [c]) get substring of [a] starting from [b] untill [c]
-            UC			([a])			([UC a])
-            LC			([a])			([LC a])
-            UCFIRST		([a])			([UCFIRST a])
-            LCFIRST		([a])			([LCFIRST a])
-            PAT			([a][b])		([r1]...) use the pattern [b] on the string [a] and return result 
-	    						if more then one result like $1, $2 ... return all the results 
-	    PATI		([a][b])		([r1]...) use the pattern CASE INSENSITIVE [b] on the string [a] and return result 
-	    						if more then one result like $1, $2 ... return all the results
-	    TPAT		([a][b])		([r]) use the pattern [b] on the string [a] and return 1 if pattern macth 
-	    						otherwise return 0
-	    TPATI		([a][b])		([r]) use the pattern CASE INSENSITIVE [b] on the string [a] and return 1 if pattern macth 
-	    						otherwise return 0
-	    SPLIT		([a][b])		split ([a]) using the pattern ([b]) and return all elements on stack
-	    SPLITI					split ([a]) using the pattern CASE INSENSITIVE  ([b])) and return all elements on stack
-	    SPLIT2		([a][R1][R2][K][V])     split ([a]) using the pattern ([R1]), each result are splitted using the pattern ([R2])
-							the result are stored in the variables [K] and [V]
-	    SPAT		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/>
-	    SPATG		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/g>
-	    SPATI		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i> 
-	    						(case insensitive)
-	    SPATGI		([a][b][c])		Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/gi> 
-	    						(case insensitive)
-	    PRINTF     	        ([a][b]...[x])          use the format present in [a] to print the value [b] to [x] 
-	    						the format is the same as (s)printf 
-	    PACK                ([a][b]...[x])	        Do an unpack on variable [b] to [x] using format [b] 
-	    UNPACK              ([a][b])		Do an unpack on variable [b] using format [a]
-	    
-	    ISNUM		([a])			Test if a is a NUMBER return 1 if success ( [a] [1|0] )
-	    						Keep the value on the stack
-	    ISNUMD		([a])			Test if a is a NUMBER return 1 if success ( [1|0] )
-	    						Remove the value from the stack
-	    ISINT		([a])			Test if a is a INTEGER (natural number )
-	    						Return 1 if success ( [a] [1|0] )
-	    						Keep the value on the stack
-	    ISINTD		([a])			Test if a is a INTEGER (natural number )
-	    						Return 1 if success ( [1|0] )
-	    						Remove the value from the stack					
-	    ISHEX		([a])			Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
-	    						Return 1 if success ( [a] [1|0] )
-	    						Keep the value on the stack
-	    ISHEXD		([a])			Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
-	    						Return 1 if success ( [1|0] )
-	    						Remove the value from the stack					
-							
+        String operators
+        ----------------
+            EQ                  ([a][b])                ([1]) if [a] eq [b] else ([0])
+            NE                  ([a][b])                ([1]) if [a] ne [b] else ([0])
+            LT                  ([a][b])                ([1]) if [a] lt [b] else ([0])
+            GT                  ([a][b])                ([1]) if [a] gt [b] else ([0])
+            LE                  ([a][b])                ([1]) if [a] le [b] else ([0])
+            GE                  ([a][b])                ([1]) if [a] ge [b] else ([0])
+            CMP                 ([a][b])                ([-1]) if [a] gt [b],([1]) if [a] lt [b], ([0])if [a] eq [b]
+            LEN                 ([a])                   ([LENGTH a])
+            CAT                 ([a][b])                ([ab])  String concatenation
+            CATALL              ([a][b]...[z])          ([ab...z]) String concatenation of all elements on the stack
+            REP                 ([a][b])                ([a x b]) repeat [b] time the motif [a]
+            REV                 ([a])                   ([REVERSE a])
+            SUBSTR              ([a][b][c])             ([SUBSTR [a], [b], [c]) get substring of [a] starting from [b] untill [c]
+            UC                  ([a])                   ([UC a])
+            LC                  ([a])                   ([LC a])
+            UCFIRST             ([a])                   ([UCFIRST a])
+            LCFIRST             ([a])                   ([LCFIRST a])
+            PAT                 ([a][b])                ([r1]...) use the pattern [b] on the string [a] and return result 
+                                                        if more then one result like $1, $2 ... return all the results 
+            PATI                ([a][b])                ([r1]...) use the pattern CASE INSENSITIVE [b] on the string [a] and return result 
+                                                        if more then one result like $1, $2 ... return all the results
+            TPAT                ([a][b])                ([r]) use the pattern [b] on the string [a] and return 1 if pattern macth 
+                                                        otherwise return 0
+            TPATI               ([a][b])                ([r]) use the pattern CASE INSENSITIVE [b] on the string [a] and return 1 if pattern macth 
+                                                        otherwise return 0
+            SPLIT               ([a][b])                split ([a]) using the pattern ([b]) and return all elements on stack
+            SPLITI                                      split ([a]) using the pattern CASE INSENSITIVE  ([b])) and return all elements on stack
+            SPLIT2              ([a][R1][R2][K][V])     split ([a]) using the pattern ([R1]), each result are splitted using the pattern ([R2])
+                                                        the result are stored in the variables [K] and [V]
+            SPAT                ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/>
+            SPATG               ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/g>
+            SPATI               ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/i> 
+                                                        (case insensitive)
+            SPATGI              ([a][b][c])             Do a pattern subsititution following this rule I<[c] =~s/[a]/[b]/gi> 
+                                                        (case insensitive)
+            PRINTF              ([a][b]...[x])          use the format present in [a] to print the value [b] to [x] 
+                                                        the format is the same as (s)printf 
+            PACK                ([a][b]...[x])          Do an unpack on variable [b] to [x] using format [b] 
+            UNPACK              ([a][b])                Do an unpack on variable [b] using format [a]
+            
+            ISNUM               ([a])                   Test if a is a NUMBER return 1 if success ( [a] [1|0] )
+                                                        Keep the value on the stack
+            ISNUMD              ([a])                   Test if a is a NUMBER return 1 if success ( [1|0] )
+                                                        Remove the value from the stack
+            ISINT               ([a])                   Test if a is a INTEGER (natural number )
+                                                        Return 1 if success ( [a] [1|0] )
+                                                        Keep the value on the stack
+            ISINTD              ([a])                   Test if a is a INTEGER (natural number )
+                                                        Return 1 if success ( [1|0] )
+                                                        Remove the value from the stack                                 
+            ISHEX               ([a])                   Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
+                                                        Return 1 if success ( [a] [1|0] )
+                                                        Keep the value on the stack
+            ISHEXD              ([a])                   Test if a is a HEXADECIMAL (hex starting with 0x or 0X or # )
+                                                        Return 1 if success ( [1|0] )
+                                                        Remove the value from the stack                                 
+                                                        
  
-	 Stack operators
-	 ---------------
-            	
-            SWAP		([a][b])		([b][a])
-            OVER		([a][b])		([a][b][a])
-	    DUP			([a])			([a][a])
-	    DDUP		([a][b])		([a][b][a][b])
-	    ROT			([a][b][c])     	([b][c][a])
-	    RROT		([a][b][c])     	([c][a][b])
-	    DEPTH		([r1]...)		([re1]...[nbr])	Return the number of elements in the statck
-	    POP			([a][b])		([a])
-	    POPN                ([a][b][c]...[x])	([l]...[x]) remove [b] element from the stack (starting at [c])
-	    SWAP2		([a][b][c])     	([a][c][b])
-            ROLL		([a][b][c][d][e][n])	([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
-	    						if  [n] =3 it is equivalent to ROT
-	    PICK		([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element from depth [n] on top 
-	    GET			([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element from depth [n] and put on top 
-	    PUT			([a][b][c][d][v][n])	([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
-	    DEL			([a][b])		delete [b] element on the stack from level [a]
-               						[a] and [b] is get in absolute value	    
-	    KEEPN		([a][b])		keep [b] element(s) on the stack from level [a] 
-	    						(and delete all other elements)
-               						[a] and [b] is get in absolute value	    
+         Stack operators
+         ---------------
+                
+            SWAP                ([a][b])                ([b][a])
+            OVER                ([a][b])                ([a][b][a])
+            DUP                 ([a])                   ([a][a])
+            DDUP                ([a][b])                ([a][b][a][b])
+            ROT                 ([a][b][c])             ([b][c][a])
+            RROT                ([a][b][c])             ([c][a][b])
+            DEPTH               ([r1]...)               ([re1]...[nbr]) Return the number of elements in the statck
+            POP                 ([a][b])                ([a])
+            POPN                ([a][b][c]...[x])       ([l]...[x]) remove [b] element from the stack (starting at [c])
+            SWAP2               ([a][b][c])             ([a][c][b])
+            ROLL                ([a][b][c][d][e][n])    ([a][c][d][e][b]) rotate the [n] element of the stack (here [n]=4)
+                                                        if  [n] =3 it is equivalent to ROT
+            PICK                ([a][b][c][d][e][n])    ([a][b][c][d][e][b]) copy element from depth [n] on top 
+            GET                 ([a][b][c][d][e][n])    ([a][b][c][d][e][b]) get element from depth [n] and put on top 
+            PUT                 ([a][b][c][d][v][n])    ([a][v][b][c][d]) put element [v] at level [n] (here [n]=3)
+            DEL                 ([a][b])                delete [b] element on the stack from level [a]
+                                                        [a] and [b] is get in absolute value        
+            KEEPN               ([a][b])                keep [b] element(s) on the stack from level [a] 
+                                                        (and delete all other elements)
+                                                        [a] and [b] is get in absolute value        
             KEEPR
             KEEPRN
-	    PRESERVE		([a][b])		keep element(s) on the stack from level [a] to level [b]
-	    						(and delete all other elements)
-               						[a] and [b] is get in absolute value
-	    COPY		([a][b])		copy element(s) on the stack from level [a] to level [b]
-               						[a] and [b] is get in absolute value					
-	    FIND		([a])     		get the level of stack containing [a]
-	    SEARCH		([a])     		get the level of stack containing the REGEX [a]
-	    SEARCHI		([a])     		get the level of stack containing the REGEX [a] ( case insensitive )
-	    SEARCHK		([a])			keep only level of stack matching the REGEX [a]
-	    SEARCHIK		([a])			keep only level of stack matching the REGEX [a] ( case insensitive )
-	    KEEP		([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
+            PRESERVE            ([a][b])                keep element(s) on the stack from level [a] to level [b]
+                                                        (and delete all other elements)
+                                                        [a] and [b] is get in absolute value
+            COPY                ([a][b])                copy element(s) on the stack from level [a] to level [b]
+                                                        [a] and [b] is get in absolute value                                    
+            FIND                ([a])                   get the level of stack containing [a]
+            SEARCH              ([a])                   get the level of stack containing the REGEX [a]
+            SEARCHI             ([a])                   get the level of stack containing the REGEX [a] ( case insensitive )
+            SEARCHK             ([a])                   keep only level of stack matching the REGEX [a]
+            SEARCHIK            ([a])                   keep only level of stack matching the REGEX [a] ( case insensitive )
+            KEEP                ([a][b][c][d][e][n])    remove all elements of the stack except the element at deepth |n|
             
-	 Dictionary operators
-	 --------------------	 
-	  
-	    WORDS		()				([a])return as one stack element the list of WORD in DICT separated by a |	
-	    VARS   		()				([a])return as one stack element the list of VARIABLE in VAR separated by a |				
-            INC			([a])     			() increment (+1) the value of variable [a]
-            DEC			([a])     			() decrement (-1) the value of variable [a]
-            VARIABLE            ([a])				() create a entry in VAR for the variable [a]
-	    !			([a][b])			store the value [a] in the variable [b]
-	    !A
-	    !!			([a][b][c]...[n] [var])		put and delete 'n' element(s) from the stack in the variable 'var'
-	    							'n' is in absolute value 	
-	    !!A
-	    !!C			([a][b][c]...[n] [var])		copy 'n' element(s) from the stack in the variable 'var'
-	    							'n' is in absolute value 	
-	    !!CA
-	    !!!			([a][b][c]...[n1] [n2] [var])	put and delete element(s) from the stack in the variable 'var'
-	    							starting at element  'a' to element 'b'
-								'a' and 'b' in absolute value 
-								if 'a' > 'b'  keep the reverse of selection (boustrophedon)
-	    !!!A
-	    !!!C			([a][b][c]...[n] [var])	copy 'element(s) from the stack in the variable 'var'
-	    							starting at element  'a' to element 'b'
-								'a' and 'b' in absolute value 
-								if 'a' > 'b'  keep the reverse of selection (boustrophedon)								
-	    !!!CA
-	    @			([a])				([a]) return the value of the variable [a]
-            : xxx yyy ;						create a new word (sub) into the dictionary with the xxx "code" and name yyy
-	    : xxx yyy PERLFUNC					execute the PERL function yyy with parameter(s) yyy 
-								the default name space is "main::"
-								It is possible tu use a specific name space
-	    : xxx yyy PERL					execute the PERL code xxx ; yyy					
+         Dictionary operators
+         --------------------    
+          
+            WORDS               ()                              ([a])return as one stack element the list of WORD in DICT separated by a |      
+            VARS                ()                              ([a])return as one stack element the list of VARIABLE in VAR separated by a |                           
+            INC                 ([a])                           () increment (+1) the value of variable [a]
+            DEC                 ([a])                           () decrement (-1) the value of variable [a]
+            VARIABLE            ([a])                           () create a entry in VAR for the variable [a]
+            !                   ([a][b])                        store the value [a] in the variable [b]
+            !A
+            !!                  ([a][b][c]...[n] [var])         put and delete 'n' element(s) from the stack in the variable 'var'
+                                                                'n' is in absolute value        
+            !!A
+            !!C                 ([a][b][c]...[n] [var])         copy 'n' element(s) from the stack in the variable 'var'
+                                                                'n' is in absolute value        
+            !!CA
+            !!!                 ([a][b][c]...[n1] [n2] [var])   put and delete element(s) from the stack in the variable 'var'
+                                                                starting at element  'a' to element 'b'
+                                                                'a' and 'b' in absolute value 
+                                                                if 'a' > 'b'  keep the reverse of selection (boustrophedon)
+            !!!A
+            !!!C                        ([a][b][c]...[n] [var]) copy 'element(s) from the stack in the variable 'var'
+                                                                starting at element  'a' to element 'b'
+                                                                'a' and 'b' in absolute value 
+                                                                if 'a' > 'b'  keep the reverse of selection (boustrophedon)                                                             
+            !!!CA
+            @                   ([a])                           ([a]) return the value of the variable [a]
+            : xxx yyy ;                                         create a new word (sub) into the dictionary with the xxx "code" and name yyy
+            : xxx yyy PERLFUNC                                  execute the PERL function yyy with parameter(s) yyy 
+                                                                the default name space is "main::"
+                                                                It is possible tu use a specific name space
+            : xxx yyy PERL                                      execute the PERL code xxx ; yyy                                 
 
-	 File oprator
-	 -------------
-	 
-	   OPEN
-	   STAT
-	   SEEK
-	   TELL
-	   CLOSE
-	   GETC
-	   GETCS
-	   READLINE
-	   WRITE
-	   WRITELINE
-	   
- 	 Return Stack operators
-	 ----------------------
-	 
-	   >R        		([a])			put ^a$ on the return stack
-	   R>			()			remove first element from the return stack and copy on the normal
-	   RL			()			return the depth of the return stack
-	   R@			()			copy return stack ion normal stack
+         File oprator
+         -------------
+         
+           OPEN
+           STAT
+           SEEK
+           TELL
+           CLOSE
+           GETC
+           GETCS
+           READLINE
+           WRITE
+           WRITELINE
+           
+         Return Stack operators
+         ----------------------
+         
+           >R                   ([a])                   put ^a$ on the return stack
+           R>                   ()                      remove first element from the return stack and copy on the normal
+           RL                   ()                      return the depth of the return stack
+           R@                   ()                      copy return stack ion normal stack
 
-	LOOP and DECISION operators
-   	---------------------------
-	
-	 [a] IF [..xxx] THEN				Test the element on top of stack
-                       					  if ==0, execute 'xxx' block
-							The loop is executed always one time
-	 
-	 [a] IF [...zzz...] ELSE [..xxx...] THEN	Test the element on top of stack
-                       					  if ==0, execute 'xxx' block
-                       					  if != 0 execute 'zzz' block
-							The loop is executed always one time
+        LOOP and DECISION operators
+        ---------------------------
+        
+         [a] IF [..xxx] THEN                            Test the element on top of stack
+                                                          if ==0, execute 'xxx' block
+                                                        The loop is executed always one time
+         
+         [a] IF [...zzz...] ELSE [..xxx...] THEN        Test the element on top of stack
+                                                          if ==0, execute 'xxx' block
+                                                          if != 0 execute 'zzz' block
+                                                        The loop is executed always one time
 
-         BEGIN xxx WHILE zzz REPEAT			Execute 'xxx' block
-							Test the element on top of stack
-                       					  if ==0 execute 'zzz' block and branch again to BEGIN
-                       					  if != 0 end the loop
-							The loop is executed always one time
+         BEGIN xxx WHILE zzz REPEAT                     Execute 'xxx' block
+                                                        Test the element on top of stack
+                                                          if ==0 execute 'zzz' block and branch again to BEGIN
+                                                          if != 0 end the loop
+                                                        The loop is executed always one time
 
- 	[a] [b] DO [...xxx...] LOOP	([a][b])	process block [...xxx...] with iterator from value [b] untill [a] value,
-							with increment of 1;
-               						The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
-	
-	[a] [b] DO [...xxx...] [c] +LOOP	([a][b])	process block [...xxx...] with iterator from value [b] untill [a] value,
-							with increment of [c];
-               						The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
+        [a] [b] DO [...xxx...] LOOP     ([a][b])        process block [...xxx...] with iterator from value [b] untill [a] value,
+                                                        with increment of 1;
+                                                        The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
+        
+        [a] [b] DO [...xxx...] [c] +LOOP        ([a][b])        process block [...xxx...] with iterator from value [b] untill [a] value,
+                                                        with increment of [c];
+                                                        The iterator variable is '_I_' (read only and scoop only the DO ... LOOP block)
 
 
 =head1 EXAMPLES
 
-	use Parse::RPN;
-	
-	$test ="3,5,+";
-	$ret = rpn($test);  # $ret = 8
-	
-	$test = "Hello World,len,3,+";
-	$ret = rpn($test);  # $ret = 14
-	
-	$test = "'Hello,World',len,3,+";
-	$ret = rpn($test);  # $ret = 14
-	
-	$test = "'Hello,World,len,3,+";
-	---------^-----------^-
-	$ret = rpn($test);  # $ret = 8 with a warning because the stack is not empty ([Hello] [8])
-			    # be care to close your quoted string 
-	
-	$test = "'Hello world','or',PAT,'or',EQ,IF,'string contain or',ELSE,'No or in string',THEN"
-	$ret = rpn($test);  # $ret = "Contain a coma"
-	
-	$test = "'Hello world','or',TPAT,IF,'string contain or',ELSE,'No or in string',THEN";
-	$ret = rpn($test);  # $ret = "string contain or"
-	
-	
-	$test = "3,10,/,5,+,82,*,%b,PRINTF";
-	$ret = rpn($test);  # $ret = "110110010"
-	
-	$test = "3,10,/,5,+,82,*,%016b,PRINTF";
-	$ret = rpn($test);  # $ret = "0000000110110010"
-	
-	$test = "55,N,pack,B32,unpack,^0+(?=\d), ,spat,'+',ds";
-	$ret = rpn($test);  # $ret = 110111
-	
-	$test = "7,3,/,10,3,/,%d %f,PRINTF";
-	@ret = rpn($test); # @ret = 2 3.333333
-	
-	$test = "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,>,WHILE,####,a,@,****,REPEAT";
-	@ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb
-	or
-	$test = "0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,>,WHILE,####,a,@,****,REPEAT"; # the VARIABLE declaration is optionel
-	@ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb #### 4 **** bbbb
-	
-	$test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
-	@ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
-	
-	$test = 'a,b,c,d,e,f,g,h,i,5,2,V1,!!!,uuu,V1,SIZE'
-	$ret  =rpn($test); # $ret = a b c d i uuu 4
-	
-	$test = "1,2,3,4,5,6,7,8,9,3,KEEP";
-	$ret =rpn($test); # $ret = 7
-	
-	$test = "1,2,3,4,5,6,7,8,9,30,KEEP";
-	$ret =rpn($test); # $ret = 1,2,3,4,5,6,7,8,9
-	
-	$test = "h,g,f,e,d,c,b,a,4,3,DEL";
-	$ret =rpn($test); # $ret = h,c,b,a
-	
-	$test = 'test for a split,\s,SPLIT,DEPTH';
-	$ret =rpn($test); # $ret = test,for,a,split,4
-	
-	$test = '# .1.3.6.1.2.1.25.3.3.1.2.768 | 48 # .1.3.6.1.2.1.25.3.3.1.2.769 | 38 # .1.3.6.1.2.1.25.3.3.1.2.771 | 42 # .1.3.6.1.2.1.25.3.3.1.2.770 | 58 #,\s?#\s?,\s\|\s,a,b,SPLIT2
-	$ret = rpn($test)
-	$ret = rpn(a,@); # $ret = .1.3.6.1.2.1.25.3.3.1.2.768,.1.3.6.1.2.1.25.3.3.1.2.769,.1.3.6.1.2.1.25.3.3.1.2.771,.1.3.6.1.2.1.25.3.3.1.2.770
-	$ret = rpn(b,@); # $ret = 48,38,42,58
-		
-	$test = "h,g,f,e,d,c,b,a,4,3,KEEPN"";
-	ret =rpn($test); # @ret = g,f,e,d
-	
-	sub Test {
-	   my $a  = shift;
-	   my $b = shift;
-	   my $c = $a/$b;
-	   print "a=$a\tb=$b\ttotal=$c\n";
-	   return $c;
-	}
-	$test = ":,5,6,Test,PERLFUNC";
-	@ret =rpn($test); # call the function "Test" from the main package (the caller) with parameter 5,6 and return result (in @ret)
-	
-	$test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERLFUNC";
-	@ret =rpn($test); # @ret = 1133391600
-	
+        use Parse::RPN;
+        
+        $test ="3,5,+";
+        $ret = rpn($test);  # $ret = 8
+        
+        $test = "Hello World,len,3,+";
+        $ret = rpn($test);  # $ret = 14
+        
+        $test = "'Hello,World',len,3,+";
+        $ret = rpn($test);  # $ret = 14
+        
+        $test = "'Hello,World,len,3,+";
+        ---------^-----------^-
+        $ret = rpn($test);  # $ret = 8 with a warning because the stack is not empty ([Hello] [8])
+                            # be care to close your quoted string 
+        
+        $test = "'Hello world','or',PAT,'or',EQ,IF,'string contain or',ELSE,'No or in string',THEN"
+        $ret = rpn($test);  # $ret = "Contain a coma"
+        
+        $test = "'Hello world','or',TPAT,IF,'string contain or',ELSE,'No or in string',THEN";
+        $ret = rpn($test);  # $ret = "string contain or"
+        
+        
+        $test = "3,10,/,5,+,82,*,%b,PRINTF";
+        $ret = rpn($test);  # $ret = "110110010"
+        
+        $test = "3,10,/,5,+,82,*,%016b,PRINTF";
+        $ret = rpn($test);  # $ret = "0000000110110010"
+        
+        $test = "55,N,pack,B32,unpack,^0+(?=\d), ,spat,'+',ds";
+        $ret = rpn($test);  # $ret = 110111
+        
+        $test = "7,3,/,10,3,/,%d %f,PRINTF";
+        @ret = rpn($test); # @ret = 2 3.333333
+        
+        $test = "VARIABLE,a,0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,>,WHILE,####,a,@,****,REPEAT";
+        @ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb
+        or
+        $test = "0,a,!,##,b,BEGIN,bbbb,a,INC,a,@,4,>,WHILE,####,a,@,****,REPEAT"; # the VARIABLE declaration is optionel
+        @ret =rpn($test); # @ret = ## b bbbb #### 1 **** bbbb #### 2 **** bbbb #### 3 **** bbbb #### 4 **** bbbb
+        
+        $test = "VARIABLE,a,0,a,!,z,0,5,-1,DO,a,INC,6,1,2,DO,A,_I_,+LOOP,#,+LOOP,##,a,@";
+        @ret =rpn($test); # @ret = z A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # A 3 A 5 A 7 # ## 6
+        
+        $test = 'a,b,c,d,e,f,g,h,i,5,2,V1,!!!,uuu,V1,SIZE'
+        $ret  =rpn($test); # $ret = a b c d i uuu 4
+        
+        $test = "1,2,3,4,5,6,7,8,9,3,KEEP";
+        $ret =rpn($test); # $ret = 7
+        
+        $test = "1,2,3,4,5,6,7,8,9,30,KEEP";
+        $ret =rpn($test); # $ret = 1,2,3,4,5,6,7,8,9
+        
+        $test = "h,g,f,e,d,c,b,a,4,3,DEL";
+        $ret =rpn($test); # $ret = h,c,b,a
+        
+        $test = 'test for a split,\s,SPLIT,DEPTH';
+        $ret =rpn($test); # $ret = test,for,a,split,4
+        
+        $test = '# .1.3.6.1.2.1.25.3.3.1.2.768 | 48 # .1.3.6.1.2.1.25.3.3.1.2.769 | 38 # .1.3.6.1.2.1.25.3.3.1.2.771 | 42 # .1.3.6.1.2.1.25.3.3.1.2.770 | 58 #,\s?#\s?,\s\|\s,a,b,SPLIT2
+        $ret = rpn($test)
+        $ret = rpn(a,@); # $ret = .1.3.6.1.2.1.25.3.3.1.2.768,.1.3.6.1.2.1.25.3.3.1.2.769,.1.3.6.1.2.1.25.3.3.1.2.771,.1.3.6.1.2.1.25.3.3.1.2.770
+        $ret = rpn(b,@); # $ret = 48,38,42,58
+                
+        $test = "h,g,f,e,d,c,b,a,4,3,KEEPN"";
+        ret =rpn($test); # @ret = g,f,e,d
+        
+        sub Test {
+           my $a  = shift;
+           my $b = shift;
+           my $c = $a/$b;
+           print "a=$a\tb=$b\ttotal=$c\n";
+           return $c;
+        }
+        $test = ":,5,6,Test,PERLFUNC";
+        @ret =rpn($test); # call the function "Test" from the main package (the caller) with parameter 5,6 and return result (in @ret)
+        
+        $test = ":,05,11,01,0,0,0,Time::Local::timelocal,PERLFUNC";
+        @ret =rpn($test); # @ret = 1133391600
+        
         $test = "1,2,3,+,:, my $b=7, "open LOG , qq{ >/tmp/log }",print LOG time,PERL";
-	@ret =rpn($test); # @ret = 1,5
-	and the file /tmp/log contain a line with the tick time.
-	
-	$test = "11,55,*,5,2,401,+,:,my $b=,SWAP,CAT, "open LOG , qq{ >/tmp/log }",print LOG $b.qq{ \n },PERL"
-	@ret =rpn($test); # @ret =1 2 3 1 (the latest 1 is the succes result return)
-	and the file /tmp/log contain a line with 403 + a cariage return
-	
-	$test = 'mb,tb,gb,mb,kb,4,V,!!,12,9,6,3,4,R,!!,V,R,"TPATI",LOOKUP'
-	@ret =rpn($test); # @ret = 6
+        @ret =rpn($test); # @ret = 1,5
+        and the file /tmp/log contain a line with the tick time.
+        
+        $test = "11,55,*,5,2,401,+,:,my $b=,SWAP,CAT, "open LOG , qq{ >/tmp/log }",print LOG $b.qq{ \n },PERL"
+        @ret =rpn($test); # @ret =1 2 3 1 (the latest 1 is the succes result return)
+        and the file /tmp/log contain a line with 403 + a cariage return
+        
+        $test = 'mb,tb,gb,mb,kb,4,V,!!,12,9,6,3,4,R,!!,V,R,"TPATI",LOOKUP'
+        @ret =rpn($test); # @ret = 6
 
-	$test = '5,1,2,3,4,5,5,V,!!," "," ",ok," ",nok,5,R,!!,V,R,"<=",LOOKUPP'
-	@ret =rpn($test); # @ret = nok
+        $test = '5,1,2,3,4,5,5,V,!!," "," ",ok," ",nok,5,R,!!,V,R,"<=",LOOKUPP'
+        @ret =rpn($test); # @ret = nok
 
-	$test = '3,1,2,3,4,5,5,V,!!,a,b,ok,d,nok,5,R,!!,"<","<","<","<","<",5,O,!!,V,R,O,LOOKUPOPP'
+        $test = '3,1,2,3,4,5,5,V,!!,a,b,ok,d,nok,5,R,!!,"<","<","<","<","<",5,O,!!,V,R,O,LOOKUPOPP'
         @ret =rpn($test); # @ret = d
           
         $test =   1,2,3,4,2,5,2,10,7,DEPTH,1,DO,MAX,LOOP'
@@ -5519,61 +5522,61 @@ __END__
         $test =     'toto,tata,tota,tato,titi,tito,toti,tot,SEARCHA,DEPTH,r,!!,res1,res2,res3,res4,res5,res6,res7,res8,r,SIZE,DUP,s,!,1,DO,r,POPV,PICK,st,!A,LOOP,DEPTH,POPN,st,@'
         @ret =rpn($test); # @ret = res2 res4 res8
 
-	The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.
-	This include two test functions named 'save' and 'restore'
-	Try RPN.pl to get a minimal help. 
-	Take a look to the minimalistic code, and put RPN.pl in your path.
-	
-	Sample of use:
-	RPN.pl -r '1,2,3,:,123,100,+,7,*,test,save,PERLFUNC'
-	save in file '/tmp/test' the value '1561' (whithout CR/LF) and return 1 2 3 1
-		
+        The small tool 'RPN.pl' provide an easy interface to test quickly an RPN.
+        This include two test functions named 'save' and 'restore'
+        Try RPN.pl to get a minimal help. 
+        Take a look to the minimalistic code, and put RPN.pl in your path.
+        
+        Sample of use:
+        RPN.pl -r '1,2,3,:,123,100,+,7,*,test,save,PERLFUNC'
+        save in file '/tmp/test' the value '1561' (whithout CR/LF) and return 1 2 3 1
+                
 
 =head1 AUTHOR
 
-	Fabrice Dulaunoy <fabrice@dulaunoy.com> 
-	It is a full rewrite from the version 1.xx to allow DICTIONNARY use
-	and STRUCTURE control
-	Thanks to the module Math::RPN from  Owen DeLong, <owen@delong.com> 
-	for the idea of using RPN in a config file
+        Fabrice Dulaunoy <fabrice@dulaunoy.com> 
+        It is a full rewrite from the version 1.xx to allow DICTIONNARY use
+        and STRUCTURE control
+        Thanks to the module Math::RPN from  Owen DeLong, <owen@delong.com> 
+        for the idea of using RPN in a config file
 
 =head1 SEE ALSO
 
-	Math-RPN from  Owen DeLong, <owen@delong.com> 
+        Math-RPN from  Owen DeLong, <owen@delong.com> 
 
 =head1 TODO
 
-	Error processing, stack underflow...
+        Error processing, stack underflow...
 
 =head1 CREDITS
-	
-	Thank's to Stefan Moser <sm@open.ch> for the idea 
-	to call a perl function from the rpn() and also for pin-pointing an error in stack return. 
-	
+        
+        Thank's to Stefan Moser <sm@open.ch> for the idea 
+        to call a perl function from the rpn() and also for pin-pointing an error in stack return. 
+        
 =head1 LICENSE
 
-	Under the GNU GPL2
+        Under the GNU GPL2
 
-	This program is free software; you can redistribute it and/or modify it 
-	under the terms of the GNU General Public 
-	License as published by the Free Software Foundation; either version 2 
-	of the License, or (at your option) any later version.
+        This program is free software; you can redistribute it and/or modify it 
+        under the terms of the GNU General Public 
+        License as published by the Free Software Foundation; either version 2 
+        of the License, or (at your option) any later version.
 
-	This program is distributed in the hope that it will be useful, 
-	but WITHOUT ANY WARRANTY;  without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
-	See the GNU General Public License for more details.
+        This program is distributed in the hope that it will be useful, 
+        but WITHOUT ANY WARRANTY;  without even the implied warranty of
+        MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+        See the GNU General Public License for more details.
 
-	You should have received a copy of the GNU General Public License 
-	along with this program; if not, write to the 
-	Free Software Foundation, Inc., 59 Temple Place, 
-	Suite 330, Boston, MA 02111-1307 USA
+        You should have received a copy of the GNU General Public License 
+        along with this program; if not, write to the 
+        Free Software Foundation, Inc., 59 Temple Place, 
+        Suite 330, Boston, MA 02111-1307 USA
 
-	Parse::RPN   Copyright (C) 2004 2005 2006 2007 2008 2009 2010 DULAUNOY Fabrice  
-	Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
-	for details See: L<http://www.gnu.org/licenses/gpl.html> 
-	This is free software, and you are welcome to redistribute 
-	it under certain conditions;
+        Parse::RPN   Copyright (C) 2004 2005 2006 2007 2008 2009 2010 DULAUNOY Fabrice  
+        Parse::RPN comes with ABSOLUTELY NO WARRANTY; 
+        for details See: L<http://www.gnu.org/licenses/gpl.html> 
+        This is free software, and you are welcome to redistribute 
+        it under certain conditions;
    
    
 =cut
